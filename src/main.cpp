@@ -106,12 +106,46 @@ int main(int argc, char* argv[]) {
                     break;
                 }
 
+                // Handle UI Screen toggles
+                if (inputState.toggleInventory) sim.toggleScreen(ActiveScreen::Inventory);
+                if (inputState.toggleCrafting) sim.toggleScreen(ActiveScreen::Crafting);
+                if (inputState.toggleAugmentations) sim.toggleScreen(ActiveScreen::Augmentations);
+                if (inputState.toggleMinimap) sim.toggleScreen(ActiveScreen::Minimap);
+
+                // Handle Dungeon Entrance / Exit Interaction
+                if (inputState.interactPressed) {
+                    if (sim.isInsideDungeon()) {
+                        sim.exitDungeon();
+                    } else if (sim.canEnterDungeon()) {
+                        sim.enterDungeon();
+                    }
+                }
+
+                // Handle Active Skills Q, E, R, F
+                if (inputState.skillQ) sim.castSkillQ();
+                if (inputState.skillE) sim.castSkillE();
+                if (inputState.skillR) sim.castSkillR();
+                if (inputState.skillF) sim.castSkillF();
+
                 // Fixed 60 Hz simulation updates
                 int ticks = timeStep.update(frameDelta);
                 for (int t = 0; t < ticks; ++t) {
+                    // Left Click: Try mining first; if not mining a solid tile, swing weapon
                     if (inputState.attackPressed) {
-                        sim.playerAttack();
+                        bool mined = sim.mineTileAt(inputState.mouseWorldPos);
+                        if (!mined) {
+                            sim.playerAttack();
+                        }
                     }
+
+                    // Right Click: Try placing block or shoot projectile
+                    if (inputState.secondaryPressed) {
+                        bool placed = sim.placeBlockAt(inputState.mouseWorldPos, "mat_wood_plank", 3);
+                        if (!placed) {
+                            sim.shootProjectile(inputState.mouseWorldPos);
+                        }
+                    }
+
                     sim.step(inputState.controller, 1.0f / 60.0f);
                 }
 
@@ -134,6 +168,18 @@ int main(int argc, char* argv[]) {
                     }
                 }
 
+                // Draw dropped world loot items
+                auto lootView = sim.getContext().registry.view<DroppedItemComponent, TransformComponent>();
+                for (auto [lootE, drop, trans] : lootView.each()) {
+                    renderer.drawLoot(trans.position, drop.item.name, camera, metrics);
+                }
+
+                // Draw active flying projectiles
+                auto projView = sim.getContext().registry.view<ProjectileComponent, TransformComponent, VelocityComponent>();
+                for (auto [projE, pComp, trans, vel] : projView.each()) {
+                    renderer.drawProjectile(trans.position, vel.linear, Color{255, 220, 50, 255}, camera, metrics);
+                }
+
                 // Draw enemies
                 auto enemyView = sim.getContext().registry.view<EnemyTag, TransformComponent, HealthComponent>();
                 for (auto [e, tag, trans, hp] : enemyView.each()) {
@@ -149,8 +195,30 @@ int main(int argc, char* argv[]) {
                     renderer.drawSlashArc(sim.getLastAttackBox(), camera, metrics, sim.getPlayerFacing());
                 }
 
+                // Dynamic 2D Lighting overlay
+                float darkness = sim.getContext().dayNight.getAmbientDarkness();
+                renderer.drawLightingOverlay(playerPos, darkness, camera, metrics);
+
                 // Draw HUD & Crosshair
                 renderer.drawHUD(sim, metrics, inputState);
+
+                // Draw Active Overlay UI Screen
+                switch (sim.getActiveScreen()) {
+                    case ActiveScreen::Inventory:
+                        renderer.drawInventoryScreen(sim.getInventory(), metrics);
+                        break;
+                    case ActiveScreen::Crafting:
+                        renderer.drawCraftingScreen(sim.getCraftingEngine(), sim.getInventory(), metrics);
+                        break;
+                    case ActiveScreen::Augmentations:
+                        renderer.drawAugmentationScreen(sim.getAugmentations(), metrics);
+                        break;
+                    case ActiveScreen::Minimap:
+                        renderer.drawMinimap(sim.getDungeonLayout(), playerPos, metrics);
+                        break;
+                    default:
+                        break;
+                }
 
                 // Blit to screen
                 renderer.endFrame(metrics);

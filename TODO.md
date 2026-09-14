@@ -332,3 +332,28 @@ This section tracks the live feature-by-feature implementation using strict Test
 - [x] Fix all compiler warnings across game engine library (`untitled_rpg_lib`), main executable (`untitled_rpg`), and test executables.
 - [x] Eliminate missing field initializers, unused variables, and unused private fields.
 - [x] Ensure `-Wall -Wextra -Wpedantic` compiles with 0 warnings on Apple Clang.
+
+### 4.16 Module 16: Complete Interactive Playable Game Systems
+- [x] **TDD 16.1**: Dynamic Projectiles & 360-Degree Aiming
+  - [x] RED: Write unit tests in `tests/test_projectiles_loot.cpp` verifying projectile spawning along 360-degree aim vectors, lifetime decay, collision with terrain and enemies, and penetration counts.
+  - [x] GREEN: Implement `src/gameplay/combat/ProjectileSystem.hpp` and `ProjectileSystem.cpp`.
+- [x] **TDD 16.2**: Dropped World Loot & Magnetic Vacuum Pickup
+  - [x] RED: Write unit tests in `tests/test_projectiles_loot.cpp` verifying dropped item physics (gravity, bouncing on terrain), proximity magnetic attraction to player, and automatic inventory pickup.
+  - [x] GREEN: Implement `src/gameplay/items/LootSystem.hpp` and `LootSystem.cpp`.
+- [x] **TDD 16.3**: Mining, Tile Breaking & Block Placement
+  - [x] RED: Write unit tests in `tests/test_world_interaction.cpp` verifying player reach distance, breaking foreground tiles (spawning drop items), placing blocks from inventory, and updating physics world collision.
+  - [x] GREEN: Implement `src/gameplay/building/WorldInteraction.hpp` and `WorldInteraction.cpp`.
+- [x] **TDD 16.4**: Overworld $\leftrightarrow$ Procedural Dungeon Level Transitions
+  - [x] RED: Write unit tests in `tests/test_world_interaction.cpp` verifying world context swapping between Overworld and BSP Dungeon, maintaining player state, and positioning at dungeon entrance/exit.
+  - [x] GREEN: Implement level transition management in `GameSimulation.cpp`.
+- [x] **TDD 16.5**: Active 4-Skill Hotbar Execution & Visual Particles
+  - [x] RED: Write unit tests verifying hotbar triggers for Q (Seismic Slam), E (Rocket Dash), R (EMP Arc Discharge), F (Nanite Heal Surge).
+  - [x] GREEN: Integrate hotbar skills and active cooldown/effects in `GameSimulation.cpp`.
+- [x] **TDD 16.6**: In-Game UI Overlay Modes (Inventory, Crafting, Augmentations, Skills, Minimap)
+  - [x] Implement toggleable UI screens for Inventory (`Tab`), Crafting (`C`), Augmentations (`U`), and Dungeon Minimap (`M`).
+  - [x] Implement visual slot cards and interactive HUD overlays in `src/render/Renderer.cpp`.
+- [x] **TDD 16.7**: Dynamic Point-Light & Ambient Darkness Composite
+  - [x] Implement 2D circular light attenuation around player, torches, and projectiles cutting into day/night darkness in `src/render/Renderer.cpp`.
+- [x] **TDD 16.8**: Full Interactive Verification & Final Zero-Warning Build
+  - [x] Verify complete interactive experience in SDL3 window with mouse aiming, shooting, mining, crafting, dungeon diving, and combat.
+  - [x] Verify 100% test passage across all 16 test suites with 0 compiler warnings.

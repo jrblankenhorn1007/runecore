@@ -14,6 +14,10 @@ void InputManager::processEvents(const CanvasMetrics& metrics, const Camera& cam
     m_state.skillR = false;
     m_state.skillF = false;
     m_state.toggleInventory = false;
+    m_state.toggleCrafting = false;
+    m_state.toggleAugmentations = false;
+    m_state.toggleMinimap = false;
+    m_state.interactPressed = false;
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -44,6 +48,18 @@ void InputManager::processEvents(const CanvasMetrics& metrics, const Camera& cam
                         break;
                     case SDLK_TAB:
                         m_state.toggleInventory = true;
+                        break;
+                    case SDLK_C:
+                        m_state.toggleCrafting = true;
+                        break;
+                    case SDLK_U:
+                        m_state.toggleAugmentations = true;
+                        break;
+                    case SDLK_M:
+                        m_state.toggleMinimap = true;
+                        break;
+                    case SDLK_W:
+                        m_state.interactPressed = true;
                         break;
                     case SDLK_ESCAPE:
                         m_state.quitRequested = true;

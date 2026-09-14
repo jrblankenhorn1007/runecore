@@ -2,13 +2,26 @@
 #include "core/EngineContext.hpp"
 #include "physics/CharacterController.hpp"
 #include "gameplay/combat/CombatSystem.hpp"
+#include "gameplay/combat/ProjectileSystem.hpp"
 #include "gameplay/items/Inventory.hpp"
+#include "gameplay/items/LootSystem.hpp"
 #include "gameplay/stats/Progression.hpp"
 #include "gameplay/survival/Metabolism.hpp"
 #include "gameplay/augmentations/AugmentationMatrix.hpp"
 #include "gameplay/skills/SkillExecutor.hpp"
 #include "gameplay/crafting/CraftingEngine.hpp"
 #include "gameplay/crafting/ModificationForge.hpp"
+#include "gameplay/building/WorldInteraction.hpp"
+#include "procgen/DungeonGenerator.hpp"
+
+enum class ActiveScreen {
+    None,
+    Inventory,
+    Crafting,
+    Augmentations,
+    Skills,
+    Minimap
+};
 
 class GameSimulation {
 public:
@@ -18,6 +31,23 @@ public:
     void step(const ControllerInput& input, float dt);
 
     void playerAttack();
+    void shootProjectile(const Vec2& targetWorldPos);
+    bool mineTileAt(const Vec2& targetWorldPos);
+    bool placeBlockAt(const Vec2& targetWorldPos, const std::string& itemId, uint16_t blockType);
+
+    bool castSkillQ();
+    bool castSkillE();
+    bool castSkillR();
+    bool castSkillF();
+
+    void toggleScreen(ActiveScreen screen);
+    ActiveScreen getActiveScreen() const { return m_activeScreen; }
+
+    bool canEnterDungeon() const;
+    void enterDungeon();
+    void exitDungeon();
+    bool isInsideDungeon() const { return m_dungeonManager.getCurrentZone() == WorldZone::Dungeon; }
+
     entt::entity spawnEnemy(const Vec2& position, float health, int xpReward);
 
     uint64_t getTickCount() const { return m_tickCount; }
@@ -26,6 +56,8 @@ public:
     int getPlayerLevel() const { return m_progression.getLevel(); }
     uint64_t getPlayerXP() const { return m_progression.getCurrentXP(); }
     float getPlayerHealth() const;
+    float getPlayerMana() const;
+    float getPlayerPower() const;
     float getPlayerHunger() const { return m_metabolism.getHunger(); }
     Vec2 getPlayerPosition() const;
     int getPlayerFacing() const { return m_controller.getFacing(); }
@@ -36,6 +68,11 @@ public:
 
     EngineContext& getContext() { return m_context; }
     Inventory& getInventory() { return m_inventory; }
+    const DungeonLayout& getDungeonLayout() const { return m_dungeonLayout; }
+    SkillExecutor& getSkillExecutor() { return m_skillExecutor; }
+    CraftingEngine& getCraftingEngine() { return m_crafting; }
+    AugmentationMatrix& getAugmentations() { return m_augmentations; }
+    Progression& getProgression() { return m_progression; }
 
 private:
     EngineContext m_context;
@@ -49,6 +86,11 @@ private:
     SkillExecutor m_skillExecutor;
     ModificationForge m_forge;
     CraftingEngine m_crafting;
+    LootSystem m_lootSystem;
+    ProjectileSystem m_projectileSystem;
+    WorldInteraction m_worldInteraction;
+    DungeonTransitionManager m_dungeonManager;
+    DungeonLayout m_dungeonLayout;
 
     entt::entity m_playerEntity{entt::null};
     uint64_t m_tickCount{0};
@@ -56,4 +98,5 @@ private:
 
     float m_attackVisualTimer{0.0f};
     Hitbox m_lastAttackBox;
+    ActiveScreen m_activeScreen{ActiveScreen::None};
 };

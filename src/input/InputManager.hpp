@@ -15,6 +15,10 @@ struct RawInputState {
     bool skillR{false};
     bool skillF{false};
     bool toggleInventory{false};
+    bool toggleCrafting{false};
+    bool toggleAugmentations{false};
+    bool toggleMinimap{false};
+    bool interactPressed{false};
     bool quitRequested{false};
     Vec2 mouseScreenPos{0.0f, 0.0f};
     Vec2 mouseWorldPos{0.0f, 0.0f};

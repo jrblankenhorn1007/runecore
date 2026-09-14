@@ -234,6 +234,206 @@ void Renderer::drawSlashArc(const Hitbox& hitbox, const Camera& camera, const Ca
     SDL_RenderFillRect(m_renderer, &tip);
 }
 
+void Renderer::drawProjectile(const Vec2& worldPos, const Vec2& vel, Color color, const Camera& camera, const CanvasMetrics& metrics) {
+    Vec2 camPos = camera.getSnappedPosition();
+    float screenX = (worldPos.x - camPos.x) + (metrics.virtualWidth * 0.5f);
+    float screenY = (worldPos.y - camPos.y) + (metrics.virtualHeight * 0.5f);
+
+    // Core projectile body
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
+    SDL_FRect core{screenX - 2.0f, screenY - 2.0f, 4.0f, 4.0f};
+    SDL_RenderFillRect(m_renderer, &core);
+
+    // Glowing motion trail
+    Vec2 trail = -vel.normalized() * 6.0f;
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, 120);
+    SDL_FRect trailRect{screenX + trail.x - 1.0f, screenY + trail.y - 1.0f, 2.0f, 2.0f};
+    SDL_RenderFillRect(m_renderer, &trailRect);
+}
+
+void Renderer::drawLoot(const Vec2& worldPos, const std::string& name, const Camera& camera, const CanvasMetrics& metrics) {
+    Vec2 camPos = camera.getSnappedPosition();
+    float screenX = (worldPos.x - camPos.x) + (metrics.virtualWidth * 0.5f);
+    float screenY = (worldPos.y - camPos.y) + (metrics.virtualHeight * 0.5f);
+
+    // Floating bob animation
+    float bob = std::sin(SDL_GetTicks() * 0.005f) * 2.0f;
+
+    // Glowing halo
+    SDL_SetRenderDrawColor(m_renderer, 240, 200, 70, 100);
+    SDL_FRect halo{screenX - 6.0f, screenY - 6.0f + bob, 12.0f, 12.0f};
+    SDL_RenderFillRect(m_renderer, &halo);
+
+    // Loot Gem/Item cube
+    SDL_SetRenderDrawColor(m_renderer, 255, 220, 80, 255);
+    SDL_FRect itemCube{screenX - 3.0f, screenY - 3.0f + bob, 6.0f, 6.0f};
+    SDL_RenderFillRect(m_renderer, &itemCube);
+}
+
+void Renderer::drawMinimap(const DungeonLayout& layout, const Vec2& playerPos, const CanvasMetrics& metrics) {
+    if (layout.width <= 0 || layout.height <= 0) return;
+
+    // Minimap panel in top-right
+    float mapW = 120.0f;
+    float mapH = 80.0f;
+    float mapX = metrics.virtualWidth - mapW - 10.0f;
+    float mapY = 10.0f;
+
+    SDL_SetRenderDrawColor(m_renderer, 10, 12, 18, 230);
+    SDL_FRect mapBg{mapX, mapY, mapW, mapH};
+    SDL_RenderFillRect(m_renderer, &mapBg);
+
+    SDL_SetRenderDrawColor(m_renderer, 70, 80, 100, 255);
+    SDL_FRect mapBorder{mapX, mapY, mapW, 1.0f};
+    SDL_RenderFillRect(m_renderer, &mapBorder);
+
+    float scaleX = mapW / layout.width;
+    float scaleY = mapH / layout.height;
+
+    // Draw rooms
+    for (size_t i = 0; i < layout.rooms.size(); ++i) {
+        const auto& room = layout.rooms[i];
+        if (room.isBossRoom) {
+            SDL_SetRenderDrawColor(m_renderer, 220, 40, 40, 255); // Red for boss room
+        } else if (room.isStartRoom) {
+            SDL_SetRenderDrawColor(m_renderer, 40, 180, 220, 255); // Cyan for start room
+        } else {
+            SDL_SetRenderDrawColor(m_renderer, 100, 110, 130, 200);
+        }
+
+        SDL_FRect rRect{mapX + room.x * scaleX, mapY + room.y * scaleY, room.width * scaleX, room.height * scaleY};
+        SDL_RenderFillRect(m_renderer, &rRect);
+    }
+
+    // Draw player dot
+    int pTileX = static_cast<int>(playerPos.x / 16.0f);
+    int pTileY = static_cast<int>(playerPos.y / 16.0f);
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 50, 255);
+    SDL_FRect pDot{mapX + pTileX * scaleX - 1.0f, mapY + pTileY * scaleY - 1.0f, 3.0f, 3.0f};
+    SDL_RenderFillRect(m_renderer, &pDot);
+}
+
+void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& metrics) {
+    // Semi-transparent backdrop modal
+    SDL_SetRenderDrawColor(m_renderer, 5, 8, 15, 230);
+    SDL_FRect modal{40.0f, 25.0f, metrics.virtualWidth - 80.0f, metrics.virtualHeight - 50.0f};
+    SDL_RenderFillRect(m_renderer, &modal);
+
+    SDL_SetRenderDrawColor(m_renderer, 80, 100, 140, 255);
+    SDL_FRect border{40.0f, 25.0f, metrics.virtualWidth - 80.0f, 2.0f};
+    SDL_RenderFillRect(m_renderer, &border);
+
+    // Title bar area
+    SDL_SetRenderDrawColor(m_renderer, 25, 30, 45, 255);
+    SDL_FRect titleBar{40.0f, 25.0f, metrics.virtualWidth - 80.0f, 20.0f};
+    SDL_RenderFillRect(m_renderer, &titleBar);
+
+    // 40 Inventory Grid Slots (8 columns x 5 rows)
+    float gridStartX = 60.0f;
+    float gridStartY = 60.0f;
+    const auto& slots = inv.getSlots();
+
+    for (int row = 0; row < 5; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            int idx = row * 8 + col;
+            float slotX = gridStartX + col * 26.0f;
+            float slotY = gridStartY + row * 26.0f;
+
+            SDL_SetRenderDrawColor(m_renderer, 30, 35, 50, 255);
+            SDL_FRect sBox{slotX, slotY, 22.0f, 22.0f};
+            SDL_RenderFillRect(m_renderer, &sBox);
+
+            if (idx < static_cast<int>(slots.size()) && slots[idx].has_value()) {
+                const auto& itm = slots[idx].value();
+                // Draw item icon
+                if (itm.category == ItemCategory::Weapon) {
+                    SDL_SetRenderDrawColor(m_renderer, 230, 80, 80, 255);
+                } else if (itm.category == ItemCategory::Material) {
+                    SDL_SetRenderDrawColor(m_renderer, 80, 200, 120, 255);
+                } else {
+                    SDL_SetRenderDrawColor(m_renderer, 240, 200, 60, 255);
+                }
+                SDL_FRect icon{slotX + 4.0f, slotY + 4.0f, 14.0f, 14.0f};
+                SDL_RenderFillRect(m_renderer, &icon);
+            }
+        }
+    }
+}
+
+void Renderer::drawCraftingScreen(const CraftingEngine& crafting, const Inventory& inv, const CanvasMetrics& metrics) {
+    SDL_SetRenderDrawColor(m_renderer, 10, 15, 25, 235);
+    SDL_FRect modal{50.0f, 30.0f, metrics.virtualWidth - 100.0f, metrics.virtualHeight - 60.0f};
+    SDL_RenderFillRect(m_renderer, &modal);
+
+    SDL_SetRenderDrawColor(m_renderer, 200, 140, 50, 255); // Gold/Bronze crafting header
+    SDL_FRect border{50.0f, 30.0f, metrics.virtualWidth - 100.0f, 2.0f};
+    SDL_RenderFillRect(m_renderer, &border);
+
+    // Recipe List entries
+    float recY = 55.0f;
+    for (int i = 0; i < 4; ++i) {
+        SDL_SetRenderDrawColor(m_renderer, 25, 32, 48, 255);
+        SDL_FRect recBox{65.0f, recY, metrics.virtualWidth - 130.0f, 24.0f};
+        SDL_RenderFillRect(m_renderer, &recBox);
+
+        // Craft button pip
+        SDL_SetRenderDrawColor(m_renderer, 50, 180, 100, 255);
+        SDL_FRect craftBtn{metrics.virtualWidth - 110.0f, recY + 4.0f, 35.0f, 16.0f};
+        SDL_RenderFillRect(m_renderer, &craftBtn);
+
+        recY += 30.0f;
+    }
+}
+
+void Renderer::drawAugmentationScreen(const AugmentationMatrix& augs, const CanvasMetrics& metrics) {
+    SDL_SetRenderDrawColor(m_renderer, 8, 12, 22, 240);
+    SDL_FRect modal{60.0f, 20.0f, metrics.virtualWidth - 120.0f, metrics.virtualHeight - 40.0f};
+    SDL_RenderFillRect(m_renderer, &modal);
+
+    SDL_SetRenderDrawColor(m_renderer, 0, 220, 255, 255); // Cyber Cyan Header
+    SDL_FRect border{60.0f, 20.0f, metrics.virtualWidth - 120.0f, 2.0f};
+    SDL_RenderFillRect(m_renderer, &border);
+
+    // 11 Body Slot Nodes
+    float centerX = metrics.virtualWidth * 0.5f;
+    float startY = 45.0f;
+
+    for (int slotIdx = 0; slotIdx < 11; ++slotIdx) {
+        float slotY = startY + slotIdx * 24.0f;
+        SDL_SetRenderDrawColor(m_renderer, 20, 30, 45, 255);
+        SDL_FRect slotRow{centerX - 100.0f, slotY, 200.0f, 20.0f};
+        SDL_RenderFillRect(m_renderer, &slotRow);
+
+        // Status indicator LED
+        SDL_SetRenderDrawColor(m_renderer, 0, 220, 255, 255);
+        SDL_FRect led{centerX - 95.0f, slotY + 6.0f, 8.0f, 8.0f};
+        SDL_RenderFillRect(m_renderer, &led);
+    }
+}
+
+void Renderer::drawLightingOverlay(const Vec2& playerPos, float ambientDarkness, const Camera& camera, const CanvasMetrics& metrics) {
+    if (ambientDarkness <= 0.05f) return;
+
+    Vec2 camPos = camera.getSnappedPosition();
+    float pScreenX = (playerPos.x - camPos.x) + (metrics.virtualWidth * 0.5f);
+    float pScreenY = (playerPos.y - camPos.y) + (metrics.virtualHeight * 0.5f);
+
+    // Torch / Lantern radius around player (80px radius)
+    float lightRadius = 85.0f;
+
+    // Outer dark mask
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, static_cast<Uint8>(ambientDarkness * 255));
+    SDL_FRect topMask{0.0f, 0.0f, static_cast<float>(metrics.virtualWidth), std::max(0.0f, pScreenY - lightRadius)};
+    SDL_FRect bottomMask{0.0f, pScreenY + lightRadius, static_cast<float>(metrics.virtualWidth), static_cast<float>(metrics.virtualHeight - (pScreenY + lightRadius))};
+    SDL_FRect leftMask{0.0f, pScreenY - lightRadius, std::max(0.0f, pScreenX - lightRadius), lightRadius * 2.0f};
+    SDL_FRect rightMask{pScreenX + lightRadius, pScreenY - lightRadius, static_cast<float>(metrics.virtualWidth - (pScreenX + lightRadius)), lightRadius * 2.0f};
+
+    SDL_RenderFillRect(m_renderer, &topMask);
+    SDL_RenderFillRect(m_renderer, &bottomMask);
+    SDL_RenderFillRect(m_renderer, &leftMask);
+    SDL_RenderFillRect(m_renderer, &rightMask);
+}
+
 void Renderer::drawHUD(const GameSimulation& sim, const CanvasMetrics& metrics, const RawInputState& input) {
     // 1. Top-Left Status Bars Panel
     // Panel Frame

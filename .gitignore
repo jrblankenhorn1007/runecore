@@ -1,0 +1,45 @@
+# Build directories & artifacts
+build/
+bin/
+lib/
+out/
+CMakeScripts/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+ninja.build
+.ninja_log
+.ninja_deps
+compile_commands.json
+
+# Dependencies downloaded via FetchContent
+_deps/
+
+# macOS system metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# IDE & Editor files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Crash dumps & logs
+*.log
+*.dmp
+*.crash
+
+# User saves and runtime captures
+saves/
+screenshots/
+profiles/

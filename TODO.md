@@ -327,3 +327,8 @@ This section tracks the live feature-by-feature implementation using strict Test
   - [x] GREEN: Implement `src/render/Camera.hpp` and `Camera.cpp`.
 - [x] **TDD 14.3**: Main Executable Entry Point
   - [x] Create `src/main.cpp` running the integrated game in interactive/headless simulation mode.
+
+### 4.15 Module 15: Zero-Warning Clean Build & Compiler Rigor
+- [x] Fix all compiler warnings across game engine library (`untitled_rpg_lib`), main executable (`untitled_rpg`), and test executables.
+- [x] Eliminate missing field initializers, unused variables, and unused private fields.
+- [x] Ensure `-Wall -Wextra -Wpedantic` compiles with 0 warnings on Apple Clang.

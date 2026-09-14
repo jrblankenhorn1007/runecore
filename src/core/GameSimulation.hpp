@@ -1,6 +1,7 @@
 #pragma once
 #include "core/EngineContext.hpp"
 #include "physics/CharacterController.hpp"
+#include "gameplay/combat/CombatSystem.hpp"
 #include "gameplay/items/Inventory.hpp"
 #include "gameplay/stats/Progression.hpp"
 #include "gameplay/survival/Metabolism.hpp"
@@ -27,6 +28,9 @@ public:
     float getPlayerHealth() const;
     float getPlayerHunger() const { return m_metabolism.getHunger(); }
     Vec2 getPlayerPosition() const;
+    int getPlayerFacing() const { return m_controller.getFacing(); }
+    bool isAttacking() const { return m_attackVisualTimer > 0.0f; }
+    const Hitbox& getLastAttackBox() const { return m_lastAttackBox; }
 
     size_t getEnemyCount() const;
 
@@ -49,4 +53,7 @@ private:
     entt::entity m_playerEntity{entt::null};
     uint64_t m_tickCount{0};
     float m_simulationTime{0.0f};
+
+    float m_attackVisualTimer{0.0f};
+    Hitbox m_lastAttackBox;
 };

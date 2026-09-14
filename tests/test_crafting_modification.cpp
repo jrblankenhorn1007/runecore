@@ -24,8 +24,23 @@ TEST_CASE("Crafting Recipe Lookups and Material Consumption", "[gameplay][crafti
     engine.registerRecipe(ironSwordRecipe);
 
     Inventory inv;
-    inv.addItem(Item{"mat_iron_ingot", "Iron Ingot", ItemCategory::Material, EquipSlot::None, ItemRarity::Common, 1, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, true, 10, 99});
-    inv.addItem(Item{"mat_wood_plank", "Wood Plank", ItemCategory::Material, EquipSlot::None, ItemRarity::Common, 1, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, true, 5, 99});
+    Item ironIngot;
+    ironIngot.id = "mat_iron_ingot";
+    ironIngot.name = "Iron Ingot";
+    ironIngot.category = ItemCategory::Material;
+    ironIngot.stackable = true;
+    ironIngot.quantity = 10;
+    ironIngot.maxStack = 99;
+    inv.addItem(ironIngot);
+
+    Item woodPlank;
+    woodPlank.id = "mat_wood_plank";
+    woodPlank.name = "Wood Plank";
+    woodPlank.category = ItemCategory::Material;
+    woodPlank.stackable = true;
+    woodPlank.quantity = 5;
+    woodPlank.maxStack = 99;
+    inv.addItem(woodPlank);
 
     SECTION("Can Craft when Materials and Station Match") {
         REQUIRE(engine.canCraft("rcp_iron_sword", inv, CraftingStation::FoundryForge) == true);

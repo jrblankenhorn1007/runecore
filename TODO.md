@@ -72,26 +72,26 @@ This document tracks all planning, conceptual specifications, content catalogs, 
 
 ## Phase 2: Repository Setup & Build Environment Preparation
 
-- [ ] **Git Repository Setup**
-  - [ ] Initialize local Git repository (`git init`).
-  - [ ] Create comprehensive `.gitignore` for CMake build artifacts, Ninja caches, macOS metadata (`.DS_Store`), and IDE configs.
-  - [ ] Create initial git commit locking in the master plan, todo list, and system design specifications.
+- [x] **Git Repository Setup**
+  - [x] Initialize local Git repository (`git init`).
+  - [x] Create comprehensive `.gitignore` for CMake build artifacts, Ninja caches, macOS metadata (`.DS_Store`), and IDE configs.
+  - [x] Create initial git commit locking in the master plan, todo list, and system design specifications.
 
-- [ ] **Build Environment Verification**
-  - [ ] Verify macOS build toolchain (Apple Clang, CMake $\ge 3.28$, Ninja).
-  - [ ] Configure VS Code settings (`launch.json`, `tasks.json`, CMake Tools).
+- [x] **Build Environment Verification**
+  - [x] Verify Apple Clang (`Apple clang version 17.0.0 arm64`).
+  - [x] Configure VS Code settings (`launch.json`, `tasks.json`, `settings.json`, `extensions.json`).
 
 ---
 
 ## Phase 3: Planned Implementation Milestones
 
 ### Milestone 0: Engine Skeleton & Display System
-- [ ] Root `CMakeLists.txt` with `FetchContent` dependencies (SDL3, Box2D v3, EnTT, nlohmann_json, spdlog, Dear ImGui, Catch2).
-- [ ] Platform & display initialization: Monitor detection, selectable resolution list, letterboxed 16x16 integer pixel canvas.
-- [ ] Fixed-timestep loop (60Hz) with render interpolation.
-- [ ] Input action mapper (WASD, mouse, hotkeys).
-- [ ] Render a movable placeholder pixel sprite with WASD.
-- [ ] Dear ImGui debug overlay showing FPS, frame time, resolution, and memory.
+- [x] Root `CMakeLists.txt` with `FetchContent` dependencies (SDL3, Box2D v3, EnTT, nlohmann_json, spdlog, Dear ImGui).
+- [x] Platform & display initialization: Monitor detection, selectable resolution list, letterboxed 16x16 integer pixel canvas (`src/core/DisplayManager.hpp`, `src/render/Renderer.hpp`).
+- [x] Fixed-timestep loop (60Hz) with render interpolation (`src/core/Time.hpp`).
+- [x] Input action mapper (WASD, mouse, hotkeys) (`src/input/InputManager.hpp`).
+- [x] Render a movable placeholder pixel sprite with WASD (`src/core/Application.hpp`).
+- [x] Dear ImGui debug overlay showing FPS, frame time, resolution, and memory (`src/core/Application.hpp`).
 
 ### Milestone 1: Platformer Physics & Kinematic Character Controller
 - [ ] Tiled `.tmj` map loader and Box2D static chain shape collider builder.

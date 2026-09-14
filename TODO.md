@@ -83,15 +83,15 @@ This document tracks all planning, conceptual specifications, content catalogs, 
 
 ---
 
-## Phase 3: Planned Implementation Milestones
+## Phase 3: Planned Implementation Milestones (BLOCKED UNTIL PHASE 1 DESIGN IS COMPLETE)
 
 ### Milestone 0: Engine Skeleton & Display System
-- [x] Root `CMakeLists.txt` with `FetchContent` dependencies (SDL3, Box2D v3, EnTT, nlohmann_json, spdlog, Dear ImGui).
-- [x] Platform & display initialization: Monitor detection, selectable resolution list, letterboxed 16x16 integer pixel canvas (`src/core/DisplayManager.hpp`, `src/render/Renderer.hpp`).
-- [x] Fixed-timestep loop (60Hz) with render interpolation (`src/core/Time.hpp`).
-- [x] Input action mapper (WASD, mouse, hotkeys) (`src/input/InputManager.hpp`).
-- [x] Render a movable placeholder pixel sprite with WASD (`src/core/Application.hpp`).
-- [x] Dear ImGui debug overlay showing FPS, frame time, resolution, and memory (`src/core/Application.hpp`).
+- [ ] Root `CMakeLists.txt` with `FetchContent` dependencies (SDL3, Box2D v3, EnTT, nlohmann_json, spdlog, Dear ImGui).
+- [ ] Platform & display initialization: Monitor detection, selectable resolution list, letterboxed 16x16 integer pixel canvas (`src/core/DisplayManager.hpp`, `src/render/Renderer.hpp`).
+- [ ] Fixed-timestep loop (60Hz) with render interpolation (`src/core/Time.hpp`).
+- [ ] Input action mapper (WASD, mouse, hotkeys) (`src/input/InputManager.hpp`).
+- [ ] Render a movable placeholder pixel sprite with WASD (`src/core/Application.hpp`).
+- [ ] Dear ImGui debug overlay showing FPS, frame time, resolution, and memory (`src/core/Application.hpp`).
 
 ### Milestone 1: Platformer Physics & Kinematic Character Controller
 - [ ] Tiled `.tmj` map loader and Box2D static chain shape collider builder.

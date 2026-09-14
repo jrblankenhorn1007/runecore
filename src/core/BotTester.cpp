@@ -142,8 +142,22 @@ RawInputState BotTester::update(GameSimulation& sim, float dt) {
                 sim.toggleScreen(ActiveScreen::Crafting);
             } else if (m_tick == 195) {
                 // Ensure sufficient materials for test
-                Item ore{"mat_iron_ore", "Iron Ore", ItemCategory::Material, EquipSlot::None, ItemRarity::Common, 1, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, true, 3, 99};
-                Item stone{"mat_stone_block", "Stone Block", ItemCategory::Material, EquipSlot::None, ItemRarity::Common, 1, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, true, 2, 99};
+                Item ore;
+                ore.id = "mat_iron_ore";
+                ore.name = "Iron Ore";
+                ore.category = ItemCategory::Material;
+                ore.stackable = true;
+                ore.quantity = 3;
+                ore.maxStack = 99;
+
+                Item stone;
+                stone.id = "mat_stone_block";
+                stone.name = "Stone Block";
+                stone.category = ItemCategory::Material;
+                stone.stackable = true;
+                stone.quantity = 2;
+                stone.maxStack = 99;
+
                 sim.getInventory().addItem(ore);
                 sim.getInventory().addItem(stone);
 

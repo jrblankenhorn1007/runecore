@@ -43,8 +43,5 @@ private:
     int m_phase{0};
     bool m_finished{false};
     BotReport m_report;
-
-    int m_initialLevel{1};
-    int m_initialLootCount{0};
     float m_jumpPeakY{999.0f};
 };

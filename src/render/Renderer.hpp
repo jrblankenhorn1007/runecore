@@ -17,7 +17,7 @@ public:
     Renderer();
     ~Renderer();
 
-    bool init(const std::string& title, int windowWidth, int windowHeight, int virtualWidth = 640, int virtualHeight = 360);
+    bool init(const std::string& title, int windowWidth, int windowHeight, int virtualWidth = 640, int virtualHeight = 360, uint32_t extraFlags = 0);
     void shutdown();
 
     void beginFrame();

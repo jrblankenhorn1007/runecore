@@ -399,18 +399,31 @@ This section tracks the live feature-by-feature implementation using strict Test
   - [x] RED: Write unit tests verifying emission on sword hit, projectile explosion, and jump dust.
   - [x] GREEN: Integrated particle pool and lifecycle in `src/render/ParticleSystem.cpp`.
 
-### 4.22 Module 22: Code Coverage Enhancement & 100% Assertion Rigor
-- [ ] Measure line and branch coverage across all engine and gameplay modules via `gcov` and `gcovr`.
-- [ ] Implement exhaustive edge-case testing (`tests/test_exhaustive_coverage.cpp`) targeting:
-  - [x] Math & Vector operations (normalization edge cases, distance, vector scaling, bounding rect intersections).
-  - [x] Random & Gaussian distributions (mean clamping, stddev limits, chance bounds).
-  - [x] Health, Mana & Power component boundaries (negative damage/heal rejection, dead-state lockouts, passive regen).
-  - [x] Inventory edge cases (full inventory rejection, invalid slot indices, unequipped slot queries, item removal).
-  - [x] Item Generator rarity tiers (Common, Uncommon, Rare, Epic, Legendary, Mythic, Prismatic).
-  - [x] Modification Forge limits (tier 7 caps, 3-socket limits, fracture rejections).
-  - [x] Class Registry exception handling (invalid class queries).
-  - [x] SaveManager corrupted & malformed payload recovery.
-  - [x] World Interaction & Biome boundaries.
-  - [x] Weapon Arsenal zero-pellet firing and shield state transitions.
-- [ ] Achieve 100% unit test success across 22 test suites.
-- [ ] Maintain 0 compiler warnings under `-Wall -Wextra -Wpedantic`.
+### 4.22 Module 22: Code Coverage Enhancement & 1:1 Mirrored Test Architecture
+- [x] **Restructure Test Suite into Standard 1:1 Mirrored Directory Tree**:
+  - [x] `tests/core/`: `test_Math.cpp`, `test_Random.cpp`, `test_Time.cpp`, `test_EventBus.cpp`, `test_EngineContext.cpp`, `test_GameSimulation.cpp`, `test_BotTester.cpp`
+  - [x] `tests/ecs/`: `test_Components.cpp`
+  - [x] `tests/gameplay/ai/`: `test_EnemyAI.cpp`, `test_BossAI.cpp`
+  - [x] `tests/gameplay/augmentations/`: `test_AugmentationMatrix.cpp`
+  - [x] `tests/gameplay/building/`: `test_BuildingSystem.cpp`, `test_FarmingSystem.cpp`, `test_WorldInteraction.cpp`
+  - [x] `tests/gameplay/classes/`: `test_ClassRegistry.cpp`
+  - [x] `tests/gameplay/combat/`: `test_DamageCalculator.cpp`, `test_CombatSystem.cpp`, `test_StatusEffects.cpp`, `test_ProjectileSystem.cpp`, `test_WeaponArsenal.cpp`
+  - [x] `tests/gameplay/crafting/`: `test_CraftingEngine.cpp`, `test_ModificationForge.cpp`
+  - [x] `tests/gameplay/items/`: `test_Item.cpp`, `test_ItemGenerator.cpp`, `test_Inventory.cpp`, `test_LootSystem.cpp`
+  - [x] `tests/gameplay/skills/`: `test_SkillTree.cpp`, `test_SkillRegistry.cpp`, `test_SkillExecutor.cpp`
+  - [x] `tests/gameplay/stats/`: `test_StatsSystem.cpp`, `test_Progression.cpp`
+  - [x] `tests/gameplay/survival/`: `test_Metabolism.cpp`, `test_Environment.cpp`, `test_SettlementSystem.cpp`, `test_QuestSystem.cpp`
+  - [x] `tests/physics/`: `test_CollisionLayers.cpp`, `test_CollisionWorld.cpp`, `test_CharacterController.cpp`
+  - [x] `tests/procgen/`: `test_Tilemap.cpp`, `test_DungeonGenerator.cpp`, `test_BiomeSystem.cpp`
+  - [x] `tests/render/`: `test_Camera.cpp`, `test_ParticleSystem.cpp`, `test_Renderer.cpp`
+  - [x] `tests/input/`: `test_InputManager.cpp`
+  - [x] `tests/save/`: `test_SaveManager.cpp`
+- [x] **Fix All Warnings in Build**:
+  - [x] Audit all 46 test executables and library files under `-Wall -Wextra -Wpedantic`.
+  - [x] Eliminate missing field initializers in `src/core/BotTester.cpp`.
+  - [x] Remove unused private fields in `src/core/BotTester.hpp`.
+  - [x] Eliminate unused local variables in `tests/ecs/test_Components.cpp` and `tests/gameplay/combat/test_StatusEffects.cpp`.
+  - [x] Verify clean, warning-free build across all targets (`ninja -C build` with 0 warnings).
+- [ ] **Achieve 100% Code Coverage**:
+  - [ ] Test every branch, edge condition, failure case, and method in every class across all 46 individual modules.
+  - [ ] Measure line and branch coverage across all engine and gameplay modules via `gcov` and `gcovr`.

@@ -24,6 +24,7 @@ public:
     void addShake(float trauma, float duration);
     void update(float dt);
     bool isShaking() const { return m_shakeTimer > 0.0f; }
+    float getShakeTrauma() const { return m_shakeTrauma; }
 
 private:
     Vec2 m_position{0.0f, 0.0f};

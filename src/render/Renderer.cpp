@@ -10,7 +10,7 @@ Renderer::~Renderer() {
     shutdown();
 }
 
-bool Renderer::init(const std::string& title, int windowWidth, int windowHeight, int virtualWidth, int virtualHeight) {
+bool Renderer::init(const std::string& title, int windowWidth, int windowHeight, int virtualWidth, int virtualHeight, uint32_t extraFlags) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         return false;
     }
@@ -22,7 +22,7 @@ bool Renderer::init(const std::string& title, int windowWidth, int windowHeight,
         title.c_str(),
         windowWidth,
         windowHeight,
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | extraFlags
     );
 
     if (!m_window) {

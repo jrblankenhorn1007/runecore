@@ -74,33 +74,17 @@ target_link_libraries(untitled_rpg PRIVATE untitled_rpg_lib)
 # Testing
 enable_testing()
 
-function(add_rpg_test TEST_NAME TEST_FILE)
-    add_executable(${TEST_NAME} ${TEST_FILE})
-    target_link_libraries(${TEST_NAME} PRIVATE untitled_rpg_lib catch2_lib)
-    target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/external)
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-endfunction()
+file(GLOB_RECURSE TEST_FILES "tests/*/test_*.cpp" "tests/*/*/test_*.cpp" "tests/*/*/*/test_*.cpp")
 
-# Registered unit tests
-add_rpg_test(test_math_core tests/test_math_core.cpp)
-add_rpg_test(test_ecs_core tests/test_ecs_core.cpp)
-add_rpg_test(test_stats_progression tests/test_stats_progression.cpp)
-add_rpg_test(test_combat_pipeline tests/test_combat_pipeline.cpp)
-add_rpg_test(test_physics_controller tests/test_physics_controller.cpp)
-add_rpg_test(test_inventory_items tests/test_inventory_items.cpp)
-add_rpg_test(test_augmentations tests/test_augmentations.cpp)
-add_rpg_test(test_skills_system tests/test_skills_system.cpp)
-add_rpg_test(test_crafting_modification tests/test_crafting_modification.cpp)
-add_rpg_test(test_survival_building tests/test_survival_building.cpp)
-add_rpg_test(test_world_dungeons tests/test_world_dungeons.cpp)
-add_rpg_test(test_ai_behavior tests/test_ai_behavior.cpp)
-add_rpg_test(test_save_persistence tests/test_save_persistence.cpp)
-add_rpg_test(test_game_engine tests/test_game_engine.cpp)
-add_rpg_test(test_projectiles_loot tests/test_projectiles_loot.cpp)
-add_rpg_test(test_world_interaction tests/test_world_interaction.cpp)
-add_rpg_test(test_bot_tester tests/test_bot_tester.cpp)
-add_rpg_test(test_biomes_system tests/test_biomes_system.cpp)
-add_rpg_test(test_weapon_arsenal tests/test_weapon_arsenal.cpp)
-add_rpg_test(test_settlement_quests tests/test_settlement_quests.cpp)
-add_rpg_test(test_particle_system tests/test_particle_system.cpp)
-add_rpg_test(test_exhaustive_coverage tests/test_exhaustive_coverage.cpp)
+foreach(TEST_PATH ${TEST_FILES})
+    get_filename_component(TEST_NAME ${TEST_PATH} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_PATH})
+    target_link_libraries(${TEST_NAME} PRIVATE untitled_rpg_lib catch2_lib)
+    target_include_directories(${TEST_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/external
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/sdl3/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/catch2
+    )
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()

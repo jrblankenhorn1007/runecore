@@ -31,15 +31,24 @@ A high-mobility, gear-and-skill-driven 2D sidescrolling ARPG where ancient fanta
 
 ## 2. Technical Documentation Index
 
-All granular game systems are documented in dedicated specification files referenced by this master plan:
-- **Classes**: [docs/classes.md](docs/classes.md) — 9 class archetypes, base stats, starter kits, signature mechanics, uncapped leveling, universal skill unlocking, and Level 20 signature augments.
-- **Skills**: [docs/skills.md](docs/skills.md) — 500+ active and passive skills, 4-key active hotbar (`Q`, `E`, `R`, `F`), DAG progression, mathematical scaling, and execution pipeline.
-- **Augmentations**: [docs/augmentations.md](docs/augmentations.md) — 250+ augmentations across 11 body slots, dual bionic/magitech economy (Power vs Humanity, Mana vs Stability), and cross-class exotic surgery rules.
-- **Items & Equipment**: [docs/items.md](docs/items.md) — 3,000+ base items across 10 categories and 8 tiers, individual Gaussian base stat roll ranges, quality modifiers, weapons, armor sets, and affixes.
-- **Crafting & Modification**: [docs/crafting.md](docs/crafting.md) — 48-node Crafting Tree, stations, stat shard infusion, tier upgrading, calibration, socket drilling, affix sealing, and fracture mechanics.
-- **Combat Mechanics**: [docs/combat.md](docs/combat.md) — Terraria-style 360 aim, kinematic sensor hitboxes, damage pipeline, armor mitigation, hitstop, screen shake, and status effects.
-- **Survival, Building & Farming**: [docs/survival_building.md](docs/survival_building.md) — Hunger, thirst, temperature simulation, day/night cycles, weather, 16x16 grid building, crop farming, and NPC recruitment.
-- **World, Biomes & Dungeons**: [docs/world_dungeons.md](docs/world_dungeons.md) — 20+ biomes, BSP procedural dungeon generation in every biome, 8 campaign tiers, boss fights, death recovery, and the Infinite Rift.
+All granular game systems, architecture models, and modular test plans are organized in dedicated subdirectories referenced by this master plan:
+
+### Architecture & Technical Structure (`docs/architecture/`)
+- **System Architecture**: [docs/architecture/architecture.md](docs/architecture/architecture.md) — Complete file tree, ECS dataflow, system update order, and client-server simulation separation for multiplayer.
+- **Functions & API Reference**: [docs/architecture/functions_reference.md](docs/architecture/functions_reference.md) — Functional specifications, parameters, return types, and state mutations per file.
+
+### Game Design Specifications (`docs/design/`)
+- **Classes**: [docs/design/classes.md](docs/design/classes.md) — 9 class archetypes, base stats, starter kits, signature mechanics, uncapped leveling, universal skill unlocking, and Level 20 signature augments.
+- **Skills**: [docs/design/skills.md](docs/design/skills.md) — 500+ active and passive skills, 4-key active hotbar (`Q`, `E`, `R`, `F`), DAG progression, mathematical scaling, and execution pipeline.
+- **Augmentations**: [docs/design/augmentations.md](docs/design/augmentations.md) — 250+ augmentations across 11 body slots, dual bionic/magitech economy (Power vs Humanity, Mana vs Stability), and cross-class exotic surgery rules.
+- **Items & Equipment**: [docs/design/items.md](docs/design/items.md) — 3,000+ base items across 10 categories and 8 tiers, individual Gaussian base stat roll ranges, quality modifiers, weapons, armor sets, and affixes.
+- **Crafting & Modification**: [docs/design/crafting.md](docs/design/crafting.md) — 48-node Crafting Tree, stations, stat shard infusion, tier upgrading, calibration, socket drilling, affix sealing, and fracture mechanics.
+- **Combat Mechanics**: [docs/design/combat.md](docs/design/combat.md) — Terraria-style 360 aim, kinematic sensor hitboxes, damage pipeline, armor mitigation, hitstop, screen shake, and status effects.
+- **Survival, Building & Farming**: [docs/design/survival_building.md](docs/design/survival_building.md) — Hunger, thirst, temperature simulation, day/night cycles, weather, 16x16 grid building, crop farming, and NPC recruitment.
+- **World, Biomes & Dungeons**: [docs/design/world_dungeons.md](docs/design/world_dungeons.md) — 20+ biomes, BSP procedural dungeon generation in every biome, 8 campaign tiers, boss fights, death recovery, and the Infinite Rift.
+
+### Test Plans (`docs/test_plans/`)
+- Modular test plans covering unit test cases, input conditions, assertions, and edge cases for each planned codebase module.
 
 ---
 

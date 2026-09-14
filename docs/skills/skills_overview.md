@@ -120,7 +120,7 @@ The Shared Tree is open to all characters regardless of class. It is divided int
 
 ## 3. Class Skill Tree Specifications
 
-Each of the 9 classes possesses a 15-node tree containing 4 active skills (assigned to hotkeys `Q`, `E`, `R`, `F`) and 11 passive nodes. For full thematic descriptions and base values, see [docs/classes.md](docs/classes.md).
+Each of the 9 classes possesses a 15-node tree containing 4 active skills (assigned to hotkeys `Q`, `E`, `R`, `F`) and 11 passive nodes. For full thematic descriptions and base values, see [docs/design/classes.md](docs/design/classes.md).
 
 ### 3.1 Mathematical Scaling Formula for Actives
 All active skills calculate outgoing damage and effectiveness using:

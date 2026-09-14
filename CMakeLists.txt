@@ -23,6 +23,13 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
 endif()
 
+# Code Coverage Option
+option(ENABLE_COVERAGE "Enable code coverage profiling" OFF)
+if(ENABLE_COVERAGE AND NOT MSVC)
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+endif()
+
 # Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -92,3 +99,8 @@ add_rpg_test(test_game_engine tests/test_game_engine.cpp)
 add_rpg_test(test_projectiles_loot tests/test_projectiles_loot.cpp)
 add_rpg_test(test_world_interaction tests/test_world_interaction.cpp)
 add_rpg_test(test_bot_tester tests/test_bot_tester.cpp)
+add_rpg_test(test_biomes_system tests/test_biomes_system.cpp)
+add_rpg_test(test_weapon_arsenal tests/test_weapon_arsenal.cpp)
+add_rpg_test(test_settlement_quests tests/test_settlement_quests.cpp)
+add_rpg_test(test_particle_system tests/test_particle_system.cpp)
+add_rpg_test(test_exhaustive_coverage tests/test_exhaustive_coverage.cpp)

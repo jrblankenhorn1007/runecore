@@ -363,3 +363,54 @@ This section tracks the live feature-by-feature implementation using strict Test
   - [x] Implemented multi-phase test sequence covering all 12 key gameplay systems (Movement, Jumps, Wall-Kicks, Mining, Loot Vacuum, Crafting, 360-degree Ranged Projectiles, Melee Combat, Active Skills Q/E/R/F, Procedural Dungeon Navigation, Boss Defeat, Level-Up).
   - [x] Written `tests/test_bot_tester.cpp` with Catch2 verification asserting 12/12 subsystems pass.
   - [x] Integrated `--bot` and `--bot --headless` command-line modes into main executable allowing autonomous hands-free gameplay testing in both interactive graphical window and headless CLI.
+
+### 4.18 Module 18: Overworld Biome Engine & Environmental Hazards
+- [x] **TDD 18.1**: Multi-Biome Overworld Mapping & Ambient Climates
+  - [x] RED: Write unit tests in `tests/test_biomes_system.cpp` testing horizontal biome coordinates (Haven -> Rustwood -> Ashen Foundry -> Cryo Glacier -> Bioluminescent Bog), ambient temperature transitions (-20°C to +85°C), and biome metadata.
+  - [x] GREEN: Implement `src/procgen/BiomeSystem.hpp` and `BiomeSystem.cpp`.
+- [x] **TDD 18.2**: Hazard Tiles (Spikes, Lava, Acid Sludge)
+  - [x] RED: Write unit tests verifying tile contact damage, status ailment infliction (Lava -> Burn, Acid -> Armor Corrode, Spikes -> Impale Bleed), and hazard bitmask checks.
+  - [x] GREEN: Implement hazard tile interaction in `BiomeSystem.cpp` and `CollisionWorld.cpp`.
+
+### 4.19 Module 19: Expanded Weapon Mechanics, Shotguns, Ammo & Shield Parry
+- [x] **TDD 19.1**: Firearm Ammunition Magazines & Active Reloads
+  - [x] RED: Write unit tests in `tests/test_weapon_arsenal.cpp` verifying magazine capacities, ammo depletion, reload delays, and out-of-ammo dry-fire checks.
+  - [x] GREEN: Implement `src/gameplay/combat/WeaponArsenal.hpp` and `WeaponArsenal.cpp`.
+- [x] **TDD 19.2**: Multi-Pellet Shotgun Spread & Supersonic Railguns
+  - [x] RED: Write unit tests verifying cone spread with 8 pellets per shell and wall-piercing supersonic slugs.
+  - [x] GREEN: Implement specialized firing modes in `WeaponArsenal.cpp`.
+- [x] **TDD 19.3**: Shield Blocking, Stamina Guard & Timed Parries
+  - [x] RED: Write unit tests verifying 100% frontal damage block, stamina block drain, and timed parry window (0.2s) reflecting projectiles and staggering attackers.
+  - [x] GREEN: Implement shield mechanics in `WeaponArsenal.cpp`.
+
+### 4.20 Module 20: NPC Housing, Settlement Recruitment & Quests
+- [x] **TDD 20.1**: Settlement Housing Suitability Checks
+  - [x] RED: Write unit tests in `tests/test_settlement_quests.cpp` evaluating room enclosure (walls, roof, floor, door, light source, chair/bed) to validate NPC move-in conditions.
+  - [x] GREEN: Implement `src/gameplay/survival/SettlementSystem.hpp` and `SettlementSystem.cpp`.
+- [x] **TDD 20.2**: Quest Engine & Objective Progression
+  - [x] RED: Write unit tests tracking quest states (Unstarted, Active, Completed), objective progress counters (Mine 5 Iron, Slay Dungeon Boss, Craft Weapon), and reward delivery.
+  - [x] GREEN: Implement `src/gameplay/survival/QuestSystem.hpp` and `QuestSystem.cpp`.
+
+### 4.21 Module 21: High-Performance 2D Particle Engine
+- [x] **TDD 21.1**: Particle Pool Emitter & Dynamics
+  - [x] RED: Write unit tests in `tests/test_particle_system.cpp` verifying particle spawning, lifetime decay, velocity damping, gravity, and color blending.
+  - [x] GREEN: Implement `src/render/ParticleSystem.hpp` and `ParticleSystem.cpp`.
+- [x] **TDD 21.2**: Combat FX Emitters (Sparks, Blood, Muzzle Flash, Dust)
+  - [x] RED: Write unit tests verifying emission on sword hit, projectile explosion, and jump dust.
+  - [x] GREEN: Integrated particle pool and lifecycle in `src/render/ParticleSystem.cpp`.
+
+### 4.22 Module 22: Code Coverage Enhancement & 100% Assertion Rigor
+- [ ] Measure line and branch coverage across all engine and gameplay modules via `gcov` and `gcovr`.
+- [ ] Implement exhaustive edge-case testing (`tests/test_exhaustive_coverage.cpp`) targeting:
+  - [x] Math & Vector operations (normalization edge cases, distance, vector scaling, bounding rect intersections).
+  - [x] Random & Gaussian distributions (mean clamping, stddev limits, chance bounds).
+  - [x] Health, Mana & Power component boundaries (negative damage/heal rejection, dead-state lockouts, passive regen).
+  - [x] Inventory edge cases (full inventory rejection, invalid slot indices, unequipped slot queries, item removal).
+  - [x] Item Generator rarity tiers (Common, Uncommon, Rare, Epic, Legendary, Mythic, Prismatic).
+  - [x] Modification Forge limits (tier 7 caps, 3-socket limits, fracture rejections).
+  - [x] Class Registry exception handling (invalid class queries).
+  - [x] SaveManager corrupted & malformed payload recovery.
+  - [x] World Interaction & Biome boundaries.
+  - [x] Weapon Arsenal zero-pellet firing and shield state transitions.
+- [ ] Achieve 100% unit test success across 22 test suites.
+- [ ] Maintain 0 compiler warnings under `-Wall -Wextra -Wpedantic`.

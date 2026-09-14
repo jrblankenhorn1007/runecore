@@ -31,24 +31,59 @@ A high-mobility, gear-and-skill-driven 2D sidescrolling ARPG where ancient fanta
 
 ## 2. Technical Documentation Index
 
-All granular game systems, architecture models, and modular test plans are organized in dedicated subdirectories referenced by this master plan:
+All granular game systems, architecture models, modular content catalogs, and verification test plans are organized in dedicated subdirectories referenced by this master plan:
 
-### Architecture & Technical Structure (`docs/architecture/`)
+### Architecture & Technical Structure ([docs/architecture/](docs/architecture/))
 - **System Architecture**: [docs/architecture/architecture.md](docs/architecture/architecture.md) — Complete file tree, ECS dataflow, system update order, and client-server simulation separation for multiplayer.
 - **Functions & API Reference**: [docs/architecture/functions_reference.md](docs/architecture/functions_reference.md) — Functional specifications, parameters, return types, and state mutations per file.
+- **Subsystem Architecture Specifications**:
+  - [docs/architecture/ecs_dataflow.md](docs/architecture/ecs_dataflow.md) — EnTT sparse set component pools, cache optimization, and system execution order.
+  - [docs/architecture/physics_simulation.md](docs/architecture/physics_simulation.md) — Box2D v3 integration, kinematic sweeps, and collision matrix.
+  - [docs/architecture/rendering_pipeline.md](docs/architecture/rendering_pipeline.md) — Virtual canvas, nearest-neighbor integer upscaling, and letterboxing.
+  - [docs/architecture/input_action_mapping.md](docs/architecture/input_action_mapping.md) — Abstract action mappings and 360-degree aiming.
+  - [docs/architecture/multiplayer_networking.md](docs/architecture/multiplayer_networking.md) — Headless simulation core and client prediction roadmap.
+  - [docs/architecture/ui_hierarchy.md](docs/architecture/ui_hierarchy.md) — Modal window stack, z-ordering, and HUD layouts.
+  - [docs/architecture/save_persistence.md](docs/architecture/save_persistence.md) — Atomic file saves, version migrations, and SHA-256 checksums.
 
-### Game Design Specifications (`docs/design/`)
-- **Classes**: [docs/design/classes.md](docs/design/classes.md) — 9 class archetypes, base stats, starter kits, signature mechanics, uncapped leveling, universal skill unlocking, and Level 20 signature augments.
-- **Skills**: [docs/design/skills.md](docs/design/skills.md) — 500+ active and passive skills, 4-key active hotbar (`Q`, `E`, `R`, `F`), DAG progression, mathematical scaling, and execution pipeline.
-- **Augmentations**: [docs/design/augmentations.md](docs/design/augmentations.md) — 250+ augmentations across 11 body slots, dual bionic/magitech economy (Power vs Humanity, Mana vs Stability), and cross-class exotic surgery rules.
-- **Items & Equipment**: [docs/design/items.md](docs/design/items.md) — 3,000+ base items across 10 categories and 8 tiers, individual Gaussian base stat roll ranges, quality modifiers, weapons, armor sets, and affixes.
-- **Crafting & Modification**: [docs/design/crafting.md](docs/design/crafting.md) — 48-node Crafting Tree, stations, stat shard infusion, tier upgrading, calibration, socket drilling, affix sealing, and fracture mechanics.
-- **Combat Mechanics**: [docs/design/combat.md](docs/design/combat.md) — Terraria-style 360 aim, kinematic sensor hitboxes, damage pipeline, armor mitigation, hitstop, screen shake, and status effects.
-- **Survival, Building & Farming**: [docs/design/survival_building.md](docs/design/survival_building.md) — Hunger, thirst, temperature simulation, day/night cycles, weather, 16x16 grid building, crop farming, and NPC recruitment.
-- **World, Biomes & Dungeons**: [docs/design/world_dungeons.md](docs/design/world_dungeons.md) — 20+ biomes, BSP procedural dungeon generation in every biome, 8 campaign tiers, boss fights, death recovery, and the Infinite Rift.
+### Character Classes ([docs/classes/](docs/classes/))
+- [docs/classes/classes_overview.md](docs/classes/classes_overview.md) — 9 class archetypes, base attributes, leveling, and cross-class mastery.
+- Individual class dossiers: [docs/classes/juggernaut_warrior.md](docs/classes/juggernaut_warrior.md), [docs/classes/berserker_barbarian.md](docs/classes/berserker_barbarian.md), [docs/classes/gunslinger_ranger.md](docs/classes/gunslinger_ranger.md), [docs/classes/phantom_rogue.md](docs/classes/phantom_rogue.md), [docs/classes/technomancer_mage.md](docs/classes/technomancer_mage.md), [docs/classes/medic_cleric.md](docs/classes/medic_cleric.md), [docs/classes/symbiote_druid.md](docs/classes/symbiote_druid.md), [docs/classes/warden_paladin.md](docs/classes/warden_paladin.md), [docs/classes/reanimator_necromancer.md](docs/classes/reanimator_necromancer.md).
 
-### Test Plans (`docs/test_plans/`)
-- Modular test plans covering unit test cases, input conditions, assertions, and edge cases for each planned codebase module.
+### Skills & Ability Trees ([docs/skills/](docs/skills/))
+- [docs/skills/skills_overview.md](docs/skills/skills_overview.md) — Skill architecture, scaling formulas, and execution pipeline.
+- [docs/skills/common_trees.md](docs/skills/common_trees.md) — 65 universal common skills (Survival, Cybernetics, Mobility, Combat).
+- Dedicated 52-skill class trees: [docs/skills/juggernaut_skills.md](docs/skills/juggernaut_skills.md), [docs/skills/berserker_skills.md](docs/skills/berserker_skills.md), [docs/skills/gunslinger_skills.md](docs/skills/gunslinger_skills.md), [docs/skills/phantom_skills.md](docs/skills/phantom_skills.md), [docs/skills/technomancer_skills.md](docs/skills/technomancer_skills.md), [docs/skills/medic_skills.md](docs/skills/medic_skills.md), [docs/skills/symbiote_skills.md](docs/skills/symbiote_skills.md), [docs/skills/warden_skills.md](docs/skills/warden_skills.md), [docs/skills/reanimator_skills.md](docs/skills/reanimator_skills.md).
+
+### Body Augmentations Matrix ([docs/augmentations/](docs/augmentations/))
+- [docs/augmentations/augmentations_overview.md](docs/augmentations/augmentations_overview.md) — 11 body slots, dual bionic/magitech economy.
+- [docs/augmentations/class_signatures.md](docs/augmentations/class_signatures.md) — 9 Class Signatures and cross-class surgery rules.
+- 11 individual slot files (260 augments): [docs/augmentations/slots/slot_01_head.md](docs/augmentations/slots/slot_01_head.md) through [docs/augmentations/slots/slot_11_legs.md](docs/augmentations/slots/slot_11_legs.md).
+
+### Items & Equipment Taxonomy ([docs/items/](docs/items/))
+- [docs/items/items_overview.md](docs/items/items_overview.md) — Statistical distributions, quality rolls, and affix pools.
+- Weapons: [docs/items/weapons/swords_greatswords.md](docs/items/weapons/swords_greatswords.md), [docs/items/weapons/daggers_knives.md](docs/items/weapons/daggers_knives.md), [docs/items/weapons/heavy_axes_hammers_spears.md](docs/items/weapons/heavy_axes_hammers_spears.md), [docs/items/weapons/revolvers_pistols.md](docs/items/weapons/revolvers_pistols.md), [docs/items/weapons/shotguns.md](docs/items/weapons/shotguns.md), [docs/items/weapons/rifles_carbines.md](docs/items/weapons/rifles_carbines.md), [docs/items/weapons/heavy_firearms_snipers.md](docs/items/weapons/heavy_firearms_snipers.md), [docs/items/weapons/energy_weapons.md](docs/items/weapons/energy_weapons.md), [docs/items/weapons/staffs_scepters_grimoires.md](docs/items/weapons/staffs_scepters_grimoires.md), [docs/items/weapons/shields_deflectors.md](docs/items/weapons/shields_deflectors.md).
+- Armor: [docs/items/armor/helmets.md](docs/items/armor/helmets.md), [docs/items/armor/chestplates.md](docs/items/armor/chestplates.md), [docs/items/armor/greaves_legs.md](docs/items/armor/greaves_legs.md), [docs/items/armor/boots_footwear.md](docs/items/armor/boots_footwear.md).
+- Accessories: [docs/items/accessories/rings.md](docs/items/accessories/rings.md), [docs/items/accessories/necklaces_amulets.md](docs/items/accessories/necklaces_amulets.md), [docs/items/accessories/pendants_talismans.md](docs/items/accessories/pendants_talismans.md), [docs/items/accessories/earrings_studs.md](docs/items/accessories/earrings_studs.md), [docs/items/accessories/toe_rings_anklets.md](docs/items/accessories/toe_rings_anklets.md), [docs/items/accessories/relics_power_cores.md](docs/items/accessories/relics_power_cores.md).
+- Consumables: [docs/items/consumables/food_drink.md](docs/items/consumables/food_drink.md), [docs/items/consumables/potions_medicine.md](docs/items/consumables/potions_medicine.md), [docs/items/consumables/combat_stims_injectors.md](docs/items/consumables/combat_stims_injectors.md), [docs/items/consumables/mutagens_exotics.md](docs/items/consumables/mutagens_exotics.md), [docs/items/consumables/scrolls_transponders.md](docs/items/consumables/scrolls_transponders.md).
+- Materials: [docs/items/materials/ores_ingots.md](docs/items/materials/ores_ingots.md), [docs/items/materials/woods_timber.md](docs/items/materials/woods_timber.md), [docs/items/materials/crystals_gems.md](docs/items/materials/crystals_gems.md), [docs/items/materials/rare_exotics.md](docs/items/materials/rare_exotics.md), [docs/items/materials/monster_parts.md](docs/items/materials/monster_parts.md), [docs/items/materials/tech_salvage.md](docs/items/materials/tech_salvage.md), [docs/items/materials/textiles_fibers.md](docs/items/materials/textiles_fibers.md).
+- Tools: [docs/items/tools/harvesting_tools.md](docs/items/tools/harvesting_tools.md).
+
+### Crafting & Item Modification ([docs/crafting/](docs/crafting/))
+- [docs/crafting/crafting_system.md](docs/crafting/crafting_system.md) — 48-node Crafting Tree, stations, and forge modification mechanics.
+- [docs/crafting/recipes.md](docs/crafting/recipes.md) — Unified 535-recipe catalog.
+- Granular recipe files (565 recipes): [docs/crafting/recipes/workbench_structures.md](docs/crafting/recipes/workbench_structures.md), [docs/crafting/recipes/forge_weapons_ammo.md](docs/crafting/recipes/forge_weapons_ammo.md), [docs/crafting/recipes/forge_armor_shields.md](docs/crafting/recipes/forge_armor_shields.md), [docs/crafting/recipes/cyber_clinic_bionics.md](docs/crafting/recipes/cyber_clinic_bionics.md), [docs/crafting/recipes/arcane_alchemy.md](docs/crafting/recipes/arcane_alchemy.md), [docs/crafting/recipes/cooking_beverages.md](docs/crafting/recipes/cooking_beverages.md), [docs/crafting/recipes/hydroponics_botany.md](docs/crafting/recipes/hydroponics_botany.md).
+
+### Combat & Survival Mechanics
+- [docs/combat/combat_mechanics.md](docs/combat/combat_mechanics.md) — 360-degree aiming, hitboxes, damage formulas, and mitigation.
+- [docs/survival/survival_building.md](docs/survival/survival_building.md) — Hunger, thirst, temperature, grid building, and farming.
+
+### World, Biomes & Procedural Dungeons ([docs/biomes/](docs/biomes/))
+- [docs/biomes/biomes_overview.md](docs/biomes/biomes_overview.md) — World taxonomy and generation rules.
+- [docs/biomes/master_biomes_index.md](docs/biomes/master_biomes_index.md) — Master index of all 22 biomes and procedural dungeons.
+- Individual dossiers for all 22 biomes: [docs/biomes/the_haven.md](docs/biomes/the_haven.md) through [docs/biomes/infinite_void_rift.md](docs/biomes/infinite_void_rift.md).
+
+### Verification & Test Plans ([docs/test_plans/](docs/test_plans/))
+- Comprehensive Catch2 test suites covering every engine and gameplay subsystem: [docs/test_plans/core_platform_test_plan.md](docs/test_plans/core_platform_test_plan.md) through [docs/test_plans/world_dungeons_test_plan.md](docs/test_plans/world_dungeons_test_plan.md).
 
 ---
 

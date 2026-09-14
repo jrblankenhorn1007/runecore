@@ -110,24 +110,29 @@ This document tracks all user-requested planning, design specifications, content
 - [x] Design 8 campaign dungeon tiers with multi-phase bosses culminating in The Architect.
 - [x] Design Infinite Rift endgame with scaling mutators and Tier 9+ Prismatic gear.
 - [x] Design death mechanics (No permadeath: consciousness recall to hub with 25% raw material drop in recovery drone).
-- [x] **Detailed individual dossiers for biomes in `docs/biomes/`**:
-  - [x] `the_haven.md` (Hub Valley)
-  - [x] `rustwood_forest.md` (Forest Frontier)
-  - [x] `ashen_foundry.md` (Industrial Slag Heaps)
-  - [x] `cryo_glacier.md` (Frost Peaks)
-  - [x] `bioluminescent_bog.md` (Fungal Swamplands)
-  - [x] `subterranean_caverns.md` (Underground Mines & Caves)
-  - [x] `sunken_necropolis.md` (Deep Mausoleums & Tombs)
-  - [x] `volcanic_core.md` (Mantle Magma Trenches)
-  - [x] `toxic_waste_tunnels.md` (Chemical Sewers)
-  - [x] `sunken_oceanic_trenches.md` (Underwater Coral Reefs)
-  - [x] `floating_astral_islands.md` (Stratosphere Archon Shrines)
-  - [x] `crystal_spires.md` (Prismatic Geodes)
-  - [x] `haunted_graveyards.md` (Cursed Mire)
-  - [x] `cyber_wasteland.md` (Automated Assembly Megaplexes)
-  - [x] `mutagenic_flesh_pits.md` (Eldritch Gestation Cavities)
-  - [x] `chrono_distortion_desert.md` (Glass Sand & Time Anomalies)
-  - [x] `infinite_void_rift.md` (Endgame Singularities)
+- [x] **Detailed individual dossiers for all 22 biomes in `docs/biomes/`**:
+  - [x] `the_haven.md` (Biome 01: Hub Valley)
+  - [x] `rustwood_forest.md` (Biome 02: Forest Frontier)
+  - [x] `ashen_foundry.md` (Biome 03: Industrial Slag Heaps)
+  - [x] `cryo_glacier.md` (Biome 04: Frost Peaks)
+  - [x] `bioluminescent_bog.md` (Biome 05: Fungal Swamplands)
+  - [x] `megacity_ruins.md` (Biome 06: Ancient Ruined Megacity)
+  - [x] `subterranean_caverns.md` (Biome 07: Underground Mines & Caves)
+  - [x] `sunken_necropolis.md` (Biome 08: Deep Mausoleums & Tombs)
+  - [x] `volcanic_core.md` (Biome 09: Mantle Magma Trenches)
+  - [x] `toxic_waste_tunnels.md` (Biome 10: Chemical Sewers)
+  - [x] `sunken_oceanic_trenches.md` (Biome 11: Underwater Coral Reefs)
+  - [x] `floating_astral_islands.md` (Biome 12: Stratosphere Archon Shrines)
+  - [x] `crystal_spires.md` (Biome 13: Prismatic Geodes)
+  - [x] `haunted_graveyards.md` (Biome 14: Cursed Mire)
+  - [x] `cyber_wasteland.md` (Biome 15: Automated Assembly Megaplexes)
+  - [x] `mutagenic_flesh_pits.md` (Biome 16: Eldritch Gestation Cavities)
+  - [x] `chrono_distortion_desert.md` (Biome 17: Glass Sand & Time Anomalies)
+  - [x] `petrified_forest.md` (Biome 18: Petrified Ancient Forest)
+  - [x] `radioactive_crater.md` (Biome 19: Radioactive Crater Basin)
+  - [x] `magnetic_thunder_crags.md` (Biome 20: Magnetic Storm Spires)
+  - [x] `orbital_tether.md` (Biome 21: Precursor Space Elevator & Station)
+  - [x] `infinite_void_rift.md` (Biome 22: Endgame Singularities)
 
 ### 1.7 Technical Architecture, API & Test Planning
 - [x] **Remove All Existing Code**: Delete all premature C++ implementation files (`src/`, `CMakeLists.txt`, `cmake/`) so the repository is strictly in the design and planning phase.
@@ -160,14 +165,26 @@ This document tracks all user-requested planning, design specifications, content
 
 ---
 
-## 3. Next Steps (In Order of Priority)
+## 3. Design Phase Completion & Future Implementation Roadmap
 
-1. **Expand Architecture Folder (`docs/architecture/`)**: Create granular subsystem technical architecture markdowns (`ecs_dataflow.md`, `physics_simulation.md`, `rendering_pipeline.md`, `input_action_mapping.md`, `multiplayer_networking.md`, `ui_hierarchy.md`, `save_persistence.md`).
-2. **Restructure Augmentations Folder (`docs/augmentations/`)**: Create `docs/augmentations/slots/` with 11 individual slot files and `class_signatures.md`.
-3. **Split Recipes into Granular Files (`docs/crafting/recipes/`)**: Split `recipes.md` into 7 specialized category files.
-4. **Expand Consumables (`docs/items/consumables/`)**: Create `potions_medicine.md`, `combat_stims_injectors.md`, `mutagens_exotics.md`, and `scrolls_transponders.md`.
-5. **Expand Accessories (`docs/items/accessories/`)**: Create `necklaces_amulets.md`, `pendants_talismans.md`, `earrings_studs.md`, `toe_rings_anklets.md`, and `relics_power_cores.md`.
-6. **Expand Materials (`docs/items/materials/`)**: Create `rare_exotics.md`, `monster_parts.md`, `tech_salvage.md`, and `textiles_fibers.md`.
-7. **Expand Skills Catalog (`docs/skills/`)**: Create `common_trees.md` and 9 dedicated class skill markdowns with ~50 skills each.
-8. **Extract Remaining Biomes (`docs/biomes/`)**: Create standalone specification files for the remaining 16 biomes.
-9. **Final Review & Alignment**: Verify all modular design documents are 100% complete, code-free, cleanly linked, and aligned with `PLAN.md`.
+All conceptual design specifications, modular documentation splits, item catalogs, skill trees, augmentation slots, recipe matrices, biome dossiers, technical architecture markdowns, and unit test plans are **100% complete and committed**.
+
+### 3.1 Completed Milestones (Design Phase)
+1. [x] **Subsystem Architecture Expansion (`docs/architecture/`)**: Completed all 7 deep-dive subsystem technical architecture files.
+2. [x] **Augmentation Slots Restructuring (`docs/augmentations/`)**: Completed 11 individual slot files (260 total augmentations) and `class_signatures.md`.
+3. [x] **Granular Recipes Categorization (`docs/crafting/recipes/`)**: Completed 7 specialized station files cataloging 565 recipes.
+4. [x] **Consumables Expansion (`docs/items/consumables/`)**: Completed food/drink, potions, combat stims, mutagens, and scrolls/beacons.
+5. [x] **Accessories Expansion (`docs/items/accessories/`)**: Completed rings, necklaces, pendants, earrings, toe rings, and relics.
+6. [x] **Materials Expansion (`docs/items/materials/`)**: Completed ores, woods, crystals, rare exotics, monster parts, tech salvage, and textiles.
+7. [x] **Weapons Expansion (`docs/items/weapons/`)**: Completed blades, daggers, handguns, shotguns, carbines, heavy weapons, snipers, energy weapons, and magic implements.
+8. [x] **Skills Expansion (`docs/skills/`)**: Completed 65-skill universal tree and 9 dedicated 52-skill class trees (533 skills total).
+9. [x] **World Biomes Extraction (`docs/biomes/`)**: Completed all 22 biome dossiers and master cross-reference index.
+10. [x] **Verification Suites (`docs/test_plans/`)**: Completed 9 comprehensive Catch2 test plans covering all subsystems.
+
+### 3.2 Next Phase: TDD Codebase Implementation (When Prompted by User)
+When the user gives the instruction to begin development:
+- **Step 1: Build System & Core Platform**: Set up root `CMakeLists.txt`, FetchContent dependencies (SDL3, Box2D v3, EnTT, nlohmann_json, spdlog, Dear ImGui, Catch2 v3).
+- **Step 2: Core Platform Tests**: Implement Catch2 test harness and write unit tests for `EngineContext`, fixed timestep accumulator, and virtual canvas math.
+- **Step 3: Headless ECS Simulation Core**: Implement component pools, query caches, and headless game loop.
+- **Step 4: Box2D v3 Physics Controller**: Implement kinematic sweeps, collision bitmasks, and platformer movement physics.
+- **Step 5: Combat & Stats Pipeline**: Implement floating-point damage resolution, Gaussian roll generators, and mitigation formulas.

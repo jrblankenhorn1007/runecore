@@ -118,11 +118,25 @@ The Shared Tree is open to all characters regardless of class. It is divided int
 
 ---
 
-## 3. Class Skill Tree Specifications
+## 3. Class Skill Trees & Expanded Catalogs (533 Skills Total)
 
-Each of the 9 classes possesses a 15-node tree containing 4 active skills (assigned to hotkeys `Q`, `E`, `R`, `F`) and 11 passive nodes. For full thematic descriptions and base values, see [docs/design/classes.md](docs/design/classes.md).
+Every class possesses a dedicated 52-skill tree organized into 4 thematic specialization branches. Together with the 65 Universal Common Skills in [common_trees.md](common_trees.md), Untitled RPG delivers over 530 unique skills that players can learn and master. Reaching Level 60 unlocks the **Cross-Class Neural Bridge**, enabling characters to invest skill points into any class tree and learn every skill in the game.
 
-### 3.1 Mathematical Scaling Formula for Actives
+### 3.1 Class Skill Trees Directory
+1. **Universal Common Skill Trees** (65 Skills across Survival, Cybernetics, Mobility, General Combat): [common_trees.md](common_trees.md)
+2. **Juggernaut (Warrior Archetype)** (52 Skills: Immovable Bastion, Seismic Devastation, Kinetic Core, Battlefield Command): [juggernaut_skills.md](juggernaut_skills.md)
+3. **Berserker (Barbarian Archetype)** (52 Skills: Blood Frenzy, Savage Vitality, Primal Fury, Chimeric Mutation): [berserker_skills.md](berserker_skills.md)
+4. **Gunslinger (Ranger Archetype)** (52 Skills: Deadeye Marksmanship, Akimbo & Trick Shots, Munitions Tech, Traps & Turrets): [gunslinger_skills.md](gunslinger_skills.md)
+5. **Phantom (Rogue Archetype)** (52 Skills: Shadow Arts, Phase-Shift Mobility, Lethal Toxins, Bladed Sabotage): [phantom_skills.md](phantom_skills.md)
+6. **Technomancer (Mage Archetype)** (52 Skills: Electromancy, Kinetic Barriers, Nanite Swarms, Drone Minions): [technomancer_skills.md](technomancer_skills.md)
+7. **Medic (Cleric Archetype)** (52 Skills: Cellular Regeneration, Radiant Light, Bio-Hazards, Cyber-Genetics): [medic_skills.md](medic_skills.md)
+8. **Symbiote (Druid Archetype)** (52 Skills: Tendril Combat, Bio-Metamorphosis, Parasitic Infestation, Spore Botany): [symbiote_skills.md](symbiote_skills.md)
+9. **Warden (Paladin Archetype)** (52 Skills: Divine Aegis, Righteous Smite, Sacred Auras, Divine Oaths): [warden_skills.md](warden_skills.md)
+10. **Reanimator (Necromancer Archetype)** (52 Skills: Skeletal Reanimation, Bone Smithing, Soul Harvest, Necrotic Plagues): [reanimator_skills.md](reanimator_skills.md)
+
+For class background dossiers and initial starting stats, see [docs/classes/classes_overview.md](docs/classes/classes_overview.md).
+
+### 3.2 Mathematical Scaling Formula for Actives
 All active skills calculate outgoing damage and effectiveness using:
 $$\text{Skill Damage} = \text{Base Damage} \times (1.0 + (\text{Rank} - 1) \times 0.25) \times (1.0 + \text{Attribute Scaling}) \times \text{Affix Multipliers}$$
 - Cooldown decreases by $8\%$ per rank above Rank 1.

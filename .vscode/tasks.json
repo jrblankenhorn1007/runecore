@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "cmake",
+            "label": "CMake: build",
+            "command": "build",
+            "targets": [
+                "all"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "detail": "Build the active CMake target"
+        },
+        {
+            "type": "shell",
+            "label": "Run untitled_rpg",
+            "command": "${workspaceFolder}/build/untitled_rpg",
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            },
+            "dependsOn": [
+                "CMake: build"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

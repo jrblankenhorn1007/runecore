@@ -1,8 +1,8 @@
 #pragma once
 #include "core/Math.hpp"
+#include "gameplay/ai/BossAI.hpp"
 #include <entt/entt.hpp>
 #include <vector>
-#include <string>
 #include <algorithm>
 
 struct TransformComponent {
@@ -42,6 +42,8 @@ struct HealthComponent {
     float regenRate{0.5f}; // HP per second
     bool isDead{false};
     float invulnTimer{0.0f};
+    float hitFlashTimer{0.0f};
+    float healthBarTimer{0.0f};
 
     HealthComponent() = default;
     HealthComponent(float cur, float maxHp, float regen = 0.5f)
@@ -151,12 +153,34 @@ struct StatsComponent {
 
 struct PlayerTag {};
 
+enum class EnemyType {
+    Slime,
+    Bat,
+    Raptor,
+    CyberGunner,
+    Harpy,
+    Carapace
+};
+
 struct EnemyTag {
     int tier{1};
     int xpReward{50};
+    EnemyType type{EnemyType::Slime};
 
     EnemyTag() = default;
-    EnemyTag(int t, int xp) : tier(t), xpReward(xp) {}
+    EnemyTag(int t, int xp, EnemyType tp = EnemyType::Slime) : tier(t), xpReward(xp), type(tp) {}
+};
+
+struct BossEncounterComponent {
+    BossAI controller;
+    BossAction action;
+    bool summonsSpawned{false};
+};
+
+struct DeathAnimationComponent {
+    float remaining{0.25f};
+    float duration{0.25f};
+    EnemyType type{EnemyType::Slime};
 };
 
 struct ProjectileComponent {

@@ -66,6 +66,8 @@ void ProjectileSystem::update(entt::registry& registry, const CollisionWorld& wo
             if (targetE == proj.owner) continue;
 
             if (CombatSystem::resolveHitbox(registry, projHitbox, targetE)) {
+                eHealth.hitFlashTimer = 2.0f / 60.0f;
+                eHealth.healthBarTimer = 3.0f;
                 hitEnemy = true;
                 proj.pierceCount++;
                 if (!proj.penetrates || proj.pierceCount >= proj.maxPierces) {

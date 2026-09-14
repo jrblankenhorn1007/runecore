@@ -19,6 +19,9 @@ TEST_CASE("BossAI Multi-Phase Progression and Enrage Dynamics", "[gameplay][ai]"
         // Immediate next tick: on cooldown
         BossAction act2 = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 0.1f);
         REQUIRE(act2.attackTriggered == false);
+        BossAction warning = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 2.0f);
+        REQUIRE(warning.telegraphActive == true);
+        REQUIRE(warning.telegraphRadius == Approx(32.0f));
 
         // Cooldown expires during 3.5s update and triggers attack
         BossAction act3 = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 3.5f);

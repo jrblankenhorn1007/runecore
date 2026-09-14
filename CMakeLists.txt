@@ -42,6 +42,7 @@ include_directories(
 file(GLOB_RECURSE GAME_SOURCES
     src/core/*.cpp
     src/render/*.cpp
+    src/audio/*.cpp
     src/input/*.cpp
     src/physics/*.cpp
     src/ecs/*.cpp
@@ -87,4 +88,15 @@ foreach(TEST_PATH ${TEST_FILES})
         ${CMAKE_CURRENT_SOURCE_DIR}/external/catch2
     )
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()
+
+set(FOCUSED_QA_SCENARIOS
+    movement jump mining loot crafting projectile melee skills dungeon feedback ui persistence hazards settlement boss input
+    inventory_drag settings character_creation respawn
+)
+foreach(QA_SCENARIO ${FOCUSED_QA_SCENARIOS})
+    add_test(
+        NAME test_${QA_SCENARIO}
+        COMMAND untitled_rpg --qa ${QA_SCENARIO}
+    )
 endforeach()

@@ -3,6 +3,16 @@
 
 class Progression {
 public:
+    enum class Attribute {
+        Strength,
+        Dexterity,
+        Intelligence,
+        Vitality,
+        Wisdom,
+        Cybernetics,
+        Count
+    };
+
     Progression();
 
     int getLevel() const { return m_level; }
@@ -16,6 +26,8 @@ public:
     int getSkillPoints() const { return m_skillPoints; }
 
     bool spendAttributePoints(int count);
+    bool allocateAttribute(Attribute attribute);
+    int getAttribute(Attribute attribute) const;
     bool spendSkillPoints(int count);
 
     bool isCrossClassUnlocked() const { return m_level >= 60; }
@@ -27,4 +39,5 @@ private:
     uint64_t m_currentXP{0};
     int m_attributePoints{0};
     int m_skillPoints{0};
+    int m_attributes[static_cast<int>(Attribute::Count)]{10, 10, 10, 10, 10, 10};
 };

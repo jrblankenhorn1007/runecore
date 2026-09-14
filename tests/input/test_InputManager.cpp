@@ -77,6 +77,13 @@ TEST_CASE("InputManager Event Polling, Keyboard Actions, and Mouse Coordinates",
         pushKey(SDLK_M, true);
         im.processEvents(metrics, camera);
         REQUIRE(im.getState().toggleMinimap == true);
+            pushKey(SDLK_I, true);
+            im.processEvents(metrics, camera);
+            REQUIRE(im.getState().toggleCharacterSheet == true);
+
+            pushKey(SDLK_K, true);
+            im.processEvents(metrics, camera);
+            REQUIRE(im.getState().toggleSkills == true);
 
         pushKey(SDLK_W, true);
         im.processEvents(metrics, camera);
@@ -84,7 +91,7 @@ TEST_CASE("InputManager Event Polling, Keyboard Actions, and Mouse Coordinates",
 
         pushKey(SDLK_ESCAPE, true);
         im.processEvents(metrics, camera);
-        REQUIRE(im.getState().quitRequested == true);
+        REQUIRE(im.getState().toggleSettings == true);
 
         // Hotbar keys
         pushKey(SDLK_1, true); im.processEvents(metrics, camera); REQUIRE(im.getState().hotbarSelected == 0);

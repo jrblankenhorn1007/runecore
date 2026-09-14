@@ -1,0 +1,52 @@
+Runecore Proprietary License
+Copyright (c) 2026 Runecore. All rights reserved.
+
+This license applies to the Runecore source code, original game design, original
+assets, documentation, and other materials in this repository that are owned by
+Runecore (the "Software"). It does not replace or alter the licenses of
+third-party components included in or used by the project.
+
+1. Permission for evaluation and development
+
+Runecore grants you a limited, non-exclusive, non-transferable, revocable
+permission to view, download, build, and run the Software solely for private
+evaluation, research, and development of Runecore. This permission does not
+grant any ownership or other rights in the Software.
+
+2. Restrictions
+
+Unless Runecore gives you prior written permission, you may not:
+
+- copy, publish, distribute, sublicense, lease, or sell the Software;
+- modify, adapt, translate, or create derivative works from the Software;
+- use the Software or any part of it in a commercial product or service;
+- use the Software, its assets, or its source code to train or evaluate a
+  machine-learning system;
+- remove or alter copyright, trademark, license, or attribution notices; or
+- make the Software available to another person or through a public repository,
+  package registry, hosting service, or distribution platform.
+
+3. Commercial rights
+
+All commercial rights are reserved by Runecore. Commercial use, commercial
+distribution, licensing, publishing, merchandising, and inclusion in another
+product require a separate written agreement with Runecore.
+
+4. Termination
+
+This permission terminates automatically if you breach this license. On
+termination, you must stop using the Software and delete copies in your
+possession or control, except where retention is required by law.
+
+5. Disclaimer and limitation of liability
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. TO THE MAXIMUM EXTENT
+PERMITTED BY LAW, RUNECORE WILL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY ARISING FROM OR RELATED TO THE SOFTWARE.
+
+6. Contact
+
+Requests for commercial use or other permissions must be made to the owner of
+Runecore in writing.

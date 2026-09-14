@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <algorithm>
 
 using json = nlohmann::json;
 
@@ -38,6 +39,15 @@ bool SaveManager::saveToFile(const std::string& filePath, const SaveData& data) 
     j["hunger"] = data.hunger;
     j["thirst"] = data.thirst;
     j["bodyTemp"] = data.bodyTemp;
+    j["settings"] = {
+        {"masterVolume", data.settings.masterVolume},
+        {"sfxVolume", data.settings.sfxVolume},
+        {"musicVolume", data.settings.musicVolume},
+        {"ambienceVolume", data.settings.ambienceVolume},
+        {"fullscreen", data.settings.fullscreen},
+        {"vsync", data.settings.vsync},
+        {"movementKeys", data.settings.movementKeys}
+    };
 
     json itemsJson = json::array();
     for (const auto& item : data.inventoryItems) {
@@ -129,6 +139,18 @@ bool SaveManager::loadFromFile(const std::string& filePath, SaveData& outData) {
     outData.hunger = j.value("hunger", 100.0f);
     outData.thirst = j.value("thirst", 100.0f);
     outData.bodyTemp = j.value("bodyTemp", 37.0f);
+    if (j.contains("settings")) {
+        const auto& settings = j["settings"];
+        outData.settings.masterVolume = settings.value("masterVolume", 1.0f);
+        outData.settings.sfxVolume = settings.value("sfxVolume", 1.0f);
+        outData.settings.musicVolume = settings.value("musicVolume", 1.0f);
+        outData.settings.ambienceVolume = settings.value("ambienceVolume", 1.0f);
+        outData.settings.fullscreen = settings.value("fullscreen", false);
+        outData.settings.vsync = settings.value("vsync", true);
+        if (settings.contains("movementKeys")) {
+            outData.settings.movementKeys = settings["movementKeys"].get<std::array<int, 4>>();
+        }
+    }
 
     outData.inventoryItems.clear();
     if (j.contains("inventory")) {
@@ -145,4 +167,28 @@ bool SaveManager::loadFromFile(const std::string& filePath, SaveData& outData) {
     }
 
     return true;
+}
+
+bool SaveManager::saveSlot(const std::string& directory, int slot, const SaveData& data) {
+    if (slot < 1 || slot > 3) return false;
+    std::filesystem::create_directories(directory);
+    return saveToFile((std::filesystem::path(directory) /
+                       ("save_slot_0" + std::to_string(slot) + ".sav")).string(), data);
+}
+
+bool SaveManager::loadSlot(const std::string& directory, int slot, SaveData& outData) {
+    if (slot < 1 || slot > 3) return false;
+    return loadFromFile((std::filesystem::path(directory) /
+                         ("save_slot_0" + std::to_string(slot) + ".sav")).string(), outData);
+}
+
+std::vector<int> SaveManager::availableSlots(const std::string& directory, int maxSlots) {
+    std::vector<int> slots;
+    maxSlots = std::clamp(maxSlots, 0, 3);
+    for (int slot = 1; slot <= maxSlots; ++slot) {
+        const auto path = std::filesystem::path(directory) /
+                          ("save_slot_0" + std::to_string(slot) + ".sav");
+        if (std::filesystem::exists(path)) slots.push_back(slot);
+    }
+    return slots;
 }

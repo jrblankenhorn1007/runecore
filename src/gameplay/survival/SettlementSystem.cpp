@@ -58,3 +58,18 @@ bool SettlementSystem::assignNPC(NPCType npc, const RoomBounds& room) {
 bool SettlementSystem::isNPCResident(NPCType npc) const {
     return m_residents.find(npc) != m_residents.end();
 }
+
+ServiceResult SettlementSystem::useService(NPCType npc, NPCService service, int resource) const {
+    if (!isNPCResident(npc)) return {};
+    if (npc == NPCType::Blacksmith && service == NPCService::Repair)
+        return {resource > 0, resource > 0 ? resource : 0};
+    if (npc == NPCType::Doctor && service == NPCService::Heal)
+        return {true, 25};
+    if (npc == NPCType::Merchant && service == NPCService::Transmute)
+        return {resource > 0, resource > 0 ? resource * 2 : 0};
+    if (npc == NPCType::Alchemist && service == NPCService::Transmute)
+        return {resource > 0, resource > 0 ? resource + 1 : 0};
+    if (npc == NPCType::Guide && service == NPCService::Reveal)
+        return {true, 1};
+    return {};
+}

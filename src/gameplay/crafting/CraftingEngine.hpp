@@ -26,12 +26,14 @@ struct CraftingRecipe {
     std::vector<Ingredient> ingredients;
     std::string outputItemId;
     int outputQuantity{1};
+    ItemCategory category{ItemCategory::Material};
 };
 
 class CraftingEngine {
 public:
     void registerRecipe(const CraftingRecipe& recipe);
     const CraftingRecipe* getRecipe(const std::string& id) const;
+    std::vector<std::string> getRecipeIds() const;
 
     bool canCraft(const std::string& recipeId, const Inventory& inv, CraftingStation currentStation) const;
     bool craft(const std::string& recipeId, Inventory& inv, CraftingStation currentStation);

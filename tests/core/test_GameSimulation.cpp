@@ -52,6 +52,36 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.getActiveScreen() == ActiveScreen::Inventory);
         sim.toggleScreen(ActiveScreen::Inventory);
         REQUIRE(sim.getActiveScreen() == ActiveScreen::None);
+        sim.toggleScreen(ActiveScreen::Settings);
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::Settings);
+        sim.toggleScreen(ActiveScreen::Settings);
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::None);
+    }
+
+    SECTION("Weather Emits Typed Environmental Particles") {
+        sim.getContext().dayNight.setWeather(WeatherType::Clear);
+        sim.step(ControllerInput{}, 1.0f / 60.0f);
+        REQUIRE(sim.getParticles().getActiveCount() == 0);
+
+        sim.getContext().dayNight.setWeather(WeatherType::Blizzard);
+        sim.step(ControllerInput{}, 1.0f / 60.0f);
+        sim.step(ControllerInput{}, 1.0f / 60.0f);
+        sim.step(ControllerInput{}, 1.0f / 60.0f);
+        REQUIRE(sim.getParticles().getActiveCount() > 0);
+        const auto& particle = sim.getParticles().getParticles().front();
+        REQUIRE(particle.active == true);
+        REQUIRE(particle.color.b == 255);
+    }
+
+    SECTION("Character Sheet and Skill Allocation") {
+        sim.getProgression().setLevel(2);
+        int startingStrength = sim.getProgression().getAttribute(Progression::Attribute::Strength);
+        REQUIRE(sim.allocateAttribute(0) == true);
+        REQUIRE(sim.getProgression().getAttribute(Progression::Attribute::Strength) == startingStrength + 1);
+        REQUIRE(sim.allocateSkill("mob_02") == false);
+        REQUIRE(sim.allocateSkill("mob_01") == true);
+        REQUIRE(sim.getSkillTree().getRank("mob_01") == 1);
+        REQUIRE(sim.allocateSkill("mob_02") == true);
     }
 
     SECTION("Dungeon Entry and Exit") {
@@ -65,6 +95,14 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
 
         sim.enterDungeon();
         REQUIRE(sim.isInsideDungeon() == true);
+        auto bossView = sim.getContext().registry.view<BossEncounterComponent>();
+        REQUIRE(bossView.begin() != bossView.end());
+        auto bossEntity = bossView.front();
+        auto& bossHealth = sim.getContext().registry.get<HealthComponent>(bossEntity);
+        bossHealth.current = bossHealth.max * 0.5f;
+        sim.step(ControllerInput{}, 0.1f);
+        REQUIRE(sim.getContext().registry.get<BossEncounterComponent>(bossEntity).controller.isEnraged());
+        REQUIRE(sim.getEnemyCount() >= 3);
         sim.exitDungeon();
         REQUIRE(sim.isInsideDungeon() == false);
     }

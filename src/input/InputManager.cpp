@@ -17,6 +17,9 @@ void InputManager::processEvents(const CanvasMetrics& metrics, const Camera& cam
     m_state.toggleCrafting = false;
     m_state.toggleAugmentations = false;
     m_state.toggleMinimap = false;
+    m_state.toggleCharacterSheet = false;
+    m_state.toggleSkills = false;
+    m_state.toggleSettings = false;
     m_state.interactPressed = false;
 
     SDL_Event event;
@@ -58,11 +61,17 @@ void InputManager::processEvents(const CanvasMetrics& metrics, const Camera& cam
                     case SDLK_M:
                         m_state.toggleMinimap = true;
                         break;
+                    case SDLK_I:
+                        m_state.toggleCharacterSheet = true;
+                        break;
+                    case SDLK_K:
+                        m_state.toggleSkills = true;
+                        break;
                     case SDLK_W:
                         m_state.interactPressed = true;
                         break;
                     case SDLK_ESCAPE:
-                        m_state.quitRequested = true;
+                        m_state.toggleSettings = true;
                         break;
                     case SDLK_1: m_state.hotbarSelected = 0; break;
                     case SDLK_2: m_state.hotbarSelected = 1; break;

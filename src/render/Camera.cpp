@@ -27,9 +27,11 @@ CanvasMetrics Camera::calculateCanvasMetrics(int windowW, int windowH) {
 }
 
 Vec2 Camera::getSnappedPosition() const {
+    float shake = m_shakeTrauma * m_shakeTrauma;
+    float phase = m_shakeTimer * 83.0f;
     return Vec2{
-        std::round(m_position.x),
-        std::round(m_position.y)
+        std::round(m_position.x + std::sin(phase * 1.7f) * shake),
+        std::round(m_position.y + std::cos(phase * 2.1f) * shake)
     };
 }
 

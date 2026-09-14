@@ -112,9 +112,11 @@ TEST_CASE("ECS Components Lifecycle, Methods, and Modifiers", "[ecs][components]
     SECTION("Tags and Other Components") {
         EnemyTag defEt;
         REQUIRE(defEt.tier == 1);
-        EnemyTag et(2, 200);
+        REQUIRE(defEt.type == EnemyType::Slime);
+        EnemyTag et(2, 200, EnemyType::Raptor);
         REQUIRE(et.tier == 2);
         REQUIRE(et.xpReward == 200);
+        REQUIRE(et.type == EnemyType::Raptor);
 
         PlayerTag pt;
         (void)pt;

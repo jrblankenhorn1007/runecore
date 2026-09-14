@@ -1,4 +1,5 @@
 #include "gameplay/crafting/CraftingEngine.hpp"
+#include <algorithm>
 
 void CraftingEngine::registerRecipe(const CraftingRecipe& recipe) {
     m_recipes[recipe.id] = recipe;
@@ -10,6 +11,17 @@ const CraftingRecipe* CraftingEngine::getRecipe(const std::string& id) const {
         return &it->second;
     }
     return nullptr;
+}
+
+std::vector<std::string> CraftingEngine::getRecipeIds() const {
+    std::vector<std::string> ids;
+    ids.reserve(m_recipes.size());
+    for (const auto& [id, recipe] : m_recipes) {
+        (void)recipe;
+        ids.push_back(id);
+    }
+    std::sort(ids.begin(), ids.end());
+    return ids;
 }
 
 bool CraftingEngine::canCraft(const std::string& recipeId, const Inventory& inv, CraftingStation currentStation) const {

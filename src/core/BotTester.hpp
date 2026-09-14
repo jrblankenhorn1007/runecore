@@ -2,6 +2,7 @@
 #include "core/GameSimulation.hpp"
 #include "input/InputManager.hpp"
 #include <string>
+#include <vector>
 
 struct BotReport {
     bool passedMovement{false};
@@ -26,6 +27,16 @@ struct BotReport {
 
     void printSummary() const;
 };
+
+struct FocusedScenarioResult {
+    std::string name;
+    bool passed{false};
+    std::string detail;
+};
+
+std::vector<std::string> getFocusedScenarioNames();
+FocusedScenarioResult runFocusedScenario(const std::string& scenarioName);
+void printFocusedScenarioResult(const FocusedScenarioResult& result);
 
 class BotTester {
 public:

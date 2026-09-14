@@ -56,6 +56,24 @@ bool Inventory::removeItem(const std::string& itemId, int count) {
     return true;
 }
 
+bool Inventory::moveSlot(int fromIndex, int toIndex) {
+    if (fromIndex < 0 || fromIndex >= m_slotCount || toIndex < 0 || toIndex >= m_slotCount) return false;
+    if (fromIndex == toIndex || !m_slots[fromIndex].has_value()) return false;
+    std::swap(m_slots[fromIndex], m_slots[toIndex]);
+    m_lastAction = "ITEM MOVED";
+    return true;
+}
+
+bool Inventory::consumeSlot(int index) {
+    if (index < 0 || index >= m_slotCount || !m_slots[index].has_value()) return false;
+    if (m_slots[index]->category != ItemCategory::Consumable) return false;
+    if (--m_slots[index]->quantity <= 0) {
+        m_slots[index] = std::nullopt;
+    }
+    m_lastAction = "ITEM USED";
+    return true;
+}
+
 bool Inventory::hasItem(const std::string& itemId, int count) const {
     return getItemCount(itemId) >= count;
 }
@@ -94,6 +112,7 @@ bool Inventory::equipItem(EquipSlot slot, int inventorySlotIndex) {
     }
 
     m_equipped[slot] = toEquip;
+    m_lastAction = "EQUIPPED " + toEquip.name;
     return true;
 }
 

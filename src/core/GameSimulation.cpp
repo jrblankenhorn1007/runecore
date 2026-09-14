@@ -1,14 +1,17 @@
 #include "core/GameSimulation.hpp"
 #include "ecs/Components.hpp"
 #include "gameplay/combat/CombatSystem.hpp"
-#include <iostream>
 
 GameSimulation::GameSimulation()
     : m_skillExecutor(m_context.skillRegistry),
       m_forge(m_context.rng),
-      m_worldInteraction(m_context.physicsWorld, m_context.tilemap, m_lootSystem) {}
+    m_worldInteraction(m_context.physicsWorld, m_context.tilemap, m_lootSystem),
+    m_particles(500) {}
 
-void GameSimulation::initialize(ClassType playerClass) {
+void GameSimulation::initialize(ClassType playerClass, bool headlessAudio) {
+    m_character.classType = playerClass;
+    m_audio.init(headlessAudio);
+
     // 1. Register sample crafting recipes
     CraftingRecipe ironSwordRecipe;
     ironSwordRecipe.id = "rcp_iron_greatsword";
@@ -17,6 +20,7 @@ void GameSimulation::initialize(ClassType playerClass) {
     ironSwordRecipe.ingredients = {{"mat_iron_ore", 3}, {"mat_stone_block", 2}};
     ironSwordRecipe.outputItemId = "item_iron_greatsword";
     ironSwordRecipe.outputQuantity = 1;
+    ironSwordRecipe.category = ItemCategory::Weapon;
     m_crafting.registerRecipe(ironSwordRecipe);
 
     CraftingRecipe potionRecipe;
@@ -26,6 +30,7 @@ void GameSimulation::initialize(ClassType playerClass) {
     potionRecipe.ingredients = {{"mat_wood_plank", 2}};
     potionRecipe.outputItemId = "item_health_potion";
     potionRecipe.outputQuantity = 2;
+    potionRecipe.category = ItemCategory::Consumable;
     m_crafting.registerRecipe(potionRecipe);
 
     // 2. Register Active Skills in Registry
@@ -70,6 +75,11 @@ void GameSimulation::initialize(ClassType playerClass) {
     m_skillExecutor.assignHotbar(HotbarSlot::R, "skill_arc_discharge");
     m_skillExecutor.assignHotbar(HotbarSlot::F, "skill_nanite_heal");
 
+    m_skillTree.addNode(SkillNode{"mob_01", "SWIFTFOOT", 3, 0, 1, 0, {}});
+    m_skillTree.addNode(SkillNode{"mob_02", "AGILE LEAP", 3, 0, 1, 1, {"mob_01"}});
+    m_skillTree.addNode(SkillNode{"comb_01", "HONED EDGES", 3, 0, 1, 0, {}});
+    m_skillTree.addNode(SkillNode{"surv_01", "HEARTY METABOLISM", 3, 0, 1, 0, {}});
+
     // 3. Generate Overworld Terrain
     for (int x = -100; x <= 300; ++x) {
         for (int y = 10; y <= 16; ++y) {
@@ -103,7 +113,7 @@ void GameSimulation::initialize(ClassType playerClass) {
     // 5. Spawn Player
     m_playerEntity = m_context.registry.create();
     m_context.registry.emplace<PlayerTag>(m_playerEntity);
-    m_context.registry.emplace<TransformComponent>(m_playerEntity, Vec2{100.0f, 160.0f});
+    m_context.registry.emplace<TransformComponent>(m_playerEntity, m_respawnPoint);
     m_context.registry.emplace<VelocityComponent>(m_playerEntity, Vec2{0.0f, 0.0f});
     m_context.registry.emplace<ColliderComponent>(m_playerEntity, Rect{-8.0f, -16.0f, 16.0f, 16.0f});
 
@@ -151,9 +161,53 @@ void GameSimulation::initialize(ClassType playerClass) {
     spawnEnemy(Vec2{500.0f, 160.0f}, 120.0f, 250);
 }
 
-entt::entity GameSimulation::spawnEnemy(const Vec2& position, float health, int xpReward) {
+bool GameSimulation::isPlayerDead() const {
+    return m_context.registry.valid(m_playerEntity) &&
+           m_context.registry.all_of<HealthComponent>(m_playerEntity) &&
+           m_context.registry.get<HealthComponent>(m_playerEntity).isDead;
+}
+
+void GameSimulation::setRespawnPoint(const Vec2& point) {
+    m_respawnPoint = point;
+}
+
+bool GameSimulation::respawnPlayer() {
+    if (!isPlayerDead()) return false;
+
+    auto& health = m_context.registry.get<HealthComponent>(m_playerEntity);
+    auto& position = m_context.registry.get<TransformComponent>(m_playerEntity).position;
+    auto& velocity = m_context.registry.get<VelocityComponent>(m_playerEntity).linear;
+    position = m_respawnPoint;
+    velocity = Vec2{0.0f, 0.0f};
+    health.current = health.max;
+    health.isDead = false;
+    health.invulnTimer = 2.0f;
+    m_metabolism.eat(100.0f);
+    m_metabolism.drink(100.0f);
+    m_audio.playSound(SoundEffect::LevelUp, 0.35f);
+    m_particles.emitBurst(position, 18, Color{90, 220, 255, 255}, 0.6f, 70.0f);
+    return true;
+}
+
+bool GameSimulation::createCharacter(const CharacterCreation& character) {
+    if (character.name.empty()) return false;
+    m_character = character;
+    return true;
+}
+
+bool GameSimulation::allocateAttribute(int attributeIndex) {
+    if (attributeIndex < 0 || attributeIndex >= static_cast<int>(Progression::Attribute::Count)) return false;
+    return m_progression.allocateAttribute(static_cast<Progression::Attribute>(attributeIndex));
+}
+
+bool GameSimulation::allocateSkill(const std::string& nodeId) {
+    if (!m_skillTree.canAllocate(nodeId) || !m_progression.spendSkillPoints(1)) return false;
+    return m_skillTree.allocate(nodeId);
+}
+
+entt::entity GameSimulation::spawnEnemy(const Vec2& position, float health, int xpReward, EnemyType type) {
     auto enemy = m_context.registry.create();
-    m_context.registry.emplace<EnemyTag>(enemy, 1, xpReward);
+    m_context.registry.emplace<EnemyTag>(enemy, 1, xpReward, type);
     m_context.registry.emplace<TransformComponent>(enemy, position);
     m_context.registry.emplace<VelocityComponent>(enemy, Vec2{0.0f, 0.0f});
     m_context.registry.emplace<ColliderComponent>(enemy, Rect{-8.0f, -16.0f, 16.0f, 16.0f});
@@ -162,6 +216,11 @@ entt::entity GameSimulation::spawnEnemy(const Vec2& position, float health, int 
 }
 
 void GameSimulation::step(const ControllerInput& input, float dt) {
+    if (m_hitstopTimer > 0.0f) {
+        m_hitstopTimer = std::max(0.0f, m_hitstopTimer - dt);
+        return;
+    }
+
     m_tickCount++;
     m_simulationTime += dt;
 
@@ -171,6 +230,13 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
 
     // Update Skill Cooldowns
     m_skillExecutor.update(dt);
+    m_floatingText.update(dt);
+    m_particles.update(dt);
+    m_audio.update(dt);
+
+    if (input.jumpPressed) {
+        m_audio.playSound(SoundEffect::Jump);
+    }
 
     // Update Player Movement & Controller
     Vec2 playerPos{0.0f, 0.0f};
@@ -181,6 +247,29 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
         playerPos = pos;
     }
 
+    if (m_context.dayNight.getWeather() != WeatherType::Clear && m_tickCount % 3 == 0) {
+        Color weatherColor{110, 190, 235, 180};
+        Vec2 weatherVelocity{0.0f, 150.0f};
+        float particleSize = 1.5f;
+        switch (m_context.dayNight.getWeather()) {
+            case WeatherType::Blizzard:
+                weatherColor = Color{235, 245, 255, 210};
+                weatherVelocity = Vec2{-35.0f, 80.0f};
+                particleSize = 2.5f;
+                break;
+            case WeatherType::FalloutStorm:
+                weatherColor = Color{125, 220, 100, 175};
+                weatherVelocity = Vec2{20.0f, 95.0f};
+                particleSize = 2.0f;
+                break;
+            case WeatherType::Rain:
+            case WeatherType::Clear:
+                break;
+        }
+        Vec2 offset{static_cast<float>((m_tickCount * 37) % 160) - 80.0f, -120.0f};
+        m_particles.emit(playerPos + offset, weatherVelocity, weatherColor, 1.0f, particleSize);
+    }
+
     // Update Projectile Physics & Collisions
     m_projectileSystem.update(m_context.registry, m_context.physicsWorld, dt);
 
@@ -189,8 +278,37 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
 
     // Update Enemies (Pursuit AI towards Player)
     auto enemies = m_context.registry.view<EnemyTag, TransformComponent, VelocityComponent, HealthComponent>();
+    bool nearbyCombat = false;
+    bool bossCombat = false;
     for (auto [e, tag, trans, vel, hp] : enemies.each()) {
+        hp.hitFlashTimer = std::max(0.0f, hp.hitFlashTimer - dt);
+        hp.healthBarTimer = std::max(0.0f, hp.healthBarTimer - dt);
         float dist = trans.position.distanceTo(playerPos);
+        if (!hp.isDead && dist < 220.0f) {
+            nearbyCombat = true;
+            bossCombat = bossCombat || m_context.registry.all_of<BossEncounterComponent>(e);
+        }
+        if (m_context.registry.all_of<BossEncounterComponent>(e)) {
+            auto& encounter = m_context.registry.get<BossEncounterComponent>(e);
+            encounter.action = encounter.controller.update(trans.position, playerPos, hp.current, hp.max, dt);
+            if (encounter.action.triggerPhaseTransitionBlast) {
+                m_particles.emitBurst(trans.position, 24, Color{255, 75, 45, 255}, 0.8f, 140.0f);
+                if (!encounter.summonsSpawned) {
+                    spawnEnemy(trans.position + Vec2{-32.0f, 0.0f}, 80.0f, 120, EnemyType::Bat);
+                    spawnEnemy(trans.position + Vec2{32.0f, 0.0f}, 80.0f, 120, EnemyType::Bat);
+                    encounter.summonsSpawned = true;
+                }
+                if (bossCombat) {
+                    m_audio.setMusicScene(MusicScene::Boss);
+                } else if (nearbyCombat) {
+                    m_audio.setMusicScene(MusicScene::Combat);
+                } else if (m_context.dayNight.getWeather() != WeatherType::Clear) {
+                    m_audio.setMusicScene(MusicScene::Environment);
+                } else {
+                    m_audio.setMusicScene(MusicScene::Exploration);
+                }
+            }
+        }
         if (dist < 220.0f && dist > 15.0f) {
             float dir = (playerPos.x > trans.position.x) ? 1.0f : -1.0f;
             vel.linear.x = dir * 50.0f;
@@ -230,11 +348,25 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
         m_context.registry.get<PowerComponent>(m_playerEntity).update(dt);
     }
 
+    auto deathAnimationView = m_context.registry.view<DeathAnimationComponent>();
+    std::vector<entt::entity> finishedDeaths;
+    for (auto [e, death] : deathAnimationView.each()) {
+        death.remaining -= dt;
+        if (death.remaining <= 0.0f) {
+            finishedDeaths.push_back(e);
+        }
+    }
+    for (auto e : finishedDeaths) {
+        if (m_context.registry.valid(e)) {
+            m_context.registry.destroy(e);
+        }
+    }
+
     // Check defeated enemies to award XP and spawn loot drops
     auto healthView = m_context.registry.view<HealthComponent, EnemyTag, TransformComponent>();
     std::vector<entt::entity> defeated;
     for (auto [e, health, enemyTag, trans] : healthView.each()) {
-        if (health.isDead) {
+        if (health.isDead && !m_context.registry.all_of<DeathAnimationComponent>(e)) {
             defeated.push_back(e);
         }
     }
@@ -245,23 +377,44 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
             const auto& trans = m_context.registry.get<TransformComponent>(e);
 
             m_progression.addXP(enemyTag.xpReward);
+            m_floatingText.spawnXP(trans.position, enemyTag.xpReward);
+            bool isBoss = m_context.registry.all_of<BossEncounterComponent>(e);
+            Color deathColor = isBoss ? Color{255, 55, 80, 255} : Color{255, 120, 45, 255};
+            switch (enemyTag.type) {
+                case EnemyType::Bat:
+                    deathColor = Color{180, 90, 240, 255};
+                    break;
+                case EnemyType::CyberGunner:
+                    deathColor = Color{80, 220, 240, 255};
+                    break;
+                case EnemyType::Raptor:
+                    deathColor = Color{230, 150, 50, 255};
+                    break;
+                case EnemyType::Slime:
+                default:
+                    break;
+            }
+            m_particles.emitBurst(trans.position, isBoss ? 40 : 18, deathColor, isBoss ? 1.0f : 0.65f, 95.0f);
+            m_audio.playSound(SoundEffect::EnemyDeath);
+            m_audio.playSound(SoundEffect::XPPickup);
 
             // Spawn monster loot drop
             Item drop;
-            drop.id = "mat_monster_trophy";
-            drop.name = "Mutant Chitin";
+            drop.id = isBoss ? "boss_architect_core" : "mat_monster_trophy";
+            drop.name = isBoss ? "Architect Core" : "Mutant Chitin";
             drop.category = ItemCategory::Material;
             drop.stackable = true;
             drop.quantity = 1;
             m_lootSystem.spawnLoot(m_context.registry, trans.position, drop);
-
-            m_context.registry.destroy(e);
+            m_context.registry.emplace<DeathAnimationComponent>(e, 0.25f, 0.25f, enemyTag.type);
         }
     }
 }
 
 void GameSimulation::playerAttack() {
     if (!m_context.registry.valid(m_playerEntity)) return;
+
+    m_audio.playSound(SoundEffect::SwordSlash);
 
     const auto& playerPos = m_context.registry.get<TransformComponent>(m_playerEntity).position;
     int facing = m_controller.getFacing();
@@ -283,7 +436,17 @@ void GameSimulation::playerAttack() {
 
     auto enemies = m_context.registry.view<EnemyTag, TransformComponent, HealthComponent, ColliderComponent>();
     for (auto [e, tag, trans, hp, col] : enemies.each()) {
+        float previousHealth = hp.current;
         CombatSystem::resolveHitbox(m_context.registry, attackBox, e);
+        if (hp.current < previousHealth) {
+            hp.hitFlashTimer = 2.0f / 60.0f;
+            hp.healthBarTimer = 3.0f;
+            float damage = previousHealth - hp.current;
+            m_floatingText.spawnDamage(trans.position, damage);
+            m_particles.emitBurst(trans.position, 5, Color{255, 210, 90, 255}, 0.25f, 45.0f);
+            m_audio.playSound(SoundEffect::HitImpact);
+            m_hitstopTimer = std::max(m_hitstopTimer, 0.04f);
+        }
     }
 }
 
@@ -306,7 +469,12 @@ void GameSimulation::shootProjectile(const Vec2& targetWorldPos) {
 bool GameSimulation::mineTileAt(const Vec2& targetWorldPos) {
     if (!m_context.registry.valid(m_playerEntity)) return false;
     const auto& playerPos = m_context.registry.get<TransformComponent>(m_playerEntity).position;
-    return m_worldInteraction.mineTile(m_context.registry, playerPos, targetWorldPos, 96.0f);
+    bool mined = m_worldInteraction.mineTile(m_context.registry, playerPos, targetWorldPos, 96.0f);
+    if (mined) {
+        m_audio.playSound(SoundEffect::MiningClink);
+        m_audio.setMusicScene(MusicScene::Mining);
+    }
+    return mined;
 }
 
 bool GameSimulation::placeBlockAt(const Vec2& targetWorldPos, const std::string& itemId, uint16_t blockType) {
@@ -438,7 +606,8 @@ void GameSimulation::enterDungeon() {
 
         // Spawn Dungeon Boss in Boss Room
         const auto& bossRoom = m_dungeonLayout.rooms[m_dungeonLayout.bossRoomIndex];
-        spawnEnemy(Vec2{bossRoom.center().x * 16.0f, bossRoom.center().y * 16.0f}, 400.0f, 1000);
+        entt::entity boss = spawnEnemy(Vec2{bossRoom.center().x * 16.0f, bossRoom.center().y * 16.0f}, 400.0f, 1000);
+        m_context.registry.emplace<BossEncounterComponent>(boss);
     }
 }
 

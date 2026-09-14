@@ -24,6 +24,7 @@ TEST_CASE("Renderer Complete Drawing Functions and Offscreen Pipeline", "[render
 
     SECTION("Render Pass and Frame Drawing") {
         renderer.beginFrame();
+        renderer.drawParallaxBackground(240.0f, 1, metrics);
 
         // 1. Draw tiles (Air, Stone, Ore, Wood, Platform, Default, Culled)
         renderer.drawTile(0, 0, 0, camera, metrics); // Air
@@ -31,11 +32,16 @@ TEST_CASE("Renderer Complete Drawing Functions and Offscreen Pipeline", "[render
         renderer.drawTile(7, 10, 2, camera, metrics); // Iron Ore
         renderer.drawTile(8, 10, 3, camera, metrics); // Wood
         renderer.drawTile(9, 7, 5, camera, metrics);  // Platform
+        renderer.drawTile(11, 10, 6, camera, metrics); // Left slope
+        renderer.drawTile(12, 10, 7, camera, metrics); // Right slope
         renderer.drawTile(10, 10, 99, camera, metrics); // Default
+        renderer.drawBossTelegraph(Vec2{120.0f, 96.0f}, 32.0f, camera, metrics);
+        renderer.drawBossTelegraph(Vec2{120.0f, 96.0f}, 48.0f, camera, metrics, true);
         renderer.drawTile(999, 999, 1, camera, metrics); // Culled
 
         // 2. Draw Entities
         renderer.drawEntity(Vec2{100.0f, 160.0f}, Vec2{16.0f, 24.0f}, Color{65, 115, 220, 255}, camera, metrics, 1, true, 1.0f); // Player facing right
+        renderer.drawWeapon(Vec2{100.0f, 160.0f}, Vec2{140.0f, 140.0f}, true, camera, metrics);
         renderer.drawEntity(Vec2{100.0f, 160.0f}, Vec2{16.0f, 24.0f}, Color{65, 115, 220, 255}, camera, metrics, -1, true, 0.8f); // Player facing left
         renderer.drawEntity(Vec2{150.0f, 160.0f}, Vec2{16.0f, 16.0f}, Color{200, 45, 55, 255}, camera, metrics, 1, false, 0.5f); // Enemy with HP bar
         renderer.drawEntity(Vec2{200.0f, 160.0f}, Vec2{16.0f, 16.0f}, Color{200, 45, 55, 255}, camera, metrics, -1, false, 1.0f); // Enemy full HP

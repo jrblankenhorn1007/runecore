@@ -2,12 +2,50 @@
 #include "core/GameSimulation.hpp"
 #include "input/InputManager.hpp"
 #include <algorithm>
+#include <cctype>
 #include <cmath>
+#include <unordered_map>
 
 Renderer::Renderer() = default;
 
 Renderer::~Renderer() {
     shutdown();
+}
+
+void Renderer::drawPixelText(const std::string& text, float x, float y, float scale, Color color) {
+    static constexpr const char* glyphs[] = {
+        "111101101101111", "010110010010111", "111001111100111", "111001111001111",
+        "101101111001001", "111100111001111", "111100111101111", "111001001001001",
+        "111101111101111", "111101111001111", "010101111101101", "110101110101110",
+        "111100100100111", "110101101101110", "111100111100111", "111100111100100",
+        "111101101111001", "101101111101101", "111010010010111", "111010010010010",
+        "101101101101111", "101101101101010", "101101111111101", "101101010101101",
+        "101101010010010", "111001010100111", "000000000000000", "010010010010010",
+        "000000111000000", "000000000000000", "000000000000000", "000000000000000",
+        "000000000000000", "000000000000000"
+    };
+    auto glyphIndex = [](char character) {
+        if (character >= 'A' && character <= 'Z') return static_cast<int>(character - 'A') + 10;
+        if (character >= '0' && character <= '9') return static_cast<int>(character - '0');
+        if (character == '+') return 28;
+        if (character == '-') return 29;
+        return 26;
+    };
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
+    float cursorX = x;
+    for (char character : text) {
+        if (character == ' ') {
+            cursorX += 4.0f * scale;
+            continue;
+        }
+        const char* glyph = glyphs[glyphIndex(character)];
+        for (int pixel = 0; pixel < 15; ++pixel) {
+            if (glyph[pixel] != '1') continue;
+            SDL_FRect rect{cursorX + static_cast<float>(pixel % 3) * scale, y + (static_cast<float>(pixel) / 3.0f) * scale, scale, scale};
+            SDL_RenderFillRect(m_renderer, &rect);
+        }
+        cursorX += 4.0f * scale;
+    }
 }
 
 bool Renderer::init(const std::string& title, int windowWidth, int windowHeight, int virtualWidth, int virtualHeight, uint32_t extraFlags) {
@@ -63,7 +101,7 @@ void Renderer::shutdown() {
         SDL_DestroyWindow(m_window);
         m_window = nullptr;
     }
-    SDL_Quit();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 }
 
 void Renderer::beginFrame() {
@@ -76,6 +114,30 @@ void Renderer::beginFrame() {
     SDL_SetRenderDrawColor(m_renderer, 24, 28, 42, 255);
     SDL_FRect bgBand{0.0f, 180.0f, static_cast<float>(m_virtualWidth), 180.0f};
     SDL_RenderFillRect(m_renderer, &bgBand);
+}
+
+
+void Renderer::drawParallaxBackground(float worldX, int biomeTier, const CanvasMetrics& metrics) {
+    static constexpr Color palettes[][4] = {
+        {{18, 28, 48, 255}, {25, 48, 65, 255}, {38, 70, 72, 255}, {58, 82, 72, 255}},
+        {{34, 24, 52, 255}, {58, 35, 72, 255}, {86, 46, 78, 255}, {112, 65, 76, 255}},
+        {{20, 42, 58, 255}, {24, 70, 86, 255}, {38, 104, 105, 255}, {65, 132, 112, 255}}
+    };
+    int paletteIndex = std::clamp(biomeTier, 0, 2);
+    SDL_SetRenderDrawColor(m_renderer, palettes[paletteIndex][0].r, palettes[paletteIndex][0].g, palettes[paletteIndex][0].b, 255);
+    SDL_RenderClear(m_renderer);
+    for (int layer = 1; layer < 4; ++layer) {
+        SDL_SetRenderDrawColor(m_renderer, palettes[paletteIndex][layer].r, palettes[paletteIndex][layer].g,
+                               palettes[paletteIndex][layer].b, 255);
+        float bandY = metrics.virtualHeight * (0.18f + layer * 0.2f);
+        float drift = std::fmod(worldX * (0.08f * static_cast<float>(layer)), 96.0f);
+        for (int column = -1; column < 8; ++column) {
+            float x = column * 96.0f - drift;
+            float height = 18.0f + static_cast<float>((column + layer * 3) % 4) * 8.0f;
+            SDL_FRect ridge{x, bandY - height, 100.0f, height + metrics.virtualHeight - bandY};
+            SDL_RenderFillRect(m_renderer, &ridge);
+        }
+    }
 }
 
 void Renderer::drawTile(int tileX, int tileY, uint16_t blockId, const Camera& camera, const CanvasMetrics& metrics) {
@@ -135,6 +197,21 @@ void Renderer::drawTile(int tileX, int tileY, uint16_t blockId, const Camera& ca
             SDL_RenderFillRect(m_renderer, &platRect);
             break;
         }
+        case 6: // Left slope
+        case 7: { // Right slope
+            SDL_SetRenderDrawColor(m_renderer, 82, 88, 106, 255);
+            bool leftSlope = blockId == 6;
+            for (int row = 0; row < 16; ++row) {
+                float width = leftSlope ? static_cast<float>(row + 1) : static_cast<float>(16 - row);
+                float startX = leftSlope ? screenX : screenX + static_cast<float>(row);
+                SDL_FRect slopeRow{startX, screenY + static_cast<float>(row), width, 1.0f};
+                SDL_RenderFillRect(m_renderer, &slopeRow);
+            }
+            SDL_SetRenderDrawColor(m_renderer, 120, 128, 148, 255);
+            SDL_RenderLine(m_renderer, leftSlope ? screenX : screenX + 16.0f, screenY,
+                           leftSlope ? screenX + 16.0f : screenX, screenY + 16.0f);
+            break;
+        }
         default: {
             SDL_SetRenderDrawColor(m_renderer, 100, 100, 100, 255);
             SDL_RenderFillRect(m_renderer, &blockRect);
@@ -151,7 +228,9 @@ void Renderer::drawEntity(
     const CanvasMetrics& metrics,
     int facing,
     bool isPlayer,
-    float healthRatio
+    float healthRatio,
+    bool hitFlash,
+    bool showHealthBar
 ) {
     Vec2 camPos = camera.getSnappedPosition();
     float screenX = (worldPos.x - camPos.x) + (metrics.virtualWidth * 0.5f);
@@ -206,7 +285,7 @@ void Renderer::drawEntity(
         SDL_RenderFillRect(m_renderer, &eyes);
 
         // Overhead health bar for enemies
-        if (healthRatio < 1.0f) {
+        if (showHealthBar || healthRatio < 1.0f) {
             SDL_SetRenderDrawColor(m_renderer, 30, 30, 30, 255);
             SDL_FRect hpBack{drawX - 2.0f, drawY - 6.0f, size.x + 4.0f, 3.0f};
             SDL_RenderFillRect(m_renderer, &hpBack);
@@ -215,6 +294,96 @@ void Renderer::drawEntity(
             SDL_FRect hpFill{drawX - 1.0f, drawY - 5.0f, (size.x + 2.0f) * healthRatio, 1.0f};
             SDL_RenderFillRect(m_renderer, &hpFill);
         }
+    }
+}
+
+void Renderer::drawBossTelegraph(const Vec2& worldPos, float radius, const Camera& camera, const CanvasMetrics& metrics, bool enraged) {
+    Vec2 camPos = camera.getSnappedPosition();
+    float centerX = (worldPos.x - camPos.x) + (metrics.virtualWidth * 0.5f);
+    float centerY = (worldPos.y - camPos.y) + (metrics.virtualHeight * 0.5f) - 8.0f;
+    Color color = enraged ? Color{255, 70, 45, 220} : Color{255, 205, 55, 210};
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
+    constexpr int segments = 32;
+    for (int segment = 0; segment < segments; ++segment) {
+        float start = (static_cast<float>(segment) / segments) * 6.2831853f;
+        float end = (static_cast<float>(segment + 1) / segments) * 6.2831853f;
+        SDL_RenderLine(m_renderer,
+                       centerX + std::cos(start) * radius,
+                       centerY + std::sin(start) * radius * 0.5f,
+                       centerX + std::cos(end) * radius,
+                       centerY + std::sin(end) * radius * 0.5f);
+    }
+}
+
+void Renderer::drawParticle(const Particle& particle, const Camera& camera, const CanvasMetrics& metrics) {
+    Vec2 camPos = camera.getSnappedPosition();
+    float screenX = (particle.position.x - camPos.x) + (metrics.virtualWidth * 0.5f);
+    float screenY = (particle.position.y - camPos.y) + (metrics.virtualHeight * 0.5f);
+    float alphaRatio = particle.maxLifetime > 0.0f ? particle.lifetime / particle.maxLifetime : 0.0f;
+    Color color = particle.color;
+    color.a = static_cast<unsigned char>(std::clamp(alphaRatio * static_cast<float>(color.a), 0.0f, 255.0f));
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
+    SDL_FRect rect{screenX - particle.size * 0.5f, screenY - particle.size * 0.5f, particle.size, particle.size};
+    SDL_RenderFillRect(m_renderer, &rect);
+}
+
+void Renderer::drawWeapon(const Vec2& playerPos, const Vec2& aimTarget, bool attacking, const Camera& camera, const CanvasMetrics& metrics) {
+    Vec2 direction = (aimTarget - playerPos).normalized();
+    if (direction.lengthSquared() <= 0.0f) direction = Vec2{1.0f, 0.0f};
+    Vec2 perpendicular{-direction.y, direction.x};
+    float recoil = attacking ? 4.0f : 0.0f;
+    Vec2 grip = playerPos + direction * 5.0f;
+    Vec2 tip = playerPos + direction * (22.0f - recoil);
+    Vec2 camPos = camera.getSnappedPosition();
+    auto toScreen = [&](const Vec2& world) {
+        return Vec2{(world.x - camPos.x) + metrics.virtualWidth * 0.5f,
+                    (world.y - camPos.y) + metrics.virtualHeight * 0.5f};
+    };
+    Vec2 screenGrip = toScreen(grip);
+    Vec2 screenTip = toScreen(tip);
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(m_renderer, 230, 200, 115, 255);
+    SDL_RenderLine(m_renderer, screenGrip.x, screenGrip.y, screenTip.x, screenTip.y);
+    SDL_SetRenderDrawColor(m_renderer, 110, 75, 45, 255);
+    Vec2 guardStart = toScreen(grip - perpendicular * 3.0f);
+    Vec2 guardEnd = toScreen(grip + perpendicular * 3.0f);
+    SDL_RenderLine(m_renderer, guardStart.x, guardStart.y, guardEnd.x, guardEnd.y);
+}
+
+void Renderer::drawFloatingText(const FloatingText& text, const Camera& camera, const CanvasMetrics& metrics) {
+    static constexpr const char* glyphs[11] = {
+        "111101101101111", "010110010010111", "111001111100111", "111001111001111",
+        "101101111001001", "111100111001111", "111100111101111", "111001001001001",
+        "111101111101111", "111101111001111", "000000000000000"
+    };
+    auto glyphIndex = [](char character) {
+        if (character >= '0' && character <= '9') return static_cast<int>(character - '0');
+        return 10;
+    };
+
+    Vec2 camPos = camera.getSnappedPosition();
+    float cursorX = (text.position.x - camPos.x) + (metrics.virtualWidth * 0.5f);
+    float cursorY = (text.position.y - camPos.y) + (metrics.virtualHeight * 0.5f);
+    float scale = text.scale;
+    float advance = 6.0f * scale;
+    float startX = cursorX - (static_cast<float>(text.text.size()) * advance * 0.5f);
+
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(m_renderer, text.color.r, text.color.g, text.color.b, text.color.a);
+    for (char character : text.text) {
+        if (character == ' ') {
+            startX += advance;
+            continue;
+        }
+        const char* glyph = glyphs[glyphIndex(character)];
+        for (int pixel = 0; pixel < 15; ++pixel) {
+            if (glyph[pixel] != '1') continue;
+            int column = pixel % 3;
+            int row = pixel / 3;
+            SDL_FRect rect{startX + column * scale, cursorY + row * scale, scale, scale};
+            SDL_RenderFillRect(m_renderer, &rect);
+        }
+        startX += advance;
     }
 }
 
@@ -313,7 +482,7 @@ void Renderer::drawMinimap(const DungeonLayout& layout, const Vec2& playerPos, c
     SDL_RenderFillRect(m_renderer, &pDot);
 }
 
-void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& metrics) {
+void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& metrics, Vec2 mouseVirtualPos, int draggedSlot) {
     // Semi-transparent backdrop modal
     SDL_SetRenderDrawColor(m_renderer, 5, 8, 15, 230);
     SDL_FRect modal{40.0f, 25.0f, metrics.virtualWidth - 80.0f, metrics.virtualHeight - 50.0f};
@@ -343,6 +512,12 @@ void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& me
             SDL_FRect sBox{slotX, slotY, 22.0f, 22.0f};
             SDL_RenderFillRect(m_renderer, &sBox);
 
+            if (idx == draggedSlot) {
+                SDL_SetRenderDrawColor(m_renderer, 255, 220, 80, 255);
+                SDL_FRect dragBox{slotX - 1.0f, slotY - 1.0f, 24.0f, 24.0f};
+                SDL_RenderRect(m_renderer, &dragBox);
+            }
+
             if (idx < static_cast<int>(slots.size()) && slots[idx].has_value()) {
                 const auto& itm = slots[idx].value();
                 // Draw item icon
@@ -355,8 +530,65 @@ void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& me
                 }
                 SDL_FRect icon{slotX + 4.0f, slotY + 4.0f, 14.0f, 14.0f};
                 SDL_RenderFillRect(m_renderer, &icon);
+                if (itm.quantity > 1) {
+                    drawPixelText(std::to_string(itm.quantity), slotX + 14.0f, slotY + 14.0f, 0.5f, Color{255, 255, 255, 255});
+                }
             }
         }
+    }
+
+    static constexpr EquipSlot equipmentSlots[] = {
+        EquipSlot::MainHand, EquipSlot::OffHand, EquipSlot::Helmet, EquipSlot::Chestplate,
+        EquipSlot::Greaves, EquipSlot::Boots, EquipSlot::Ring1, EquipSlot::Ring2,
+        EquipSlot::Amulet, EquipSlot::Relic
+    };
+    for (int index = 0; index < 10; ++index) {
+        float slotX = 310.0f + (index % 2) * 48.0f;
+        float slotY = 60.0f + (static_cast<float>(index) / 2.0f) * 30.0f;
+        SDL_SetRenderDrawColor(m_renderer, 22, 28, 42, 255);
+        SDL_FRect slot{slotX, slotY, 40.0f, 24.0f};
+        SDL_RenderFillRect(m_renderer, &slot);
+        SDL_SetRenderDrawColor(m_renderer, 90, 105, 135, 255);
+        SDL_FRect top{slotX, slotY, 40.0f, 1.0f};
+        SDL_RenderFillRect(m_renderer, &top);
+        static constexpr const char* labels[] = {"HAND", "OFF", "HELM", "CHEST", "LEGS", "BOOT", "R1", "R2", "AMUL", "RELIC"};
+        drawPixelText(labels[index], slotX + 2.0f, slotY + 2.0f, 0.5f, Color{130, 150, 180, 255});
+        if (inv.getEquipped(equipmentSlots[index]) != nullptr) {
+            const Item* equipped = inv.getEquipped(equipmentSlots[index]);
+            SDL_SetRenderDrawColor(m_renderer, 220, 180, 65, 255);
+            SDL_FRect icon{slotX + 14.0f, slotY + 6.0f, 12.0f, 12.0f};
+            SDL_RenderFillRect(m_renderer, &icon);
+            drawPixelText(equipped->name.substr(0, 5), slotX + 2.0f, slotY + 14.0f, 0.45f, Color{240, 220, 150, 255});
+        }
+    }
+
+    int hoveredSlot = -1;
+    int hoveredColumn = static_cast<int>((mouseVirtualPos.x - gridStartX) / 26.0f);
+    int hoveredRow = static_cast<int>((mouseVirtualPos.y - gridStartY) / 26.0f);
+    if (hoveredColumn >= 0 && hoveredColumn < 8 && hoveredRow >= 0 && hoveredRow < 5) {
+        hoveredSlot = hoveredRow * 8 + hoveredColumn;
+    }
+    if (hoveredSlot >= 0) {
+        const auto item = inv.getSlot(hoveredSlot);
+        if (item.has_value()) {
+            std::string itemName = item->name;
+            for (char& character : itemName) {
+                character = static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+            }
+            SDL_SetRenderDrawColor(m_renderer, 12, 16, 26, 245);
+            SDL_FRect tooltip{mouseVirtualPos.x + 8.0f, mouseVirtualPos.y + 8.0f, 180.0f, 56.0f};
+            SDL_RenderFillRect(m_renderer, &tooltip);
+            static constexpr const char* rarityNames[] = {"COMMON", "UNCOMMON", "RARE", "EPIC", "LEGEND", "MYTHIC", "PRISMATIC"};
+            const int rarityIndex = static_cast<int>(item->rarity);
+            const char* rarity = rarityIndex >= 0 && rarityIndex < 7 ? rarityNames[rarityIndex] : "COMMON";
+            drawPixelText(itemName, tooltip.x + 4.0f, tooltip.y + 4.0f, 0.65f, Color{235, 240, 255, 255});
+            drawPixelText(std::string(rarity) + " T" + std::to_string(item->tier), tooltip.x + 4.0f, tooltip.y + 16.0f, 0.5f, Color{240, 200, 90, 255});
+            drawPixelText("QUALITY +" + std::to_string(static_cast<int>(item->quality * 100.0f)) + "%", tooltip.x + 4.0f, tooltip.y + 28.0f, 0.5f, Color{180, 210, 220, 255});
+            drawPixelText("RMB USE", tooltip.x + 4.0f, tooltip.y + 40.0f, 0.5f, Color{180, 190, 210, 255});
+        }
+    }
+    if (!inv.getLastAction().empty()) {
+        drawPixelText(inv.getLastAction(), 60.0f, 210.0f, 0.65f, Color{255, 220, 100, 255});
     }
 }
 
@@ -369,12 +601,36 @@ void Renderer::drawCraftingScreen(const CraftingEngine& crafting, const Inventor
     SDL_FRect border{50.0f, 30.0f, metrics.virtualWidth - 100.0f, 2.0f};
     SDL_RenderFillRect(m_renderer, &border);
 
+    drawPixelText("CRAFTING", 65.0f, 40.0f, 1.5f, Color{235, 215, 170, 255});
+    drawPixelText("ALL", 65.0f, 55.0f, 0.75f, Color{255, 220, 100, 255});
+    drawPixelText("CRAFTABLE", 105.0f, 55.0f, 0.75f, Color{150, 170, 195, 255});
+
     // Recipe List entries
     float recY = 55.0f;
-    for (int i = 0; i < 4; ++i) {
+    const auto recipeIds = crafting.getRecipeIds();
+    for (size_t index = 0; index < recipeIds.size() && index < 4; ++index) {
+        const auto* recipe = crafting.getRecipe(recipeIds[index]);
+        if (recipe == nullptr) continue;
         SDL_SetRenderDrawColor(m_renderer, 25, 32, 48, 255);
         SDL_FRect recBox{65.0f, recY, metrics.virtualWidth - 130.0f, 24.0f};
         SDL_RenderFillRect(m_renderer, &recBox);
+
+        std::string recipeName = recipe->name;
+        for (char& character : recipeName) {
+            character = static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+        }
+        drawPixelText(recipeName, 72.0f, recY + 3.0f, 0.65f, Color{215, 225, 240, 255});
+        std::string requirements = "REQ";
+        for (const auto& ingredient : recipe->ingredients) {
+            requirements += " " + ingredient.itemId + " X" + std::to_string(ingredient.quantity);
+        }
+        for (char& character : requirements) {
+            character = static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+        }
+        drawPixelText(requirements, 72.0f, recY + 14.0f, 0.45f,
+                      crafting.canCraft(recipe->id, inv, CraftingStation::None)
+                          ? Color{110, 235, 145, 255}
+                          : Color{180, 125, 125, 255});
 
         // Craft button pip
         SDL_SetRenderDrawColor(m_renderer, 50, 180, 100, 255);
@@ -394,10 +650,35 @@ void Renderer::drawAugmentationScreen(const AugmentationMatrix& augs, const Canv
     SDL_FRect border{60.0f, 20.0f, metrics.virtualWidth - 120.0f, 2.0f};
     SDL_RenderFillRect(m_renderer, &border);
 
+    drawPixelText("AUGMENTATIONS", 78.0f, 28.0f, 1.5f, Color{180, 240, 255, 255});
+    drawPixelText("POWER", 78.0f, 316.0f, 0.75f, Color{130, 170, 195, 255});
+    drawPixelText("HUMANITY", 330.0f, 316.0f, 0.75f, Color{130, 170, 195, 255});
+    float powerRatio = std::clamp((augs.getNetPowerGeneration() + 100.0f) / 200.0f, 0.0f, 1.0f);
+    float humanityRatio = std::clamp(augs.getTotalHumanityStrain() / 100.0f, 0.0f, 1.0f);
+    SDL_SetRenderDrawColor(m_renderer, 20, 35, 48, 255);
+    SDL_FRect powerBack{78.0f, 328.0f, 210.0f, 7.0f};
+    SDL_FRect humanityBack{330.0f, 328.0f, 210.0f, 7.0f};
+    SDL_RenderFillRect(m_renderer, &powerBack);
+    SDL_RenderFillRect(m_renderer, &humanityBack);
+    SDL_SetRenderDrawColor(m_renderer, 70, 220, 255, 255);
+    SDL_FRect powerFill{78.0f, 328.0f, 210.0f * powerRatio, 7.0f};
+    SDL_RenderFillRect(m_renderer, &powerFill);
+    SDL_SetRenderDrawColor(m_renderer, 240, 100, 150, 255);
+    SDL_FRect humanityFill{330.0f, 328.0f, 210.0f * humanityRatio, 7.0f};
+    SDL_RenderFillRect(m_renderer, &humanityFill);
+
     // 11 Body Slot Nodes
     float centerX = metrics.virtualWidth * 0.5f;
     float startY = 45.0f;
 
+    static constexpr const char* slotLabels[] = {
+        "HEAD", "EYES", "NERVES", "LUNGS", "HEART", "TORSO", "SKIN", "L ARM", "R ARM", "HANDS", "LEGS"
+    };
+    static constexpr AugmentSlot slots[] = {
+        AugmentSlot::Head, AugmentSlot::Eyes, AugmentSlot::Nervous, AugmentSlot::Lungs,
+        AugmentSlot::Heart, AugmentSlot::Torso, AugmentSlot::Skin, AugmentSlot::LeftArm,
+        AugmentSlot::RightArm, AugmentSlot::Hands, AugmentSlot::Legs
+    };
     for (int slotIdx = 0; slotIdx < 11; ++slotIdx) {
         float slotY = startY + slotIdx * 24.0f;
         SDL_SetRenderDrawColor(m_renderer, 20, 30, 45, 255);
@@ -408,7 +689,136 @@ void Renderer::drawAugmentationScreen(const AugmentationMatrix& augs, const Canv
         SDL_SetRenderDrawColor(m_renderer, 0, 220, 255, 255);
         SDL_FRect led{centerX - 95.0f, slotY + 6.0f, 8.0f, 8.0f};
         SDL_RenderFillRect(m_renderer, &led);
+        drawPixelText(slotLabels[slotIdx], centerX - 80.0f, slotY + 6.0f, 0.7f, Color{190, 210, 225, 255});
+        if (augs.getAugment(slots[slotIdx]) != nullptr) {
+            drawPixelText("INSTALLED", centerX + 35.0f, slotY + 6.0f, 0.55f, Color{100, 235, 150, 255});
+        }
     }
+}
+
+void Renderer::drawCharacterSheet(const Progression& progression, const CanvasMetrics& metrics) {
+    const float panelX = 55.0f;
+    const float panelY = 24.0f;
+    const float panelWidth = metrics.virtualWidth - 110.0f;
+    SDL_SetRenderDrawColor(m_renderer, 7, 11, 20, 245);
+    SDL_FRect panel{panelX, panelY, panelWidth, metrics.virtualHeight - 48.0f};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 70, 190, 220, 255);
+    SDL_FRect header{panelX, panelY, panelWidth, 3.0f};
+    SDL_RenderFillRect(m_renderer, &header);
+
+    drawPixelText("CHARACTER SHEET", panelX + 14.0f, panelY + 10.0f, 2.0f, Color{190, 235, 255, 255});
+    drawPixelText("LEVEL", panelX + 14.0f, panelY + 29.0f, 1.0f, Color{130, 150, 175, 255});
+    drawPixelText(std::to_string(progression.getLevel()), panelX + 40.0f, panelY + 29.0f, 1.0f, Color{255, 220, 100, 255});
+    drawPixelText("ATTRIBUTE POINTS", panelX + 100.0f, panelY + 29.0f, 1.0f, Color{130, 150, 175, 255});
+    drawPixelText(std::to_string(progression.getAttributePoints()), panelX + 174.0f, panelY + 29.0f, 1.0f, Color{255, 220, 100, 255});
+
+    static constexpr const char* names[] = {"STRENGTH", "DEXTERITY", "INTELLIGENCE", "VITALITY", "WISDOM", "CYBERNETICS"};
+    for (int index = 0; index < 6; ++index) {
+        float rowY = panelY + 54.0f + index * 28.0f;
+        SDL_SetRenderDrawColor(m_renderer, 20, 31, 48, 255);
+        SDL_FRect row{panelX + 14.0f, rowY, panelWidth - 28.0f, 21.0f};
+        SDL_RenderFillRect(m_renderer, &row);
+        drawPixelText(names[index], panelX + 22.0f, rowY + 7.0f, 1.0f, Color{205, 215, 230, 255});
+        drawPixelText(std::to_string(progression.getAttribute(static_cast<Progression::Attribute>(index))), panelX + 170.0f, rowY + 7.0f, 1.0f, Color{255, 220, 100, 255});
+        SDL_SetRenderDrawColor(m_renderer, 50, 190, 150, 255);
+        SDL_FRect plus{panelX + panelWidth - 38.0f, rowY + 5.0f, 12.0f, 12.0f};
+        SDL_RenderFillRect(m_renderer, &plus);
+        SDL_SetRenderDrawColor(m_renderer, 8, 20, 24, 255);
+        SDL_FRect plusV{plus.x + 5.0f, plus.y + 3.0f, 2.0f, 6.0f};
+        SDL_FRect plusH{plus.x + 3.0f, plus.y + 5.0f, 6.0f, 2.0f};
+        SDL_RenderFillRect(m_renderer, &plusV);
+        SDL_RenderFillRect(m_renderer, &plusH);
+    }
+}
+
+void Renderer::drawSkillTreeScreen(const SkillTree& skillTree, int skillPoints, const CanvasMetrics& metrics) {
+    SDL_SetRenderDrawColor(m_renderer, 8, 12, 22, 245);
+    SDL_FRect panel{28.0f, 22.0f, metrics.virtualWidth - 56.0f, metrics.virtualHeight - 44.0f};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 180, 85, 240, 255);
+    SDL_FRect header{28.0f, 22.0f, metrics.virtualWidth - 56.0f, 3.0f};
+    SDL_RenderFillRect(m_renderer, &header);
+    drawPixelText("SKILL TREE", 44.0f, 34.0f, 2.0f, Color{235, 210, 255, 255});
+    drawPixelText("POINTS", 460.0f, 36.0f, 1.0f, Color{150, 135, 175, 255});
+    drawPixelText(std::to_string(skillPoints), 500.0f, 36.0f, 1.0f, Color{255, 220, 100, 255});
+
+    const auto& nodes = skillTree.getNodes();
+    std::unordered_map<std::string, Vec2> nodeCenters;
+    int nodeIndex = 0;
+    for (const auto& [nodeId, node] : nodes) {
+        float nodeX = 54.0f + (nodeIndex % 2) * 250.0f;
+        float nodeY = 75.0f + (static_cast<float>(nodeIndex) / 2.0f) * 92.0f;
+        nodeCenters[nodeId] = Vec2{nodeX + 105.0f, nodeY + 29.0f};
+        ++nodeIndex;
+    }
+    SDL_SetRenderDrawColor(m_renderer, 90, 145, 175, 220);
+    for (const auto& [nodeId, node] : nodes) {
+        const auto target = nodeCenters.find(nodeId);
+        if (target == nodeCenters.end()) continue;
+        for (const auto& prerequisite : node.prerequisites) {
+            const auto source = nodeCenters.find(prerequisite);
+            if (source != nodeCenters.end()) {
+                SDL_RenderLine(m_renderer, source->second.x, source->second.y,
+                               target->second.x, target->second.y);
+            }
+        }
+    }
+
+    nodeIndex = 0;
+    for (const auto& [nodeId, node] : nodes) {
+        float nodeX = 54.0f + (nodeIndex % 2) * 250.0f;
+        float nodeY = 75.0f + (static_cast<float>(nodeIndex) / 2.0f) * 92.0f;
+        SDL_SetRenderDrawColor(m_renderer, node.currentRank > 0 ? 45 : 25, node.currentRank > 0 ? 75 : 35, 65, 255);
+        SDL_FRect nodeBox{nodeX, nodeY, 210.0f, 58.0f};
+        SDL_RenderFillRect(m_renderer, &nodeBox);
+        SDL_SetRenderDrawColor(m_renderer, node.currentRank > 0 ? 75 : 90, 190, 220, 255);
+        SDL_FRect nodeTop{nodeX, nodeY, 210.0f, 2.0f};
+        SDL_RenderFillRect(m_renderer, &nodeTop);
+        drawPixelText(node.name, nodeX + 10.0f, nodeY + 10.0f, 1.0f, Color{205, 220, 240, 255});
+        drawPixelText("RANK", nodeX + 10.0f, nodeY + 32.0f, 1.0f, Color{130, 155, 180, 255});
+        drawPixelText(std::to_string(node.currentRank) + "/" + std::to_string(node.maxRanks), nodeX + 38.0f, nodeY + 32.0f, 1.0f, Color{255, 220, 100, 255});
+        ++nodeIndex;
+    }
+}
+
+void Renderer::drawSettingsScreen(const AudioEngine& audio, const CanvasMetrics& metrics) {
+    const float panelX = 110.0f;
+    const float panelY = 42.0f;
+    const float panelWidth = metrics.virtualWidth - 220.0f;
+    SDL_SetRenderDrawColor(m_renderer, 8, 12, 22, 248);
+    SDL_FRect panel{panelX, panelY, panelWidth, metrics.virtualHeight - 84.0f};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 70, 190, 220, 255);
+    SDL_FRect header{panelX, panelY, panelWidth, 3.0f};
+    SDL_RenderFillRect(m_renderer, &header);
+    drawPixelText("OPTIONS", panelX + 18.0f, panelY + 14.0f, 2.0f, Color{190, 235, 255, 255});
+
+    struct Slider {
+        const char* label;
+        float value;
+        float y;
+    } sliders[] = {
+        {"MASTER VOLUME", audio.getMasterVolume(), 92.0f},
+        {"SFX VOLUME", audio.getSFXVolume(), 138.0f},
+        {"MUSIC VOLUME", audio.getMusicVolume(), 184.0f},
+        {"AMBIENCE VOLUME", audio.getAmbienceVolume(), 230.0f}
+    };
+    for (const auto& slider : sliders) {
+        drawPixelText(slider.label, panelX + 22.0f, slider.y - 15.0f, 1.0f, Color{205, 215, 230, 255});
+        SDL_SetRenderDrawColor(m_renderer, 30, 42, 58, 255);
+        SDL_FRect track{panelX + 60.0f, slider.y, 300.0f, 8.0f};
+        SDL_RenderFillRect(m_renderer, &track);
+        SDL_SetRenderDrawColor(m_renderer, 60, 190, 220, 255);
+        SDL_FRect fill{track.x, track.y, track.w * slider.value, track.h};
+        SDL_RenderFillRect(m_renderer, &fill);
+        SDL_SetRenderDrawColor(m_renderer, 245, 220, 100, 255);
+        SDL_FRect knob{track.x + track.w * slider.value - 3.0f, track.y - 3.0f, 6.0f, 14.0f};
+        SDL_RenderFillRect(m_renderer, &knob);
+        drawPixelText(std::to_string(static_cast<int>(slider.value * 100.0f)) + "%", panelX + 370.0f, slider.y, 1.0f, Color{255, 220, 100, 255});
+    }
+
+    drawPixelText("ESC CLOSE", panelX + 22.0f, panelY + 274.0f, 1.0f, Color{130, 155, 180, 255});
 }
 
 void Renderer::drawLightingOverlay(const Vec2& playerPos, float ambientDarkness, const Camera& camera, const CanvasMetrics& metrics) {
@@ -534,6 +944,59 @@ void Renderer::drawHUD(const GameSimulation& sim, const CanvasMetrics& metrics, 
     SDL_RenderFillRect(m_renderer, &c2);
     SDL_RenderFillRect(m_renderer, &c3);
     SDL_RenderFillRect(m_renderer, &c4);
+}
+
+void Renderer::drawBossHUD(const GameSimulation& sim, const CanvasMetrics& metrics) {
+    const auto& registry = sim.getContext().registry;
+    const EnemyTag* bossTag = nullptr;
+    const HealthComponent* bossHealth = nullptr;
+    for (auto [entity, tag, health] : registry.view<EnemyTag, HealthComponent>().each()) {
+        if (tag.xpReward >= 1000 && (!bossHealth || health.max > bossHealth->max)) {
+            bossTag = &tag;
+            bossHealth = &health;
+        }
+        (void)entity;
+    }
+
+    if (!bossTag || !bossHealth || bossHealth->isDead) return;
+
+    float ratio = bossHealth->max > 0.0f
+        ? std::clamp(bossHealth->current / bossHealth->max, 0.0f, 1.0f)
+        : 0.0f;
+    const float panelWidth = std::min(360.0f, static_cast<float>(metrics.virtualWidth) - 40.0f);
+    const float panelX = (metrics.virtualWidth - panelWidth) * 0.5f;
+    const float panelY = 10.0f;
+
+    SDL_SetRenderDrawColor(m_renderer, 12, 14, 22, 235);
+    SDL_FRect panel{panelX, panelY, panelWidth, 28.0f};
+    SDL_RenderFillRect(m_renderer, &panel);
+
+    SDL_SetRenderDrawColor(m_renderer, 150, 35, 45, 255);
+    SDL_FRect border{panelX, panelY, panelWidth, 2.0f};
+    SDL_RenderFillRect(m_renderer, &border);
+
+    SDL_SetRenderDrawColor(m_renderer, 45, 15, 20, 255);
+    SDL_FRect healthBack{panelX + 12.0f, panelY + 10.0f, panelWidth - 24.0f, 8.0f};
+    SDL_RenderFillRect(m_renderer, &healthBack);
+
+    SDL_SetRenderDrawColor(m_renderer, ratio <= 0.5f ? 245 : 190, 35, 45, 255);
+    SDL_FRect healthFill{panelX + 12.0f, panelY + 10.0f, (panelWidth - 24.0f) * ratio, 8.0f};
+    SDL_RenderFillRect(m_renderer, &healthFill);
+
+    // Phase markers make the 50% enrage threshold visible without requiring a font.
+    for (int marker = 1; marker < 4; ++marker) {
+        float markerX = panelX + 12.0f + (panelWidth - 24.0f) * (static_cast<float>(marker) / 4.0f);
+        SDL_SetRenderDrawColor(m_renderer, 255, 210, 80, 255);
+        SDL_FRect phaseMarker{markerX, panelY + 8.0f, 1.0f, 12.0f};
+        SDL_RenderFillRect(m_renderer, &phaseMarker);
+    }
+
+    // Shield-layer pips communicate the boss's remaining major phase layers.
+    for (int pip = 0; pip < 4; ++pip) {
+        SDL_SetRenderDrawColor(m_renderer, pip == 0 && ratio <= 0.5f ? 55 : 70, 170, 210, 255);
+        SDL_FRect shield{panelX + panelWidth - 58.0f + pip * 10.0f, panelY + 21.0f, 7.0f, 3.0f};
+        SDL_RenderFillRect(m_renderer, &shield);
+    }
 }
 
 void Renderer::endFrame(const CanvasMetrics& metrics) {

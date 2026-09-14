@@ -53,3 +53,18 @@ void BuildingSystem::toggleDoor(int x, int y) {
         it->second = !it->second;
     }
 }
+
+bool BuildingSystem::canUseTool(BuildingTool tool, BlockType type) const {
+    if (tool == BuildingTool::Pickaxe) return type == BlockType::Stone || type == BlockType::StoneWall || type == BlockType::Dirt;
+    if (tool == BuildingTool::Axe) return type == BlockType::WoodWall || type == BlockType::WoodenDoor;
+    return type == BlockType::StoneWall || type == BlockType::WoodWall || type == BlockType::StorageChest;
+}
+
+bool BuildingSystem::breakBlock(int x, int y, BuildingTool tool) {
+    BlockType type = getBlock(x, y);
+    return type != BlockType::Air && canUseTool(tool, type) && breakBlock(x, y);
+}
+
+PlacementGhost BuildingSystem::getPlacementGhost(int x, int y, BlockType type) const {
+    return {x, y, type, type != BlockType::Air && getBlock(x, y) == BlockType::Air};
+}

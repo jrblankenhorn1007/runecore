@@ -10,6 +10,8 @@ struct BossAction {
     Vec2 moveDirection{0.0f, 0.0f};
     bool attackTriggered{false};
     bool triggerPhaseTransitionBlast{false};
+    bool telegraphActive{false};
+    float telegraphRadius{0.0f};
 };
 
 class BossAI {

@@ -18,6 +18,9 @@ struct RawInputState {
     bool toggleCrafting{false};
     bool toggleAugmentations{false};
     bool toggleMinimap{false};
+    bool toggleCharacterSheet{false};
+    bool toggleSkills{false};
+    bool toggleSettings{false};
     bool interactPressed{false};
     bool quitRequested{false};
     Vec2 mouseScreenPos{0.0f, 0.0f};

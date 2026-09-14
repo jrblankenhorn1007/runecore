@@ -14,6 +14,10 @@ public:
 
     bool addItem(const Item& item);
     bool removeItem(const std::string& itemId, int count = 1);
+    bool moveSlot(int fromIndex, int toIndex);
+    bool consumeSlot(int index);
+    const std::string& getLastAction() const { return m_lastAction; }
+    void clearLastAction() { m_lastAction.clear(); }
     bool hasItem(const std::string& itemId, int count = 1) const;
     int getItemCount(const std::string& itemId) const;
 
@@ -32,4 +36,5 @@ private:
     float m_carryCapacity{50.0f};
     std::vector<std::optional<Item>> m_slots;
     std::unordered_map<EquipSlot, Item> m_equipped;
+    std::string m_lastAction;
 };

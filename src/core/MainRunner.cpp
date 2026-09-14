@@ -68,6 +68,9 @@ int runGame(int argc, char* argv[]) {
     bool headless = false;
     bool botMode = true; // Auto-play by default so the game actively plays itself!
     bool manualMode = false;
+    bool qaMode = false;
+    bool qaList = false;
+    std::string qaScenario;
     float maxDuration = 10.0f; // Default 10s demo runtime if unattended
 
     for (int i = 1; i < argc; ++i) {
@@ -83,6 +86,15 @@ int runGame(int argc, char* argv[]) {
             manualMode = false;
         } else if (arg == "--duration" && i + 1 < argc) {
             maxDuration = std::stof(argv[++i]);
+        } else if (arg == "--qa" && i + 1 < argc) {
+            qaMode = true;
+            headless = true;
+            botMode = false;
+            qaScenario = argv[++i];
+        } else if (arg == "--qa-list") {
+            qaList = true;
+            headless = true;
+            botMode = false;
         }
     }
 
@@ -92,7 +104,22 @@ int runGame(int argc, char* argv[]) {
     std::cout << "================================================================================\n";
 
     GameSimulation sim;
-    sim.initialize(ClassType::Juggernaut);
+    sim.initialize(ClassType::Juggernaut, headless || qaMode);
+
+    if (qaList) {
+        std::cout << "Focused QA scenarios:\n";
+        for (const auto& scenario : getFocusedScenarioNames()) {
+            std::cout << "  " << scenario << "\n";
+        }
+        std::cout << "  all\n";
+        return 0;
+    }
+
+    if (qaMode) {
+        FocusedScenarioResult result = runFocusedScenario(qaScenario);
+        printFocusedScenarioResult(result);
+        return result.passed ? 0 : 1;
+    }
 
     // Generate Procedural Dungeon
     Random rng(1337);
@@ -146,6 +173,8 @@ int runGame(int argc, char* argv[]) {
             auto startTime = lastTime;
             bool running = true;
             std::string lastPhase = "";
+            int displayedLevel = sim.getPlayerLevel();
+            int draggedInventorySlot = -1;
 
             while (running) {
                 auto currentTime = std::chrono::high_resolution_clock::now();
@@ -176,7 +205,8 @@ int runGame(int argc, char* argv[]) {
                 bool humanInteracted = (humanInput.controller.moveX != 0.0f || humanInput.controller.moveY != 0.0f ||
                                         humanInput.controller.jumpPressed || humanInput.attackPressed ||
                                         humanInput.secondaryPressed || humanInput.skillQ || humanInput.skillE ||
-                                        humanInput.skillR || humanInput.skillF || humanInput.toggleInventory);
+                                        humanInput.skillR || humanInput.skillF || humanInput.toggleInventory ||
+                                        humanInput.toggleCharacterSheet || humanInput.toggleSkills || humanInput.toggleSettings);
 
                 if (humanInteracted && !manualMode) {
                     manualMode = true;
@@ -209,6 +239,112 @@ int runGame(int argc, char* argv[]) {
                 if (inputState.toggleCrafting) sim.toggleScreen(ActiveScreen::Crafting);
                 if (inputState.toggleAugmentations) sim.toggleScreen(ActiveScreen::Augmentations);
                 if (inputState.toggleMinimap) sim.toggleScreen(ActiveScreen::Minimap);
+                if (inputState.toggleCharacterSheet) sim.toggleScreen(ActiveScreen::CharacterSheet);
+                if (inputState.toggleSkills) sim.toggleScreen(ActiveScreen::Skills);
+                if (inputState.toggleSettings) sim.toggleScreen(ActiveScreen::Settings);
+
+                bool handledUiClick = false;
+                bool handledUiSecondary = false;
+                if (sim.getActiveScreen() == ActiveScreen::Inventory &&
+                    (inputState.attackPressed || inputState.secondaryPressed || draggedInventorySlot >= 0)) {
+                    float virtualX = (inputState.mouseScreenPos.x - metrics.letterboxX) / metrics.integerScale;
+                    float virtualY = (inputState.mouseScreenPos.y - metrics.letterboxY) / metrics.integerScale;
+                    int column = static_cast<int>((virtualX - 60.0f) / 26.0f);
+                    int row = static_cast<int>((virtualY - 60.0f) / 26.0f);
+                    int slot = row * 8 + column;
+                    bool validSlot = column >= 0 && column < 8 && row >= 0 && row < 5;
+                    if (validSlot && inputState.attackPressed) {
+                        if (draggedInventorySlot < 0) {
+                            if (sim.getInventory().getSlot(slot).has_value()) {
+                                draggedInventorySlot = slot;
+                                handledUiClick = true;
+                            }
+                        } else {
+                            handledUiClick = sim.getInventory().moveSlot(draggedInventorySlot, slot);
+                            draggedInventorySlot = -1;
+                        }
+                    } else if (inputState.attackPressed && draggedInventorySlot >= 0 &&
+                               virtualX >= 310.0f && virtualX < 406.0f && virtualY >= 60.0f && virtualY < 210.0f) {
+                        int paperColumn = static_cast<int>((virtualX - 310.0f) / 48.0f);
+                        int paperRow = static_cast<int>((virtualY - 60.0f) / 30.0f);
+                        int equipmentIndex = paperRow * 2 + paperColumn;
+                        static constexpr EquipSlot equipmentSlots[] = {
+                            EquipSlot::MainHand, EquipSlot::OffHand, EquipSlot::Helmet, EquipSlot::Chestplate,
+                            EquipSlot::Greaves, EquipSlot::Boots, EquipSlot::Ring1, EquipSlot::Ring2,
+                            EquipSlot::Amulet, EquipSlot::Relic
+                        };
+                        if (equipmentIndex >= 0 && equipmentIndex < 10) {
+                            handledUiClick = sim.getInventory().equipItem(equipmentSlots[equipmentIndex], draggedInventorySlot);
+                            draggedInventorySlot = -1;
+                        }
+                    } else if (draggedInventorySlot >= 0 && !inputState.attackHeld &&
+                               virtualX >= 310.0f && virtualX < 406.0f && virtualY >= 60.0f && virtualY < 210.0f) {
+                        int paperColumn = static_cast<int>((virtualX - 310.0f) / 48.0f);
+                        int paperRow = static_cast<int>((virtualY - 60.0f) / 30.0f);
+                        int equipmentIndex = paperRow * 2 + paperColumn;
+                        static constexpr EquipSlot equipmentSlots[] = {
+                            EquipSlot::MainHand, EquipSlot::OffHand, EquipSlot::Helmet, EquipSlot::Chestplate,
+                            EquipSlot::Greaves, EquipSlot::Boots, EquipSlot::Ring1, EquipSlot::Ring2,
+                            EquipSlot::Amulet, EquipSlot::Relic
+                        };
+                        if (equipmentIndex >= 0 && equipmentIndex < 10) {
+                            handledUiClick = sim.getInventory().equipItem(equipmentSlots[equipmentIndex], draggedInventorySlot);
+                        }
+                        draggedInventorySlot = -1;
+                    } else if (draggedInventorySlot >= 0 && !inputState.attackHeld && validSlot) {
+                        handledUiClick = sim.getInventory().moveSlot(draggedInventorySlot, slot);
+                        draggedInventorySlot = -1;
+                    } else if (validSlot && inputState.secondaryPressed) {
+                        handledUiSecondary = sim.getInventory().consumeSlot(slot);
+                    }
+                } else if (inputState.attackPressed && sim.getActiveScreen() == ActiveScreen::Crafting) {
+                    float virtualX = (inputState.mouseScreenPos.x - metrics.letterboxX) / metrics.integerScale;
+                    float virtualY = (inputState.mouseScreenPos.y - metrics.letterboxY) / metrics.integerScale;
+                    if (virtualX >= 65.0f && virtualX <= 530.0f && virtualY >= 55.0f && virtualY < 175.0f) {
+                        int recipeIndex = static_cast<int>((virtualY - 55.0f) / 30.0f);
+                        const auto recipeIds = sim.getCraftingEngine().getRecipeIds();
+                        if (recipeIndex >= 0 && recipeIndex < static_cast<int>(recipeIds.size())) {
+                            handledUiClick = sim.getCraftingEngine().craft(
+                                recipeIds[static_cast<size_t>(recipeIndex)], sim.getInventory(), CraftingStation::None);
+                        }
+                    }
+                }
+                if (inputState.attackPressed && sim.getActiveScreen() == ActiveScreen::CharacterSheet) {
+                    float virtualX = (inputState.mouseScreenPos.x - metrics.letterboxX) / metrics.integerScale;
+                    float virtualY = (inputState.mouseScreenPos.y - metrics.letterboxY) / metrics.integerScale;
+                    if (virtualX >= 540.0f && virtualX <= 585.0f && virtualY >= 74.0f && virtualY <= 235.0f) {
+                        int attributeIndex = static_cast<int>((virtualY - 78.0f) / 28.0f);
+                        handledUiClick = sim.allocateAttribute(attributeIndex);
+                    }
+                } else if (inputState.attackPressed && sim.getActiveScreen() == ActiveScreen::Skills) {
+                    float virtualX = (inputState.mouseScreenPos.x - metrics.letterboxX) / metrics.integerScale;
+                    float virtualY = (inputState.mouseScreenPos.y - metrics.letterboxY) / metrics.integerScale;
+                    const char* nodeIds[] = {"mob_01", "comb_01", "mob_02", "surv_01"};
+                    for (int nodeIndex = 0; nodeIndex < 4; ++nodeIndex) {
+                        float nodeX = 54.0f + (nodeIndex % 2) * 250.0f;
+                        float nodeY = 75.0f + (static_cast<float>(nodeIndex) / 2.0f) * 92.0f;
+                        if (virtualX >= nodeX && virtualX <= nodeX + 210.0f && virtualY >= nodeY && virtualY <= nodeY + 58.0f) {
+                            handledUiClick = sim.allocateSkill(nodeIds[nodeIndex]);
+                            break;
+                        }
+                    }
+                } else if (inputState.attackPressed && sim.getActiveScreen() == ActiveScreen::Settings) {
+                    float virtualX = (inputState.mouseScreenPos.x - metrics.letterboxX) / metrics.integerScale;
+                    float virtualY = (inputState.mouseScreenPos.y - metrics.letterboxY) / metrics.integerScale;
+                    if (virtualY >= 92.0f && virtualY <= 116.0f) {
+                        sim.getAudio().setMasterVolume(std::clamp((virtualX - 170.0f) / 300.0f, 0.0f, 1.0f));
+                        handledUiClick = true;
+                    } else if (virtualY >= 138.0f && virtualY <= 162.0f) {
+                        sim.getAudio().setSFXVolume(std::clamp((virtualX - 170.0f) / 300.0f, 0.0f, 1.0f));
+                        handledUiClick = true;
+                    } else if (virtualY >= 184.0f && virtualY <= 208.0f) {
+                        sim.getAudio().setMusicVolume(std::clamp((virtualX - 170.0f) / 300.0f, 0.0f, 1.0f));
+                        handledUiClick = true;
+                    } else if (virtualY >= 230.0f && virtualY <= 254.0f) {
+                        sim.getAudio().setAmbienceVolume(std::clamp((virtualX - 170.0f) / 300.0f, 0.0f, 1.0f));
+                        handledUiClick = true;
+                    }
+                }
 
                 // Handle Dungeon Entrance / Exit Interaction
                 if (inputState.interactPressed) {
@@ -229,15 +365,16 @@ int runGame(int argc, char* argv[]) {
                 int ticks = timeStep.update(frameDelta);
                 for (int t = 0; t < ticks; ++t) {
                     // Left Click: Try mining first; if not mining a solid tile, swing weapon
-                    if (inputState.attackPressed) {
+                    if (inputState.attackPressed && !handledUiClick) {
                         bool mined = sim.mineTileAt(inputState.mouseWorldPos);
                         if (!mined) {
                             sim.playerAttack();
+                            camera.addShake(2.5f, 0.08f);
                         }
                     }
 
                     // Right Click: Try placing block or shoot projectile
-                    if (inputState.secondaryPressed) {
+                    if (inputState.secondaryPressed && !handledUiSecondary) {
                         bool placed = sim.placeBlockAt(inputState.mouseWorldPos, "mat_wood_plank", 3);
                         if (!placed) {
                             sim.shootProjectile(inputState.mouseWorldPos);
@@ -245,14 +382,27 @@ int runGame(int argc, char* argv[]) {
                     }
 
                     sim.step(inputState.controller, 1.0f / 60.0f);
+                    if (sim.getPlayerLevel() > displayedLevel) {
+                        displayedLevel = sim.getPlayerLevel();
+                        sim.getFloatingText().spawnText(
+                            sim.getPlayerPosition(),
+                            "LEVEL " + std::to_string(displayedLevel),
+                            Color{255, 220, 60, 255}, 1.5f, true);
+                        sim.getParticles().emitBurst(
+                            sim.getPlayerPosition(), 24, Color{255, 210, 50, 255}, 0.8f, 95.0f);
+                        sim.getAudio().playSound(SoundEffect::LevelUp);
+                        camera.addShake(3.0f, 0.12f);
+                    }
                 }
 
                 // Camera follows player
                 Vec2 playerPos = sim.getPlayerPosition();
                 camera.setPosition(playerPos);
+                camera.update(frameDelta);
 
                 // Render Virtual Frame
                 renderer.beginFrame();
+                renderer.drawParallaxBackground(playerPos.x, static_cast<int>(playerPos.x / 2048.0f) % 3, metrics);
 
                 // Draw tilemap around camera
                 int camTileX = static_cast<int>(playerPos.x / 16.0f);
@@ -282,15 +432,72 @@ int runGame(int argc, char* argv[]) {
                 auto enemyView = sim.getContext().registry.view<EnemyTag, TransformComponent, HealthComponent>();
                 for (auto [e, tag, trans, hp] : enemyView.each()) {
                     float ratio = hp.max > 0.0f ? (hp.current / hp.max) : 1.0f;
-                    renderer.drawEntity(trans.position, Vec2{16.0f, 16.0f}, Color{200, 45, 55, 255}, camera, metrics, -1, false, ratio);
+                    Vec2 size{16.0f, 16.0f};
+                    Color color{200, 45, 55, 255};
+                    switch (tag.type) {
+                        case EnemyType::Bat:
+                            size = Vec2{20.0f, 12.0f};
+                            color = Color{150, 75, 200, 255};
+                            break;
+                        case EnemyType::Raptor:
+                            size = Vec2{22.0f, 18.0f};
+                            color = Color{220, 125, 45, 255};
+                            break;
+                        case EnemyType::CyberGunner:
+                            size = Vec2{14.0f, 20.0f};
+                            color = Color{65, 180, 195, 255};
+                            break;
+                        case EnemyType::Slime:
+                        default:
+                            break;
+                    }
+                    if (hp.hitFlashTimer > 0.0f) {
+                        color = Color{255, 255, 255, 255};
+                    }
+                    if (sim.getContext().registry.all_of<DeathAnimationComponent>(e)) {
+                        const auto& death = sim.getContext().registry.get<DeathAnimationComponent>(e);
+                        float progress = 1.0f - (death.remaining / death.duration);
+                        float squash = 1.0f + progress * 0.8f;
+                        float stretch = 1.0f - progress * 0.55f;
+                        if (death.type == EnemyType::Bat) {
+                            stretch = 1.0f + progress * 0.35f;
+                            squash = 1.0f - progress * 0.25f;
+                        }
+                        size.x *= squash;
+                        size.y *= stretch;
+                    }
+                    if (sim.getContext().registry.all_of<BossEncounterComponent>(e)) {
+                        size = Vec2{28.0f, 34.0f};
+                        color = Color{185, 45, 70, 255};
+                        const auto& encounter = sim.getContext().registry.get<BossEncounterComponent>(e);
+                        if (encounter.action.telegraphActive) {
+                            renderer.drawBossTelegraph(trans.position, encounter.action.telegraphRadius, camera, metrics,
+                                                       encounter.controller.isEnraged());
+                        }
+                    }
+                    renderer.drawEntity(trans.position, size, color, camera, metrics, -1, false, ratio,
+                                        hp.hitFlashTimer > 0.0f, hp.healthBarTimer > 0.0f);
                 }
 
                 // Draw player
                 renderer.drawEntity(playerPos, Vec2{16.0f, 24.0f}, Color{65, 115, 220, 255}, camera, metrics, sim.getPlayerFacing(), true, 1.0f);
+                renderer.drawWeapon(playerPos, inputState.mouseWorldPos, sim.isAttacking(), camera, metrics);
 
                 // Draw attack slash
                 if (sim.isAttacking()) {
                     renderer.drawSlashArc(sim.getLastAttackBox(), camera, metrics, sim.getPlayerFacing());
+                }
+
+                for (const auto& particle : sim.getParticles().getParticles()) {
+                    if (particle.active) {
+                        renderer.drawParticle(particle, camera, metrics);
+                    }
+                }
+
+                for (const auto& text : sim.getFloatingText().getTexts()) {
+                    if (text.active) {
+                        renderer.drawFloatingText(text, camera, metrics);
+                    }
                 }
 
                 // Dynamic 2D Lighting overlay
@@ -299,17 +506,32 @@ int runGame(int argc, char* argv[]) {
 
                 // Draw HUD & Crosshair
                 renderer.drawHUD(sim, metrics, inputState);
+                renderer.drawBossHUD(sim, metrics);
 
                 // Draw Active Overlay UI Screen
                 switch (sim.getActiveScreen()) {
                     case ActiveScreen::Inventory:
-                        renderer.drawInventoryScreen(sim.getInventory(), metrics);
+                        renderer.drawInventoryScreen(
+                            sim.getInventory(), metrics,
+                            Vec2{
+                                (inputState.mouseScreenPos.x - metrics.letterboxX) / metrics.integerScale,
+                                (inputState.mouseScreenPos.y - metrics.letterboxY) / metrics.integerScale
+                            }, draggedInventorySlot);
                         break;
                     case ActiveScreen::Crafting:
                         renderer.drawCraftingScreen(sim.getCraftingEngine(), sim.getInventory(), metrics);
                         break;
                     case ActiveScreen::Augmentations:
                         renderer.drawAugmentationScreen(sim.getAugmentations(), metrics);
+                        break;
+                    case ActiveScreen::CharacterSheet:
+                        renderer.drawCharacterSheet(sim.getProgression(), metrics);
+                        break;
+                    case ActiveScreen::Skills:
+                        renderer.drawSkillTreeScreen(sim.getSkillTree(), sim.getProgression().getSkillPoints(), metrics);
+                        break;
+                    case ActiveScreen::Settings:
+                        renderer.drawSettingsScreen(sim.getAudio(), metrics);
                         break;
                     case ActiveScreen::Minimap:
                         renderer.drawMinimap(sim.getDungeonLayout(), playerPos, metrics);
@@ -341,10 +563,14 @@ int runGame(int argc, char* argv[]) {
     save.currentXP = sim.getPlayerXP();
     save.health = sim.getPlayerHealth();
     save.hunger = sim.getPlayerHunger();
+    save.settings.masterVolume = sim.getAudio().getMasterVolume();
+    save.settings.sfxVolume = sim.getAudio().getSFXVolume();
+    save.settings.musicVolume = sim.getAudio().getMusicVolume();
+    save.settings.ambienceVolume = sim.getAudio().getAmbienceVolume();
 
-    std::string saveFile = "save_slot_01.sav";
-    bool saved = SaveManager::saveToFile(saveFile, save);
-    std::cout << "\nGame session saved to '" << saveFile << "': " << (saved ? "SUCCESS" : "FAILED") << "\n";
+    const std::string saveDirectory = ".";
+    bool saved = SaveManager::saveSlot(saveDirectory, 1, save);
+    std::cout << "\nGame session saved to 'save_slot_01.sav': " << (saved ? "SUCCESS" : "FAILED") << "\n";
     std::cout << "Untitled RPG execution completed cleanly.\n";
 
     return 0;

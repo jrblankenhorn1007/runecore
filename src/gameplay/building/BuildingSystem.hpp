@@ -13,6 +13,9 @@ enum class BlockType : uint8_t {
     StorageChest = 7
 };
 
+enum class BuildingTool { Pickaxe, Axe, Hammer };
+struct PlacementGhost { int x{0}; int y{0}; BlockType type{BlockType::Air}; bool valid{false}; };
+
 class BuildingSystem {
 public:
     explicit BuildingSystem(float blockSize = 16.0f);
@@ -23,6 +26,9 @@ public:
 
     bool isDoorOpen(int x, int y) const;
     void toggleDoor(int x, int y);
+    bool canUseTool(BuildingTool tool, BlockType type) const;
+    bool breakBlock(int x, int y, BuildingTool tool);
+    PlacementGhost getPlacementGhost(int x, int y, BlockType type) const;
 
     float getBlockSize() const { return m_blockSize; }
 

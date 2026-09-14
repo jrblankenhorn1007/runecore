@@ -41,6 +41,20 @@ bool Progression::spendAttributePoints(int count) {
     return true;
 }
 
+bool Progression::allocateAttribute(Attribute attribute) {
+    auto index = static_cast<int>(attribute);
+    if (index < 0 || index >= static_cast<int>(Attribute::Count)) return false;
+    if (!spendAttributePoints(1)) return false;
+    m_attributes[index]++;
+    return true;
+}
+
+int Progression::getAttribute(Attribute attribute) const {
+    auto index = static_cast<int>(attribute);
+    if (index < 0 || index >= static_cast<int>(Attribute::Count)) return 0;
+    return m_attributes[index];
+}
+
 bool Progression::spendSkillPoints(int count) {
     if (count <= 0 || m_skillPoints < count) return false;
     m_skillPoints -= count;

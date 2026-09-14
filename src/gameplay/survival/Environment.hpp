@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Math.hpp"
 
 enum class WeatherType {
     Clear,
@@ -25,4 +26,10 @@ private:
     float m_fullCycle{1440.0f};
     float m_timeOfDay{720.0f}; // starts at noon (720s)
     WeatherType m_weather{WeatherType::Clear};
+};
+
+class SkyTransition {
+public:
+    static Color colorAt(float timeOfDay, float fullCycleSeconds = 1440.0f);
+    static Color blend(const Color& from, const Color& to, float amount);
 };

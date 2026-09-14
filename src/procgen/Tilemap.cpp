@@ -42,3 +42,27 @@ uint16_t Tilemap::getBlock(int worldX, int worldY, BlockLayer layer) const {
     }
     return 0; // Empty air
 }
+
+uint8_t Tilemap::getAutotileMask(int x, int y, BlockLayer layer) const {
+    uint16_t center = getBlock(x, y, layer);
+    if (center == 0) return 0;
+    uint8_t mask = 0;
+    if (getBlock(x, y - 1, layer) == center) mask |= 1;
+    if (getBlock(x + 1, y, layer) == center) mask |= 2;
+    if (getBlock(x, y + 1, layer) == center) mask |= 4;
+    if (getBlock(x - 1, y, layer) == center) mask |= 8;
+    return mask;
+}
+
+void Tilemap::setSlope(int x, int y, bool risingRight) {
+    m_slopes[hashChunk(x, y)] = risingRight;
+}
+
+bool Tilemap::isSlope(int x, int y) const {
+    return m_slopes.find(hashChunk(x, y)) != m_slopes.end();
+}
+
+bool Tilemap::slopeRisesRight(int x, int y) const {
+    auto it = m_slopes.find(hashChunk(x, y));
+    return it != m_slopes.end() && it->second;
+}

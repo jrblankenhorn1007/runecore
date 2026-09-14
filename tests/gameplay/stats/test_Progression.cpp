@@ -42,4 +42,11 @@ TEST_CASE("Progression Uncapped Level Curve and Point Spending", "[gameplay][sta
         REQUIRE(p.spendSkillPoints(4) == true);
         REQUIRE(p.getSkillPoints() == 4);
     }
+    SECTION("Attribute Allocation") {
+        p.setLevel(2);
+        int startingStrength = p.getAttribute(Progression::Attribute::Strength);
+        REQUIRE(p.allocateAttribute(Progression::Attribute::Strength) == true);
+        REQUIRE(p.getAttribute(Progression::Attribute::Strength) == startingStrength + 1);
+        REQUIRE(p.getAttributePoints() == 2);
+    }
 }

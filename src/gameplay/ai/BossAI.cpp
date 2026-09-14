@@ -30,6 +30,11 @@ BossAction BossAI::update(
 
     action.moveDirection = (playerPos - bossPos).normalized();
 
+    if (m_cooldownTimer > 0.0f && m_cooldownTimer <= 1.0f) {
+        action.telegraphActive = true;
+        action.telegraphRadius = m_phase == BossPhase::Phase2 ? 48.0f : 32.0f;
+    }
+
     if (m_cooldownTimer <= 0.0f) {
         action.attackTriggered = true;
         m_cooldownTimer = m_attackCooldown;

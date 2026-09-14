@@ -87,5 +87,16 @@ TEST_CASE("SaveManager Serialization, Atomic Writes, and Checksums", "[save][per
         REQUIRE(SaveManager::loadFromFile(testPath, out) == false);
     }
 
+    SECTION("Three Save Slots Are Addressable") {
+        const std::string directory = "test_save_slots";
+        REQUIRE(SaveManager::saveSlot(directory, 2, data));
+        SaveData loaded;
+        REQUIRE(SaveManager::loadSlot(directory, 2, loaded));
+        REQUIRE(loaded.playerName == "Aegis");
+        REQUIRE(SaveManager::availableSlots(directory) == std::vector<int>{2});
+        std::remove((directory + "/save_slot_02.sav").c_str());
+        std::remove(directory.c_str());
+    }
+
     std::remove(testPath.c_str());
 }

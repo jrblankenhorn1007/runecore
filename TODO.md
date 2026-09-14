@@ -78,8 +78,28 @@ This document tracks all user-requested planning, design specifications, content
 - [x] Design Infinite Rift endgame with scaling mutators and Tier 9+ Prismatic gear.
 - [x] Design death mechanics (No permadeath: consciousness recall to hub with 25% raw material drop in recovery drone).
 - [ ] **Pending**: Extract and detail individual documents for all 22 biomes in `docs/biomes/` (enemy spawn tables, hazard parameters, environmental conditions, and dungeon themes):
-  - [ ] 12 Surface Biomes: `the_haven.md`, `rustwood_forest.md`, `whispering_taiga.md`, `ashen_foundry.md`, `cryo_glacier.md`, `bioluminescent_bog.md`, `sunken_megalopolis.md`, `scorched_desert.md`, `radioactive_waste.md`, `acidic_salt_flats.md`, `iron_jungle.md`, `sky_archipelago.md`
-  - [ ] 10 Subterranean & Dimensional Biomes: `rusted_catacombs.md`, `overgrown_bio_labs.md`, `submerged_vaults.md`, `molten_smeltery.md`, `cryo_stasis_depths.md`, `void_factory.md`, `hard_light_citadel.md`, `sunken_orbital_core.md`, `crystal_caverns.md`, `infinite_rift.md`
+  - [x] Surface Biome: `the_haven.md`
+  - [x] Surface Biome: `rustwood_forest.md`
+  - [ ] Surface Biome: `whispering_taiga.md`
+  - [x] Surface Biome: `ashen_foundry.md`
+  - [x] Surface Biome: `cryo_glacier.md`
+  - [x] Surface Biome: `bioluminescent_bog.md`
+  - [ ] Surface Biome: `sunken_megalopolis.md`
+  - [ ] Surface Biome: `scorched_desert.md`
+  - [ ] Surface Biome: `radioactive_waste.md`
+  - [ ] Surface Biome: `acidic_salt_flats.md`
+  - [ ] Surface Biome: `iron_jungle.md`
+  - [ ] Surface Biome: `sky_archipelago.md`
+  - [ ] Subterranean Biome: `rusted_catacombs.md`
+  - [ ] Subterranean Biome: `overgrown_bio_labs.md`
+  - [ ] Subterranean Biome: `submerged_vaults.md`
+  - [ ] Subterranean Biome: `molten_smeltery.md`
+  - [ ] Subterranean Biome: `cryo_stasis_depths.md`
+  - [ ] Subterranean Biome: `void_factory.md`
+  - [ ] Subterranean Biome: `hard_light_citadel.md`
+  - [ ] Subterranean Biome: `sunken_orbital_core.md`
+  - [ ] Subterranean Biome: `crystal_caverns.md`
+  - [x] Dimensional Endgame Biome: `infinite_rift.md`
 
 ### 1.7 Granular Documentation Reorganization & Item Catalogs
 - [x] **Documentation Folder Restructuring**:
@@ -95,38 +115,38 @@ This document tracks all user-requested planning, design specifications, content
   - [x] `docs/dungeons/`: Procedural dungeon generation concept.
   - [x] `docs/test_plans/`: Modular unit test plans.
 - [ ] **Granular Items Folder Structure & 3,000+ Items Catalog**:
-  - [ ] Create granular item subdirectories: `docs/items/weapons/`, `docs/items/armor/`, `docs/items/accessories/`, `docs/items/consumables/`, `docs/items/materials/`, `docs/items/tools/`
+  - [x] Create granular item subdirectories: `docs/items/weapons/`, `docs/items/armor/`, `docs/items/accessories/`, `docs/items/consumables/`, `docs/items/materials/`, `docs/items/tools/`
   - [ ] Detail each granular item grouping file with individual stat roll ranges, tiers, and drop rules across all 3,000 items:
-    - [ ] `docs/items/weapons/swords_greatswords.md` (200 weapons)
-    - [ ] `docs/items/weapons/daggers_knives.md` (150 weapons)
+    - [x] `docs/items/weapons/swords_greatswords.md` (200 weapons)
+    - [x] `docs/items/weapons/daggers_knives.md` (150 weapons)
     - [ ] `docs/items/weapons/axes_hammers.md` (150 weapons)
     - [ ] `docs/items/weapons/spears_polearms.md` (120 weapons)
-    - [ ] `docs/items/weapons/revolvers_pistols.md` (150 weapons)
-    - [ ] `docs/items/weapons/shotguns.md` (120 weapons)
-    - [ ] `docs/items/weapons/rifles_carbines.md` (160 weapons)
+    - [x] `docs/items/weapons/revolvers_pistols.md` (150 weapons)
+    - [x] `docs/items/weapons/shotguns.md` (120 weapons)
+    - [x] `docs/items/weapons/rifles_carbines.md` (160 weapons)
     - [ ] `docs/items/weapons/sniper_rifles.md` (100 weapons)
     - [ ] `docs/items/weapons/heavy_firearms.md` (100 weapons)
-    - [ ] `docs/items/weapons/plasma_blasters.md` (120 weapons)
+    - [x] `docs/items/weapons/plasma_blasters.md` (120 weapons)
     - [ ] `docs/items/weapons/lasers_beams.md` (100 weapons)
     - [ ] `docs/items/weapons/arc_lightning.md` (80 weapons)
     - [ ] `docs/items/weapons/railguns.md` (60 weapons)
-    - [ ] `docs/items/weapons/wands_scepters.md` (160 weapons)
+    - [x] `docs/items/weapons/wands_scepters.md` (160 weapons)
     - [ ] `docs/items/weapons/staffs.md` (140 weapons)
     - [ ] `docs/items/weapons/grimoires_tomes.md` (100 weapons)
-    - [ ] `docs/items/weapons/shields_deflectors.md` (120 shields/off-hands)
-    - [ ] `docs/items/armor/helmets.md` (150 headpieces)
-    - [ ] `docs/items/armor/chestplates.md` (180 chest armors)
-    - [ ] `docs/items/armor/greaves_legs.md` (160 leg armors)
-    - [ ] `docs/items/armor/boots_footwear.md` (150 boots)
-    - [ ] `docs/items/accessories/rings.md` (120 rings)
+    - [x] `docs/items/weapons/shields_deflectors.md` (120 shields/off-hands)
+    - [x] `docs/items/armor/helmets.md` (150 headpieces)
+    - [x] `docs/items/armor/chestplates.md` (180 chest armors)
+    - [x] `docs/items/armor/greaves_legs.md` (160 leg armors)
+    - [x] `docs/items/armor/boots_footwear.md` (150 boots)
+    - [x] `docs/items/accessories/rings.md` (120 rings)
     - [ ] `docs/items/accessories/amulets.md` (100 amulets)
     - [ ] `docs/items/accessories/relics_cores.md` (80 relics)
-    - [ ] `docs/items/consumables/food_drink.md` (120 meals and drinks)
+    - [x] `docs/items/consumables/food_drink.md` (120 meals and drinks)
     - [ ] `docs/items/consumables/potions_medicine.md` (100 potions and remedies)
-    - [ ] `docs/items/materials/ores_ingots.md` (60 metals and minerals)
+    - [x] `docs/items/materials/ores_ingots.md` (60 metals and minerals)
     - [ ] `docs/items/materials/monster_parts.md` (80 bio-reagents)
     - [ ] `docs/items/materials/tech_salvage.md` (80 cyber components)
-    - [ ] `docs/items/tools/harvesting_tools.md` (60 pickaxes, axes, hoes, scanners)
+    - [x] `docs/items/tools/harvesting_tools.md` (60 pickaxes, axes, hoes, scanners)
 
 ### 1.8 Technical Architecture, API & Test Planning
 - [x] **Remove All Existing Code**: Delete all premature C++ implementation files (`src/`, `CMakeLists.txt`, `cmake/`) so the repository is strictly in the design and planning phase.

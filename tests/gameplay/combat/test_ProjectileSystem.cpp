@@ -71,4 +71,21 @@ TEST_CASE("ProjectileSystem Spawning, Collisions, and Lifetime", "[gameplay][com
         REQUIRE(reg.get<HealthComponent>(enemy).current == Approx(80.0f));
         REQUIRE_FALSE(reg.valid(proj)); // Expended after 1 pierce
     }
+
+    SECTION("Penetrating Projectile Passes Through Solid Terrain") {
+        ProjectileConfig cfg;
+        cfg.speed = 100.0f;
+        cfg.damage = 10.0f;
+        cfg.lifetime = 5.0f;
+        cfg.penetrates = true;
+        cfg.maxPierces = 5;
+
+        // Wall at X=20*16 = 320
+        world.setTile(20, 5, TileType::Solid);
+        auto proj = ps.spawnProjectile(reg, Vec2{310.0f, 5.0f * 16.0f}, Vec2{1.0f, 0.0f}, cfg, entt::null);
+
+        // Update step moves through wall without being destroyed
+        ps.update(reg, world, 0.3f);
+        REQUIRE(reg.valid(proj));
+    }
 }

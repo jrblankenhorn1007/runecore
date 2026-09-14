@@ -31,6 +31,10 @@ TEST_CASE("WeaponArsenal Firearms, Shotguns, and Shields", "[gameplay][combat]")
         REQUIRE(gun.isReloading() == false);
         REQUIRE(gun.currentAmmoInMag == 5);
         REQUIRE(gun.reserveAmmo == 5);
+
+        // Calling startReload when magazine is already full does nothing
+        gun.startReload();
+        REQUIRE(gun.isReloading() == false);
     }
 
     SECTION("Shotgun Spread Firing") {

@@ -95,11 +95,11 @@ SweepResult CollisionWorld::sweepBox(const Vec2& startPos, const Rect& localBox,
                     if (hMove.x > 0.0f) {
                         float allowed = tileRect.x - (startPos.x + localBox.x + localBox.width) - 0.01f;
                         result.adjustedMove.x = std::min(result.adjustedMove.x, allowed);
-                        result.contactNormal = Vec2{-1.0f, 0.0f};
+                        result.contactNormal.x = -1.0f;
                     } else if (hMove.x < 0.0f) {
                         float allowed = (tileRect.x + tileRect.width) - (startPos.x + localBox.x) + 0.01f;
                         result.adjustedMove.x = std::max(result.adjustedMove.x, allowed);
-                        result.contactNormal = Vec2{1.0f, 0.0f};
+                        result.contactNormal.x = 1.0f;
                     }
                 }
             }
@@ -125,11 +125,11 @@ SweepResult CollisionWorld::sweepBox(const Vec2& startPos, const Rect& localBox,
                     if (vMove.y > 0.0f) {
                         float allowed = tileRect.y - (startPos.y + localBox.y + localBox.height) - 0.01f;
                         result.adjustedMove.y = std::min(result.adjustedMove.y, allowed);
-                        result.contactNormal = Vec2{0.0f, -1.0f};
+                        result.contactNormal.y = -1.0f;
                     } else if (vMove.y < 0.0f) {
                         float allowed = (tileRect.y + tileRect.height) - (startPos.y + localBox.y) + 0.01f;
                         result.adjustedMove.y = std::max(result.adjustedMove.y, allowed);
-                        result.contactNormal = Vec2{0.0f, 1.0f};
+                        result.contactNormal.y = 1.0f;
                     }
                 }
             }

@@ -95,6 +95,12 @@ TEST_CASE("InputManager Event Polling, Keyboard Actions, and Mouse Coordinates",
         pushKey(SDLK_6, true); im.processEvents(metrics, camera); REQUIRE(im.getState().hotbarSelected == 5);
         pushKey(SDLK_7, true); im.processEvents(metrics, camera); REQUIRE(im.getState().hotbarSelected == 6);
         pushKey(SDLK_8, true); im.processEvents(metrics, camera); REQUIRE(im.getState().hotbarSelected == 7);
+
+        // Unmapped key down & up triggers default branches
+        pushKey(SDLK_Z, true);
+        im.processEvents(metrics, camera);
+        pushKey(SDLK_Z, false);
+        im.processEvents(metrics, camera);
     }
 
     SECTION("Mouse Button Events") {

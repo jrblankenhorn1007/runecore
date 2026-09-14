@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include "core/GameSimulation.hpp"
+#include "ecs/Components.hpp"
 
 using Catch::Approx;
 
@@ -55,9 +56,74 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
 
     SECTION("Dungeon Entry and Exit") {
         REQUIRE(sim.isInsideDungeon() == false);
+        REQUIRE(sim.canEnterDungeon() == false);
+
+        // Move player to entrance at X = 400
+        auto& pPos = sim.getContext().registry.get<TransformComponent>(sim.getContext().registry.view<PlayerTag>().front()).position;
+        pPos.x = 400.0f;
+        REQUIRE(sim.canEnterDungeon() == true);
+
         sim.enterDungeon();
         REQUIRE(sim.isInsideDungeon() == true);
         sim.exitDungeon();
         REQUIRE(sim.isInsideDungeon() == false);
+    }
+
+    SECTION("Starvation and Hypothermia Damage Application") {
+        auto enemyView = sim.getContext().registry.view<EnemyTag>();
+        for (auto e : enemyView) {
+            sim.getContext().registry.destroy(e);
+        }
+
+        ControllerInput input;
+        float initialHP = sim.getPlayerHealth();
+        REQUIRE(initialHP > 0.0f);
+
+        // Step 35 seconds in cold ambient conditions to induce hypothermia damage
+        sim.step(input, 35.0f);
+
+        REQUIRE(sim.getPlayerHealth() < initialHP);
+        REQUIRE(sim.getPlayerHealth() > 0.0f);
+    }
+
+    SECTION("Accessors and Skills Recast Rejections") {
+        REQUIRE(sim.getPlayerFacing() != 0);
+        REQUIRE(sim.getDungeonLayout().width > 0);
+        REQUIRE(sim.getSkillExecutor().isOnCooldown(HotbarSlot::Q) == false);
+        REQUIRE(sim.getCraftingEngine().getRecipe("rcp_iron_greatsword") != nullptr);
+        REQUIRE(sim.getAugmentations().getAllInstalled().empty() == true);
+        REQUIRE(sim.getProgression().getLevel() == 1);
+
+        // Cast skills once
+        sim.castSkillE();
+        sim.castSkillR();
+        sim.castSkillF();
+
+        // Immediate recast should return false because on cooldown
+        REQUIRE(sim.castSkillE() == false);
+        REQUIRE(sim.castSkillR() == false);
+        REQUIRE(sim.castSkillF() == false);
+    }
+
+    SECTION("Getters and Fallbacks When Player is Destroyed") {
+        auto playerView = sim.getContext().registry.view<PlayerTag>();
+        for (auto e : playerView) {
+            sim.getContext().registry.destroy(e);
+        }
+        REQUIRE(sim.getPlayerHealth() == Approx(0.0f));
+        REQUIRE(sim.getPlayerMana() == Approx(0.0f));
+        REQUIRE(sim.getPlayerPower() == Approx(0.0f));
+        REQUIRE(sim.getPlayerPosition().x == Approx(0.0f));
+        REQUIRE(sim.canEnterDungeon() == false);
+
+        sim.playerAttack();
+        sim.shootProjectile(Vec2{100.0f, 100.0f});
+        REQUIRE(sim.mineTileAt(Vec2{100.0f, 100.0f}) == false);
+        REQUIRE(sim.placeBlockAt(Vec2{100.0f, 100.0f}, "mat_wood_plank", 3) == false);
+        REQUIRE(sim.castSkillQ() == false);
+        REQUIRE(sim.castSkillE() == false);
+        REQUIRE(sim.castSkillR() == false);
+        REQUIRE(sim.castSkillF() == false);
+        sim.exitDungeon();
     }
 }

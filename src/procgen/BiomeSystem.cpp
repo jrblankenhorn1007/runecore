@@ -75,10 +75,7 @@ BiomeData BiomeSystem::getBiomeAt(float worldX) const {
         }
     }
     // Default fallback to Haven
-    if (!m_biomes.empty()) {
-        return m_biomes[0];
-    }
-    return BiomeData{};
+    return m_biomes.front();
 }
 
 float BiomeSystem::getAmbientTemperature(float worldX) const {

@@ -64,6 +64,12 @@ TEST_CASE("Renderer Complete Drawing Functions and Offscreen Pipeline", "[render
         DungeonLayout emptyLayout;
         renderer.drawMinimap(emptyLayout, Vec2{0.0f, 0.0f}, metrics);
 
+        Item potion;
+        potion.id = "potion";
+        potion.name = "Health Potion";
+        potion.category = ItemCategory::Consumable;
+        sim.getInventory().addItem(potion);
+
         renderer.drawInventoryScreen(sim.getInventory(), metrics);
         renderer.drawCraftingScreen(sim.getCraftingEngine(), sim.getInventory(), metrics);
         renderer.drawAugmentationScreen(sim.getAugmentations(), metrics);

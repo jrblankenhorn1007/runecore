@@ -68,4 +68,32 @@ TEST_CASE("ModificationForge Affix Infusion, Tier Upgrading, and Fracture State"
         REQUIRE(forge.upgradeTier(item).success == false);
         REQUIRE(forge.punchSocket(item).success == false);
     }
+
+    SECTION("Fracture During Tier Upgrade") {
+        Item itemUp;
+        itemUp.id = "item_up_fracture";
+        itemUp.tier = 2;
+        forge.setInstability(itemUp, 95);
+
+        for (int i = 0; i < 40; ++i) {
+            itemUp.tier = 2; // reset so not capped
+            ForgeResult r = forge.upgradeTier(itemUp);
+            if (r.isFractured) break;
+        }
+        REQUIRE(forge.isFractured(itemUp) == true);
+    }
+
+    SECTION("Fracture During Socket Punch") {
+        Item itemSock;
+        itemSock.id = "item_sock_fracture";
+        itemSock.sockets = 1;
+        forge.setInstability(itemSock, 95);
+
+        for (int i = 0; i < 40; ++i) {
+            itemSock.sockets = 1; // reset so not capped
+            ForgeResult r = forge.punchSocket(itemSock);
+            if (r.isFractured) break;
+        }
+        REQUIRE(forge.isFractured(itemSock) == true);
+    }
 }

@@ -49,6 +49,10 @@ TEST_CASE("FarmingSystem Tilling, Irrigation, and Growth Stages", "[gameplay][fa
         fs.update(15.0f); // 55s * 2x = 110%
         REQUIRE(fs.getCropStage(10, 10) == CropStage::Mature);
 
+        // Update when crop is already mature (hits continue branch)
+        fs.update(10.0f);
+        REQUIRE(fs.getCropStage(10, 10) == CropStage::Mature);
+
         // Successful harvest
         HarvestResult res = fs.harvest(10, 10);
         REQUIRE(res.success == true);

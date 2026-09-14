@@ -66,4 +66,24 @@ TEST_CASE("CharacterController Jump, Double Jump, Ceiling, and Wall Sliders", "[
         REQUIRE(vel.x > 0.0f);
         REQUIRE(vel.y < 0.0f);
     }
+
+    SECTION("Wall Sliding and Wall Jump Right Wall") {
+        world.setTile(10, 5, TileType::Solid);
+        world.setTile(10, 6, TileType::Solid);
+        world.setTile(10, 7, TileType::Solid);
+
+        Vec2 pos{151.0f, 100.0f}; // Against right wall at X=160 (pos.x + 8 = 159)
+        Vec2 vel{0.0f, 100.0f};   // Falling down
+        ControllerInput inRight;
+        inRight.moveX = 1.0f; // Pushing right against wall
+
+        cc.update(pos, vel, inRight, world, cfg, 0.016f);
+        REQUIRE(cc.isWallSliding() == true);
+
+        // Wall jump kicks away to the left (-X)
+        inRight.jumpPressed = true;
+        cc.update(pos, vel, inRight, world, cfg, 0.016f);
+        REQUIRE(vel.x < 0.0f);
+        REQUIRE(vel.y < 0.0f);
+    }
 }

@@ -15,15 +15,22 @@ TEST_CASE("SkillTree Node Hierarchies, Allocation, and Respec", "[gameplay][skil
     n2.prerequisites = {"node_1"};
     n2.requiredPointsInTree = 2;
 
+    SkillNode n3;
+    n3.id = "node_3";
+    n3.name = "Child With Prereq Only";
+    n3.prerequisites = {"node_2"};
+    n3.requiredPointsInTree = 0;
+
     tree.addNode(n1);
     tree.addNode(n2);
+    tree.addNode(n3);
 
-    REQUIRE(tree.getNodes().size() == 2);
+    REQUIRE(tree.getNodes().size() == 3);
     REQUIRE(tree.getRank("unknown") == 0);
     REQUIRE(tree.canAllocate("unknown") == false);
 
-    // Cannot allocate child before prereq
-    REQUIRE(tree.canAllocate("node_2") == false);
+    // Cannot allocate n3 because prerequisite node_2 is unallocated
+    REQUIRE(tree.canAllocate("node_3") == false);
 
     // Allocate root rank 1
     REQUIRE(tree.allocate("node_1") == true);

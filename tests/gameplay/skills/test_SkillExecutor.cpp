@@ -17,6 +17,12 @@ TEST_CASE("SkillExecutor Multi-Resource Casting and Cooldowns", "[gameplay][skil
     reg.registerSkill(s3);
 
     SkillExecutor exec(reg);
+
+    SECTION("Unassigned Slot Cooldown Queries") {
+        REQUIRE(exec.isOnCooldown(HotbarSlot::F) == false);
+        REQUIRE(exec.getCooldownRemaining(HotbarSlot::F) == Approx(0.0f));
+    }
+
     exec.assignHotbar(HotbarSlot::Q, "s_stam");
     exec.assignHotbar(HotbarSlot::E, "s_mana");
     exec.assignHotbar(HotbarSlot::R, "s_pwr");

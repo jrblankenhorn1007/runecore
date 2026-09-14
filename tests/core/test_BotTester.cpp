@@ -15,6 +15,24 @@ TEST_CASE("BotTester Autonomous Scenario Execution and Reporting", "[core][bot_t
     SECTION("Inspects Initial Phase and State") {
         REQUIRE(bot.isFinished() == false);
         REQUIRE(bot.getCurrentPhaseName() == "Testing Ground Movement & Sprint");
+
+        // Step through and query all phase names
+        std::vector<std::string> phaseNames;
+        for (int i = 0; i < 500; ++i) {
+            std::string name = bot.getCurrentPhaseName();
+            if (phaseNames.empty() || phaseNames.back() != name) {
+                phaseNames.push_back(name);
+            }
+            RawInputState input = bot.update(sim, 1.0f / 60.0f);
+            sim.step(input.controller, 1.0f / 60.0f);
+            if (bot.isFinished()) break;
+        }
+
+        REQUIRE(phaseNames.size() >= 8);
+
+        BotReport incomplete;
+        REQUIRE(incomplete.allTestsPassed() == false);
+        incomplete.printSummary(); // Prints failed report branches
     }
 
     SECTION("Runs All 12 Phases to Completion") {

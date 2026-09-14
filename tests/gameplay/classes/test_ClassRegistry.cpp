@@ -37,6 +37,12 @@ TEST_CASE("ClassRegistry Complete Archetypes and Exception Verification", "[game
     }
 
     SECTION("Unknown Class Type Throws std::runtime_error") {
-        REQUIRE_THROWS_AS(cr.getClass(static_cast<ClassType>(999)), std::runtime_error);
+        bool threw = false;
+        try {
+            cr.getClass(static_cast<ClassType>(999));
+        } catch (const std::runtime_error&) {
+            threw = true;
+        }
+        REQUIRE(threw == true);
     }
 }

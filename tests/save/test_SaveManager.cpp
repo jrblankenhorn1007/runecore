@@ -66,9 +66,21 @@ TEST_CASE("SaveManager Serialization, Atomic Writes, and Checksums", "[save][per
     SECTION("Checksum Mismatch Detection") {
         SaveManager::saveToFile(testPath, data);
 
-        // Tamper with file payload
-        std::ofstream file(testPath, std::ios::app);
-        file << "TAMPERED_BYTES";
+        // Valid JSON root with mismatched checksum
+        std::string rawJson = "{\n  \"version\": 1,\n  \"checksum\": 9999999,\n  \"payload\": \"{\\\"playerName\\\":\\\"Tampered\\\"}\"\n}";
+        std::ofstream file(testPath);
+        file << rawJson;
+        file.close();
+
+        SaveData out;
+        REQUIRE(SaveManager::loadFromFile(testPath, out) == false);
+    }
+
+    SECTION("Payload Is Not Valid JSON Even Though Checksum Matches") {
+        std::string badPayload = "not_json_payload";
+        uint32_t csum = SaveManager::computeChecksum(badPayload);
+        std::ofstream file(testPath);
+        file << "{\n  \"version\": 1,\n  \"checksum\": " << csum << ",\n  \"payload\": \"" << badPayload << "\"\n}";
         file.close();
 
         SaveData out;

@@ -31,11 +31,20 @@ TEST_CASE("ECS Components Lifecycle, Methods, and Modifiers", "[ecs][components]
         ColliderComponent c1;
         REQUIRE(c1.isTrigger == false);
 
+        ColliderComponent cDefaultTrigger(Rect{0.0f, 0.0f, 10.0f, 10.0f});
+        REQUIRE(cDefaultTrigger.isTrigger == false);
+
         ColliderComponent c2(Rect{0.0f, 0.0f, 10.0f, 10.0f}, true);
         REQUIRE(c2.isTrigger == true);
     }
 
     SECTION("HealthComponent Damage, Heal, and Regen") {
+        HealthComponent defaultRegenHc(50.0f, 100.0f);
+        REQUIRE(defaultRegenHc.regenRate == Approx(0.5f));
+
+        HealthComponent deadHc(0.0f, 100.0f);
+        REQUIRE(deadHc.isDead == true);
+
         HealthComponent hc(100.0f, 100.0f, 1.0f);
         hc.takeDamage(40.0f);
         REQUIRE(hc.current == Approx(60.0f));
@@ -65,6 +74,9 @@ TEST_CASE("ECS Components Lifecycle, Methods, and Modifiers", "[ecs][components]
     }
 
     SECTION("ManaComponent Operations") {
+        ManaComponent defaultRegenMc(50.0f, 100.0f);
+        REQUIRE(defaultRegenMc.regenRate == Approx(1.0f));
+
         ManaComponent mc(50.0f, 50.0f, 2.0f);
         REQUIRE(mc.consume(-10.0f) == false);
         REQUIRE(mc.consume(20.0f) == true);
@@ -81,6 +93,9 @@ TEST_CASE("ECS Components Lifecycle, Methods, and Modifiers", "[ecs][components]
     }
 
     SECTION("PowerComponent Operations") {
+        PowerComponent defaultRegenPc(50.0f, 100.0f);
+        REQUIRE(defaultRegenPc.regenRate == Approx(0.0f));
+
         PowerComponent pc(50.0f, 100.0f, 5.0f);
         REQUIRE(pc.consume(-5.0f) == false);
         REQUIRE(pc.consume(20.0f) == true);
@@ -95,14 +110,37 @@ TEST_CASE("ECS Components Lifecycle, Methods, and Modifiers", "[ecs][components]
     }
 
     SECTION("Tags and Other Components") {
+        EnemyTag defEt;
+        REQUIRE(defEt.tier == 1);
         EnemyTag et(2, 200);
         REQUIRE(et.tier == 2);
         REQUIRE(et.xpReward == 200);
+
+        PlayerTag pt;
+        (void)pt;
+
+        VelocityComponent defVel;
+        REQUIRE(defVel.linear.x == Approx(0.0f));
+        VelocityComponent paramVel(Vec2{5.0f, 5.0f}, 300.0f);
+        REQUIRE(paramVel.maxSpeed == Approx(300.0f));
+
+        HealthComponent defHc;
+        REQUIRE(defHc.current == Approx(100.0f));
+        ManaComponent defMc;
+        REQUIRE(defMc.current == Approx(50.0f));
+        PowerComponent defPc;
+        REQUIRE(defPc.current == Approx(0.0f));
 
         ProjectileComponent pc;
         REQUIRE(pc.damage == Approx(10.0f));
 
         StatsComponent sc;
         REQUIRE(sc.strength == 10);
+
+        ActiveStatusEffect ase;
+        REQUIRE(ase.type == 0);
+        StatusEffectsComponent sec;
+        sec.effects.push_back(ase);
+        REQUIRE(sec.effects.size() == 1);
     }
 }

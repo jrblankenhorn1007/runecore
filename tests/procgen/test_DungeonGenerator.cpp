@@ -18,4 +18,10 @@ TEST_CASE("DungeonGenerator BSP Splitting and Corridors", "[procgen][dungeon]") 
     // Invalid path bounds
     REQUIRE(layout.hasPath(-1, 0) == false);
     REQUIRE(layout.hasPath(0, 999) == false);
+
+    // Wall off half the dungeon to verify hasPath returns false
+    for (int y = 0; y < layout.height; ++y) {
+        layout.grid[y][layout.width / 2] = 1;
+    }
+    REQUIRE(layout.hasPath(layout.startRoomIndex, layout.bossRoomIndex) == false);
 }

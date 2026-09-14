@@ -7,6 +7,19 @@ using Catch::Approx;
 TEST_CASE("AugmentationMatrix Installation, Strain, and Signatures", "[gameplay][augmentations]") {
     AugmentationMatrix matrix;
 
+    SECTION("Default AugmentDef Member Initializers") {
+        AugmentDef def;
+        REQUIRE(def.powerGeneration == Approx(0.0f));
+        REQUIRE(def.powerUpkeep == Approx(0.0f));
+        REQUIRE(def.humanityStrain == Approx(0.0f));
+        REQUIRE(def.manaUpkeep == Approx(0.0f));
+        REQUIRE(def.rejectionRisk == Approx(0.0f));
+        REQUIRE(def.flatCritChanceBonus == Approx(0.0f));
+        REQUIRE(def.flatArmorBonus == Approx(0.0f));
+        REQUIRE(def.flatHealthBonus == Approx(0.0f));
+        REQUIRE(def.isSignature == false);
+    }
+
     AugmentDef headAug;
     headAug.id = "head_1";
     headAug.slot = AugmentSlot::Head;

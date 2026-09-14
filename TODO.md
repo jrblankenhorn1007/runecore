@@ -357,3 +357,9 @@ This section tracks the live feature-by-feature implementation using strict Test
 - [x] **TDD 16.8**: Full Interactive Verification & Final Zero-Warning Build
   - [x] Verify complete interactive experience in SDL3 window with mouse aiming, shooting, mining, crafting, dungeon diving, and combat.
   - [x] Verify 100% test passage across all 16 test suites with 0 compiler warnings.
+
+### 4.17 Module 17: Autonomous Bot Controller & Scenario Testing
+- [x] **TDD 17.1**: Automated Bot Controller Architecture (`src/core/BotTester.hpp` & `.cpp`)
+  - [x] Implemented multi-phase test sequence covering all 12 key gameplay systems (Movement, Jumps, Wall-Kicks, Mining, Loot Vacuum, Crafting, 360-degree Ranged Projectiles, Melee Combat, Active Skills Q/E/R/F, Procedural Dungeon Navigation, Boss Defeat, Level-Up).
+  - [x] Written `tests/test_bot_tester.cpp` with Catch2 verification asserting 12/12 subsystems pass.
+  - [x] Integrated `--bot` and `--bot --headless` command-line modes into main executable allowing autonomous hands-free gameplay testing in both interactive graphical window and headless CLI.

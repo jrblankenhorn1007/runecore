@@ -5,7 +5,9 @@
 #include <string>
 
 #include "core/GameSimulation.hpp"
+#include "core/BotTester.hpp"
 #include "ecs/Components.hpp"
+#include "gameplay/items/LootSystem.hpp"
 #include "procgen/DungeonGenerator.hpp"
 #include "save/SaveManager.hpp"
 #include "render/Renderer.hpp"
@@ -39,12 +41,38 @@ void runHeadlessBenchmark(GameSimulation& sim, const CanvasMetrics& metrics, int
     }
 }
 
+void runHeadlessBotTest(GameSimulation& sim, int totalTicks = 550) {
+    std::cout << "Starting Autonomous Bot Gameplay Test Suite...\n";
+    BotTester bot;
+    bot.reset();
+
+    std::string lastPhase = "";
+    for (int tick = 0; tick < totalTicks; ++tick) {
+        if (bot.isFinished()) break;
+
+        std::string currentPhase = bot.getCurrentPhaseName();
+        if (currentPhase != lastPhase) {
+            std::cout << " -> " << currentPhase << " (Tick " << tick << ")...\n";
+            lastPhase = currentPhase;
+        }
+
+        RawInputState input = bot.update(sim, 1.0f / 60.0f);
+        sim.step(input.controller, 1.0f / 60.0f);
+    }
+
+    bot.getReport().printSummary();
+}
+
 int main(int argc, char* argv[]) {
     bool headless = false;
+    bool botMode = false;
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--headless" || arg == "-h" || arg == "--benchmark") {
             headless = true;
+        } else if (arg == "--bot" || arg == "--auto-test" || arg == "-b") {
+            botMode = true;
         }
     }
 
@@ -67,43 +95,78 @@ int main(int argc, char* argv[]) {
 
     CanvasMetrics metrics = Camera::calculateCanvasMetrics(1280, 720);
 
-    if (headless) {
+    if (headless && botMode) {
+        runHeadlessBotTest(sim, 550);
+    } else if (headless) {
         runHeadlessBenchmark(sim, metrics, 600);
     } else {
         std::cout << "Initializing SDL3 Graphical Window (1280x720, Virtual Canvas 640x360)...\n";
+        if (botMode) {
+            std::cout << "MODE: Autonomous Bot Controller Active (Playing the game automatically!)\n";
+        }
+
         Renderer renderer;
         bool ok = renderer.init("Untitled RPG [Pre-Alpha] - 2D Action Platformer", 1280, 720, 640, 360);
 
         if (!ok) {
             std::cout << "Display server not available. Falling back to headless simulation.\n";
-            runHeadlessBenchmark(sim, metrics, 600);
+            if (botMode) {
+                runHeadlessBotTest(sim, 550);
+            } else {
+                runHeadlessBenchmark(sim, metrics, 600);
+            }
         } else {
             std::cout << "Window created successfully! Controls:\n";
             std::cout << " [A] / [D] : Move Left / Right\n";
             std::cout << " [Space]   : Jump / Double Jump\n";
             std::cout << " [L-Shift] : Sprint / Dash\n";
-            std::cout << " [L-Click] : Swing Greatsword / Attack\n";
-            std::cout << " [1] - [8] : Select Hotbar Item\n";
-            std::cout << " [Esc]     : Quit\n";
+            std::cout << " [L-Click] : Swing Greatsword / Attack / Mine Tile\n";
+            std::cout << " [R-Click] : Shoot Projectile / Place Block\n";
+            std::cout << " [Q,E,R,F] : Active Skills\n";
+            std::cout << " [Tab]     : Inventory | [C] Crafting | [U] Augments | [M] Minimap\n";
+            std::cout << " [Esc]     : Quit\n\n";
 
             InputManager inputMgr;
             Camera camera;
             TimeStep timeStep(60.0f);
+            BotTester bot;
+            if (botMode) bot.reset();
+
             auto lastTime = std::chrono::high_resolution_clock::now();
             bool running = true;
+            std::string lastPhase = "";
 
             while (running) {
                 auto currentTime = std::chrono::high_resolution_clock::now();
                 float frameDelta = std::chrono::duration<float>(currentTime - lastTime).count();
                 lastTime = currentTime;
 
-                // Process SDL Window & Input Events
-                inputMgr.processEvents(metrics, camera);
-                const auto& inputState = inputMgr.getState();
+                RawInputState inputState;
 
-                if (inputState.quitRequested) {
-                    running = false;
-                    break;
+                if (botMode) {
+                    // Bot controls the game
+                    inputState = bot.update(sim, 1.0f / 60.0f);
+
+                    std::string currentPhase = bot.getCurrentPhaseName();
+                    if (currentPhase != lastPhase) {
+                        std::cout << " [BOT] -> " << currentPhase << "\n";
+                        lastPhase = currentPhase;
+                    }
+
+                    if (bot.isFinished()) {
+                        bot.getReport().printSummary();
+                        running = false;
+                        break;
+                    }
+                } else {
+                    // Player controls the game
+                    inputMgr.processEvents(metrics, camera);
+                    inputState = inputMgr.getState();
+
+                    if (inputState.quitRequested) {
+                        running = false;
+                        break;
+                    }
                 }
 
                 // Handle UI Screen toggles

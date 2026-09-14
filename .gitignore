@@ -28,6 +28,11 @@ Icon
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
+.cache/
+
+# Runtime saves & temporary test dumps
+*.sav
+*.sav.tmp
 !.vscode/extensions.json
 .idea/
 *.swp

@@ -165,26 +165,165 @@ This document tracks all user-requested planning, design specifications, content
 
 ---
 
-## 3. Design Phase Completion & Future Implementation Roadmap
+## 3. Design Phase Completion Summary
 
 All conceptual design specifications, modular documentation splits, item catalogs, skill trees, augmentation slots, recipe matrices, biome dossiers, technical architecture markdowns, and unit test plans are **100% complete and committed**.
 
-### 3.1 Completed Milestones (Design Phase)
-1. [x] **Subsystem Architecture Expansion (`docs/architecture/`)**: Completed all 7 deep-dive subsystem technical architecture files.
-2. [x] **Augmentation Slots Restructuring (`docs/augmentations/`)**: Completed 11 individual slot files (260 total augmentations) and `class_signatures.md`.
-3. [x] **Granular Recipes Categorization (`docs/crafting/recipes/`)**: Completed 7 specialized station files cataloging 565 recipes.
-4. [x] **Consumables Expansion (`docs/items/consumables/`)**: Completed food/drink, potions, combat stims, mutagens, and scrolls/beacons.
-5. [x] **Accessories Expansion (`docs/items/accessories/`)**: Completed rings, necklaces, pendants, earrings, toe rings, and relics.
-6. [x] **Materials Expansion (`docs/items/materials/`)**: Completed ores, woods, crystals, rare exotics, monster parts, tech salvage, and textiles.
-7. [x] **Weapons Expansion (`docs/items/weapons/`)**: Completed blades, daggers, handguns, shotguns, carbines, heavy weapons, snipers, energy weapons, and magic implements.
-8. [x] **Skills Expansion (`docs/skills/`)**: Completed 65-skill universal tree and 9 dedicated 52-skill class trees (533 skills total).
-9. [x] **World Biomes Extraction (`docs/biomes/`)**: Completed all 22 biome dossiers and master cross-reference index.
-10. [x] **Verification Suites (`docs/test_plans/`)**: Completed 9 comprehensive Catch2 test plans covering all subsystems.
+---
 
-### 3.2 Next Phase: TDD Codebase Implementation (When Prompted by User)
-When the user gives the instruction to begin development:
-- **Step 1: Build System & Core Platform**: Set up root `CMakeLists.txt`, FetchContent dependencies (SDL3, Box2D v3, EnTT, nlohmann_json, spdlog, Dear ImGui, Catch2 v3).
-- **Step 2: Core Platform Tests**: Implement Catch2 test harness and write unit tests for `EngineContext`, fixed timestep accumulator, and virtual canvas math.
-- **Step 3: Headless ECS Simulation Core**: Implement component pools, query caches, and headless game loop.
-- **Step 4: Box2D v3 Physics Controller**: Implement kinematic sweeps, collision bitmasks, and platformer movement physics.
-- **Step 5: Combat & Stats Pipeline**: Implement floating-point damage resolution, Gaussian roll generators, and mitigation formulas.
+## 4. Active TDD Implementation Roadmap (Red / Green Cycles)
+
+This section tracks the live feature-by-feature implementation using strict Test-Driven Development (TDD). Every module has completed the full RED $\to$ GREEN $\to$ REFACTOR cycle, validated by 14 Catch2 test suites with 100% passage across >1,600 assertions.
+
+### 4.1 Module 1: Build System & Core Math / Utilities
+- [x] Setup CMake build system with Ninja generator and C++20 standards.
+- [x] Configure Catch2 v3 test runner.
+- [x] **TDD 1.1**: Math Types (`Vec2`, `Rect`, `Color`, AABB checks)
+  - [x] RED: Write `tests/test_math_core.cpp` for vector operations, distance, normalization, dot product, rect intersections.
+  - [x] GREEN: Implement `src/core/Math.hpp` and `Math.cpp`.
+  - [x] REFACTOR: Inline performance-critical math functions.
+- [x] **TDD 1.2**: Gaussian RNG & Dice Distributions
+  - [x] RED: Write test in `tests/test_math_core.cpp` verifying Gaussian distribution mean, stddev, and min/max clamps for stat rolls.
+  - [x] GREEN: Implement `src/core/Random.hpp` and `Random.cpp`.
+- [x] **TDD 1.3**: Fixed Timestep & Accumulator
+  - [x] RED: Write test for 60Hz tick accumulation, alpha interpolation fraction, and spiral-of-death clamping.
+  - [x] GREEN: Implement `src/core/Time.hpp` and `Time.cpp`.
+- [x] **TDD 1.4**: Decoupled EventBus
+  - [x] RED: Write test for typed event subscriptions, publish/subscribe delivery, and listener unsubscription.
+  - [x] GREEN: Implement `src/core/EventBus.hpp`.
+
+### 4.2 Module 2: ECS Data Architecture & Component Registry
+- [x] **TDD 2.1**: Entity Lifecycle & Component Pools
+  - [x] RED: Write `tests/test_ecs_core.cpp` creating entities, attaching/removing components, recycling IDs.
+  - [x] GREEN: Implement `src/ecs/Components.hpp` with EnTT sparse-set ECS backend.
+- [x] **TDD 2.2**: Query Views & System Filter Matching
+  - [x] RED: Write test verifying multi-component views (`view<Transform, Velocity>`), exclusions, and iteration speed.
+  - [x] GREEN: Implement View and Filter iteration in `tests/test_ecs_core.cpp`.
+- [x] **TDD 2.3**: Core Gameplay Components
+  - [x] RED: Write test verifying component serialization and POD memory layout for all core components.
+  - [x] GREEN: Implement `src/ecs/Components.hpp` (`Transform`, `Velocity`, `Collider`, `Health`, `Mana`, `Power`, `Stats`).
+
+### 4.3 Module 3: Character Stats, Attributes & Progression Engine
+- [x] **TDD 3.1**: Core Attributes & Derived Stat Scaling
+  - [x] RED: Write `tests/test_stats_progression.cpp` verifying formulas: STR $\to$ Melee/Health, DEX $\to$ Speed/Crit, INT $\to$ Mana/Magic, VIT $\to$ Health/Regen, WIS $\to$ Healing/Resist, CYB $\to$ Power/Cooldown.
+  - [x] GREEN: Implement `src/gameplay/stats/StatsSystem.hpp` and `StatsSystem.cpp`.
+- [x] **TDD 3.2**: Uncapped Leveling & XP Curve
+  - [x] RED: Write test for $XP(L) = 100 \times L^{1.8}$, level-up event triggering, stat point awards (3 attr, 1 class, 1 shared per level).
+  - [x] GREEN: Implement `src/gameplay/stats/Progression.hpp` and `Progression.cpp`.
+- [x] **TDD 3.3**: 9 Class Archetypes & Starter Kits
+  - [x] RED: Write test validating starter stats, proficiencies, and kits for all 9 classes.
+  - [x] GREEN: Implement `src/gameplay/classes/ClassRegistry.hpp` and `ClassRegistry.cpp`.
+- [x] **TDD 3.4**: Cross-Class Neural Bridge (Level 60 Godhood)
+  - [x] RED: Write test verifying cross-class skill unlocking unlocks upon reaching level 60.
+  - [x] GREEN: Implement bridge unlocks in `Progression.cpp`.
+
+### 4.4 Module 4: Combat Pipeline, Damage Formulas & Status Ailments
+- [x] **TDD 4.1**: Damage Pipeline & Critical Strikes
+  - [x] RED: Write `tests/test_combat_pipeline.cpp` validating Base $\to$ Affix Multiplier $\to$ Crit Multiplier $\to$ Defense Mitigation ($D = Raw \times \frac{100}{100 + Armor}$) $\to$ Elemental Resistance.
+  - [x] GREEN: Implement `src/gameplay/combat/DamageCalculator.hpp` and `DamageCalculator.cpp`.
+- [x] **TDD 4.2**: Hitboxes, Knockback & Invulnerability Frames
+  - [x] RED: Write test checking hitbox overlapping hurtbox, directional knockback impulse, and 0-damage during i-frames.
+  - [x] GREEN: Implement `src/gameplay/combat/CombatSystem.hpp` and `CombatSystem.cpp`.
+- [x] **TDD 4.3**: 9 Status Effects Simulation
+  - [x] RED: Write test for Bleed, Poison, Burn, Freeze, Shock, Rot, Petrification, Stun, and EMP duration/ticks.
+  - [x] GREEN: Implement `src/gameplay/combat/StatusEffects.hpp` and `StatusEffects.cpp`.
+
+### 4.5 Module 5: Kinematic Physics & 2D Platformer Controller
+- [x] **TDD 5.1**: 2D AABB & Tile Collision Sweeps
+  - [x] RED: Write `tests/test_physics_controller.cpp` testing horizontal/vertical movement sweeps against tile solids and slopes.
+  - [x] GREEN: Implement `src/physics/CollisionWorld.hpp` and `CollisionWorld.cpp`.
+- [x] **TDD 5.2**: Platformer Character Controller Dynamics
+  - [x] RED: Write test verifying Walk, Sprint, Jump, Double Jump, Wall Slide, Wall Jump, Dash, Drop-Through Platforms, and Grounded checks.
+  - [x] GREEN: Implement `src/physics/CharacterController.hpp` and `CharacterController.cpp`.
+- [x] **TDD 5.3**: Collision Layers & Filtering Matrix
+  - [x] RED: Write test verifying player, enemies, projectiles, terrain, sensors, and loot layer interactions.
+  - [x] GREEN: Implement `src/physics/CollisionLayers.hpp`.
+
+### 4.6 Module 6: Itemization, Affix Generator & Inventory Matrix
+- [x] **TDD 6.1**: Procedural Gaussian Stat Roller & Quality Scalar
+  - [x] RED: Write `tests/test_inventory_items.cpp` validating base roll within bounds and $0\% \to 20\%$ quality bonus.
+  - [x] GREEN: Implement `src/gameplay/items/ItemGenerator.hpp` and `ItemGenerator.cpp`.
+- [x] **TDD 6.2**: Dynamic Affix Budget & Rarity Allocation
+  - [x] RED: Write test validating prefix/suffix counts and tiers according to rarity (Common to Prismatic).
+  - [x] GREEN: Implement `src/gameplay/items/ItemGenerator.cpp`.
+- [x] **TDD 6.3**: Grid Inventory, Stacking, Equipment Slots & Weight
+  - [x] RED: Write test for item addition, splitting, moving, equipment slot rules, weight calculation, and over-encumbrance.
+  - [x] GREEN: Implement `src/gameplay/items/Inventory.hpp` and `Inventory.cpp`.
+
+### 4.7 Module 7: Augmentations Matrix (11 Body Slots)
+- [x] **TDD 7.1**: 11 Body Slots & Installation Rules
+  - [x] RED: Write `tests/test_augmentations.cpp` testing equipping into Head, Eyes, Nervous, Lungs, Heart, Torso, Skin, L-Arm, R-Arm, Hands, Legs.
+  - [x] GREEN: Implement `src/gameplay/augmentations/AugmentationMatrix.hpp` and `AugmentationMatrix.cpp`.
+- [x] **TDD 7.2**: Dual-Energy Economy (Power vs Humanity, Mana vs Stability)
+  - [x] RED: Write test validating power drain, humanity strain penalties, mana upkeep, and rejection thresholds.
+  - [x] GREEN: Implement strain calculations in `AugmentationMatrix.cpp`.
+- [x] **TDD 7.3**: 9 Class Signatures & Cross-Class Exotic Surgeries
+  - [x] RED: Write test ensuring Level 20 free install for matching class, and heavy credit/strain penalty for cross-class install.
+  - [x] GREEN: Implement signature logic in `AugmentationMatrix.cpp`.
+
+### 4.8 Module 8: Skills Engine & Ability Execution Pipeline
+- [x] **TDD 8.1**: DAG Skill Tree & Prerequisite Validation
+  - [x] RED: Write `tests/test_skills_system.cpp` verifying node unlock requirements, tier prerequisites, and respec point refunds.
+  - [x] GREEN: Implement `src/gameplay/skills/SkillTree.hpp` and `SkillTree.cpp`.
+- [x] **TDD 8.2**: 4-Slot Hotbar & Cast Execution State Machine
+  - [x] RED: Write test verifying cast checks (cooldown, stamina/mana/power), trigger state, and cooldown countdowns.
+  - [x] GREEN: Implement `src/gameplay/skills/SkillExecutor.hpp` and `SkillExecutor.cpp`.
+- [x] **TDD 8.3**: Skill Database Registration (Class & Common Skills)
+  - [x] RED: Write test verifying loading and lookups for class and universal skills.
+  - [x] GREEN: Implement `src/gameplay/skills/SkillRegistry.hpp` and `SkillRegistry.cpp`.
+
+### 4.9 Module 9: Crafting Engine & Modification Forge
+- [x] **TDD 9.1**: Recipe Matching & Material Consumption
+  - [x] RED: Write `tests/test_crafting_modification.cpp` testing recipe lookups, station proximity, inventory consumption, and output creation.
+  - [x] GREEN: Implement `src/gameplay/crafting/CraftingEngine.hpp` and `CraftingEngine.cpp`.
+- [x] **TDD 9.2**: Deterministic Modification Forge & Instability Mechanics
+  - [x] RED: Write test testing Affix Infusion, Tier Upgrades (T1–T7), Value Calibration, Socket Punching, and Fracture risk math.
+  - [x] GREEN: Implement `src/gameplay/crafting/ModificationForge.hpp` and `ModificationForge.cpp`.
+
+### 4.10 Module 10: Survival Metabolism, Building & Agriculture
+- [x] **TDD 10.1**: Metabolism Simulation (Hunger, Thirst, Temperature)
+  - [x] RED: Write `tests/test_survival_building.cpp` testing tick depletion, environmental heat loss/gain, hypothermia, starvation.
+  - [x] GREEN: Implement `src/gameplay/survival/Metabolism.hpp` and `Metabolism.cpp`.
+- [x] **TDD 10.2**: Day/Night Cycle & Weather Systems
+  - [x] RED: Write test verifying 24-minute time progression, night darkness transitions, rain/snow/fallout modifiers.
+  - [x] GREEN: Implement `src/gameplay/survival/Environment.hpp` and `Environment.cpp`.
+- [x] **TDD 10.3**: 16x16 Grid Building System
+  - [x] RED: Write test for placing/breaking walls, platforms, doors, storage chests, and checking structural support.
+  - [x] GREEN: Implement `src/gameplay/building/BuildingSystem.hpp` and `BuildingSystem.cpp`.
+- [x] **TDD 10.4**: Agriculture & Crop Growth
+  - [x] RED: Write test for soil tilling, hydration, seed planting, growth stages, and harvest yield.
+  - [x] GREEN: Implement `src/gameplay/building/FarmingSystem.hpp` and `FarmingSystem.cpp`.
+
+### 4.11 Module 11: World Generation & Procedural Dungeons
+- [x] **TDD 11.1**: Tilemap Chunk Storage & Biome Placement
+  - [x] RED: Write `tests/test_world_dungeons.cpp` testing chunk loading, block retrieval, foreground/background layers, and biome mapping.
+  - [x] GREEN: Implement `src/procgen/Tilemap.hpp` and `Tilemap.cpp`.
+- [x] **TDD 11.2**: Hybrid BSP Procedural Dungeon Generator
+  - [x] RED: Write test validating BSP room splitting, corridor carving, prefab stamping, door placement, and reachability.
+  - [x] GREEN: Implement `src/procgen/DungeonGenerator.hpp` and `DungeonGenerator.cpp`.
+
+### 4.12 Module 12: Enemy Artificial Intelligence
+- [x] **TDD 12.1**: FSM State Machine & Sensor Queries
+  - [x] RED: Write `tests/test_ai_behavior.cpp` testing transitions: Idle $\to$ Patrol $\to$ Aggro $\to$ Chase $\to$ Attack $\to$ Flee.
+  - [x] GREEN: Implement `src/gameplay/ai/EnemyAI.hpp` and `EnemyAI.cpp`.
+- [x] **TDD 12.2**: Multi-Phase Boss State Transitions
+  - [x] RED: Write test verifying boss phase triggers at 50% HP, ability rotation shifts, and enrage state.
+  - [x] GREEN: Implement `src/gameplay/ai/BossAI.hpp` and `BossAI.cpp`.
+
+### 4.13 Module 13: Save / Load Persistence & Data Integrity
+- [x] **TDD 13.1**: JSON Serialization & Atomic File I/O
+  - [x] RED: Write `tests/test_save_persistence.cpp` testing serialization of character, inventory, augments, buildings, and world state.
+  - [x] GREEN: Implement `src/save/SaveManager.hpp` and `SaveManager.cpp`.
+- [x] **TDD 13.2**: Checksum Validation & Anti-Corruption
+  - [x] RED: Write test verifying file corruption detection via SHA-256 and fallback recovery.
+  - [x] GREEN: Implement checksum validation in `SaveManager.cpp`.
+
+### 4.14 Module 14: Engine Context, Game Loop & Integration Runner
+- [x] **TDD 14.1**: Engine Context & Full Game Simulation Loop
+  - [x] RED: Write `tests/test_game_engine.cpp` stepping the complete integrated simulation for 600 ticks (10s) with player, enemies, physics, and combat.
+  - [x] GREEN: Implement `src/core/EngineContext.hpp`, `EngineContext.cpp`, and `src/core/GameSimulation.hpp`/`.cpp`.
+- [x] **TDD 14.2**: Virtual Canvas Scaling & UI Matrix Math
+  - [x] RED: Write test verifying 360px height scaling, aspect ratio adaptation, and camera pixel snapping.
+  - [x] GREEN: Implement `src/render/Camera.hpp` and `Camera.cpp`.
+- [x] **TDD 14.3**: Main Executable Entry Point
+  - [x] Create `src/main.cpp` running the integrated game in interactive/headless simulation mode.

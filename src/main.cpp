@@ -155,7 +155,12 @@ int main(int argc, char* argv[]) {
                 // Blit to screen
                 renderer.endFrame(metrics);
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                // Target 60 FPS frame pacing (~16.6ms)
+                auto frameEndTime = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(frameEndTime - currentTime);
+                if (elapsed.count() < 16) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(16 - elapsed.count()));
+                }
             }
 
             renderer.shutdown();

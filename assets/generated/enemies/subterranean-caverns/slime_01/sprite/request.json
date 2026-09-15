@@ -1,0 +1,15 @@
+{
+  "id": "enemy_slime_01_sprite",
+  "category": "enemies",
+  "label": "sprite",
+  "prompt": "A hostile cave slime with a glowing rune core, readable pixel-art silhouette, subterranean cavern biome",
+  "style": "runecore_pixel_v1",
+  "camera": "side_view",
+  "presentation_tier": "pixel",
+  "width": 1024,
+  "height": 1024,
+  "transparent_background": true,
+  "animation_frames": 4,
+  "intended_use": "world_enemy",
+  "documentation": "docs/enemies/subterranean-caverns/rune-core-cave-slime.md"
+}

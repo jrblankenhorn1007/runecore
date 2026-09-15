@@ -136,6 +136,10 @@ assets/
                                         source.png
 ```
 
+Enemy visuals are organized by biome: `assets/generated/enemies/<biome>/<entity>/<label>/`.
+Classes, items, and other categories continue to use the two-level
+`<category>/<entity>/<label>/` layout.
+
 The lifecycle is:
 
 1. Give each visual a categorical label such as `portrait`, `sprite`, `icon`, or `tile`.
@@ -162,10 +166,10 @@ cmake --build build --target runecore_asset_pipeline test_AssetPipeline
 ./build/runecore_asset_pipeline configure
 
 # Generate the checked-in first request beside its entity image.
-./build/runecore_asset_pipeline generate assets/generated/enemies/slime_01/sprite/request.json
+./build/runecore_asset_pipeline generate assets/generated/enemies/subterranean-caverns/slime_01/sprite/request.json
 
 # Validate a generated PNG without contacting the provider.
-./build/runecore_asset_pipeline validate assets/generated/enemies/slime_01/sprite/source.png
+./build/runecore_asset_pipeline validate assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png
 ```
 
 For CI or headless automation, set `OPENAI_API_KEY` in the process environment instead of

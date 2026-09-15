@@ -1,0 +1,15 @@
+{
+  "id": "class_phantom_sprite",
+  "category": "classes",
+  "label": "sprite",
+  "prompt": "A stealthy phantom rogue hero, readable pixel-art silhouette",
+  "style": "runecore_pixel_v1",
+  "camera": "side_view",
+  "presentation_tier": "pixel",
+  "width": 128,
+  "height": 128,
+  "transparent_background": true,
+  "animation_frames": 1,
+  "intended_use": "class_preview",
+  "documentation": "docs/classes/classes_overview.md"
+}

@@ -79,10 +79,10 @@ const std::vector<std::string>& requiredGeneratedAssets() {
     static const std::vector<std::string> assets{
         "assets/generated/classes/berserker/sprite/source.png",
         "assets/generated/classes/gunslinger/sprite/source.png",
-        "assets/generated/enemies/slime_01/sprite/source.png",
-        "assets/generated/enemies/bat/sprite/source.png",
-        "assets/generated/enemies/raptor/sprite/source.png",
-        "assets/generated/enemies/cyber_gunner/sprite/source.png",
+        "assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png",
+        "assets/generated/enemies/subterranean-caverns/bat/sprite/source.png",
+        "assets/generated/enemies/rustwood-forest/raptor/sprite/source.png",
+        "assets/generated/enemies/megacity-ruins/cyber_gunner/sprite/source.png",
         "assets/generated/items/forged_scrap_blade/icon/source.png",
         "assets/generated/items/iron_ore/icon/source.png",
         "assets/generated/items/wood_plank/icon/source.png"
@@ -99,7 +99,7 @@ const std::vector<std::string>& Renderer::getRequiredGeneratedAssets() {
 std::vector<std::string> Renderer::getMissingGeneratedAssets() const {
     std::vector<std::string> missing;
     for (const auto& assetPath : requiredGeneratedAssets()) {
-        const bool loaded = assetPath == "assets/generated/enemies/slime_01/sprite/source.png"
+        const bool loaded = assetPath == "assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png"
             ? m_generatedSlimeTexture != nullptr
             : m_generatedTextures.contains(assetPath) && m_generatedTextures.at(assetPath) != nullptr;
         if (!loaded) missing.push_back(assetPath);
@@ -201,7 +201,7 @@ bool Renderer::init(const std::string& title, int windowWidth, int windowHeight,
     }
 
     SDL_SetTextureScaleMode(m_virtualTexture, SDL_SCALEMODE_NEAREST);
-    constexpr const char* slimePath = "assets/generated/enemies/slime_01/sprite/source.png";
+    constexpr const char* slimePath = "assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png";
     SDL_Surface* slimeSurface = loadPngSurface(slimePath);
     if (slimeSurface) {
         m_generatedSlimeTexture = SDL_CreateTextureFromSurface(m_renderer, slimeSurface);
@@ -216,9 +216,9 @@ bool Renderer::init(const std::string& title, int windowWidth, int windowHeight,
     }
     loadGeneratedTexture("assets/generated/classes/berserker/sprite/source.png");
     loadGeneratedTexture("assets/generated/classes/gunslinger/sprite/source.png");
-    loadGeneratedTexture("assets/generated/enemies/bat/sprite/source.png");
-    loadGeneratedTexture("assets/generated/enemies/raptor/sprite/source.png");
-    loadGeneratedTexture("assets/generated/enemies/cyber_gunner/sprite/source.png");
+    loadGeneratedTexture("assets/generated/enemies/subterranean-caverns/bat/sprite/source.png");
+    loadGeneratedTexture("assets/generated/enemies/rustwood-forest/raptor/sprite/source.png");
+    loadGeneratedTexture("assets/generated/enemies/megacity-ruins/cyber_gunner/sprite/source.png");
     loadGeneratedTexture("assets/generated/items/forged_scrap_blade/icon/source.png");
     loadGeneratedTexture("assets/generated/items/iron_ore/icon/source.png");
     loadGeneratedTexture("assets/generated/items/wood_plank/icon/source.png");
@@ -290,7 +290,7 @@ void Renderer::drawGeneratedSlimeEnemy(const Vec2& worldPos, const Vec2& size,
         return;
     }
 
-    ++m_generatedDrawCounts["assets/generated/enemies/slime_01/sprite/source.png"];
+    ++m_generatedDrawCounts["assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png"];
 
     const Vec2 camPos = camera.getSnappedPosition();
     const float screenX = (worldPos.x - camPos.x) + metrics.virtualWidth * 0.5f;

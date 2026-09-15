@@ -10,16 +10,16 @@
 **Implemented:** No  
 **Implementation:** `Not mapped to runtime code`  
 **Asset generated:** Yes  
-**Asset:** assets/generated/enemies/slime_01/sprite/source.png  
+**Asset:** assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png  
 
-![Rune-Core Cave Slime](../../assets/generated/enemies/slime_01/sprite/source.png)
+![Rune-Core Cave Slime](../../../assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png)
 
 ## Asset Reference
 
 | Field | Value |
 |---|---|
-| Source request | [request.json](../../assets/generated/enemies/slime_01/sprite/request.json) |
-| Generated image | [source.png](../../assets/generated/enemies/slime_01/sprite/source.png) |
+| Source request | [request.json](../../../assets/generated/enemies/subterranean-caverns/slime_01/sprite/request.json) |
+| Generated image | [source.png](../../../assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png) |
 | Presentation tier | Pixel |
 | Provider model | `gpt-image-1` |
 | Processing status | Staging; pending approval |

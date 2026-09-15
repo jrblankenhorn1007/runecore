@@ -326,10 +326,13 @@ bool runPipeline(int argc, char* argv[]) {
             return false;
         }
         const auto requestDirectory = path.parent_path();
+        const bool isBiomeOrganizedEnemy = request.category == "enemies" &&
+            requestDirectory.parent_path().parent_path().parent_path().filename() == "enemies";
+        const bool isStandardAsset = requestDirectory.parent_path().parent_path().filename() == request.category;
         if (request.assetLabel.empty() || requestDirectory.filename() != request.assetLabel ||
-            requestDirectory.parent_path().parent_path().filename() != request.category) {
+            (!isStandardAsset && !isBiomeOrganizedEnemy)) {
             error = "Each request must live in assets/generated/<category>/<entity>/<label>/request.json, "
-                "with the request folder named exactly like label and its parent named category.";
+                "or assets/generated/enemies/<biome>/<entity>/<label>/request.json, with the request folder named exactly like label.";
             std::cerr << error << '\n';
             return false;
         }

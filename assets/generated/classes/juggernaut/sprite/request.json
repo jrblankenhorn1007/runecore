@@ -1,0 +1,15 @@
+{
+  "id": "class_juggernaut_sprite",
+  "category": "classes",
+  "label": "sprite",
+  "prompt": "A heavily armored juggernaut warrior hero, readable pixel-art silhouette",
+  "style": "runecore_pixel_v1",
+  "camera": "side_view",
+  "presentation_tier": "pixel",
+  "width": 128,
+  "height": 128,
+  "transparent_background": true,
+  "animation_frames": 1,
+  "intended_use": "class_preview",
+  "documentation": "docs/classes/juggernaut_warrior.md"
+}

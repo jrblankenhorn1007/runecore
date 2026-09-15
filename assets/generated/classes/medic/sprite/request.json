@@ -1,0 +1,15 @@
+{
+  "id": "class_medic_sprite",
+  "category": "classes",
+  "label": "sprite",
+  "prompt": "A field medic hero with compact sci-fi equipment, readable pixel-art silhouette",
+  "style": "runecore_pixel_v1",
+  "camera": "side_view",
+  "presentation_tier": "pixel",
+  "width": 128,
+  "height": 128,
+  "transparent_background": true,
+  "animation_frames": 1,
+  "intended_use": "class_preview",
+  "documentation": "docs/classes/classes_overview.md"
+}

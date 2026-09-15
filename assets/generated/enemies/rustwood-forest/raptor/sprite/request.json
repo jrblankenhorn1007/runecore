@@ -1,0 +1,15 @@
+{
+  "id": "enemy_raptor_sprite",
+  "category": "enemies",
+  "label": "sprite",
+  "prompt": "A hostile raptor enemy with a readable pixel-art silhouette, Rustwood Forest biome",
+  "style": "runecore_pixel_v1",
+  "camera": "side_view",
+  "presentation_tier": "pixel",
+  "width": 128,
+  "height": 128,
+  "transparent_background": true,
+  "animation_frames": 1,
+  "intended_use": "world_enemy",
+  "documentation": "docs/enemies/rustwood-forest/bristling-cyber-hound.md"
+}

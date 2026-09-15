@@ -22,7 +22,7 @@ TEST_CASE("Asset pipeline request metadata round trips", "[asset_pipeline]") {
     expected.width = 128;
     expected.height = 128;
     expected.animationFrames = 4;
-    expected.documentationPath = "docs/enemies/rune-core-cave-slime.md";
+    expected.documentationPath = "docs/enemies/subterranean-caverns/rune-core-cave-slime.md";
 
     std::string error;
     REQUIRE(asset_pipeline::writeGenerationRequest(path, expected, error));

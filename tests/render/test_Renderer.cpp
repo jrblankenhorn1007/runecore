@@ -14,10 +14,10 @@ TEST_CASE("Renderer loads the complete generated asset roster", "[render][render
     REQUIRE(assets.size() == 9);
     REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/classes/berserker/sprite/source.png") != assets.end());
     REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/classes/gunslinger/sprite/source.png") != assets.end());
-    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/slime_01/sprite/source.png") != assets.end());
-    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/bat/sprite/source.png") != assets.end());
-    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/raptor/sprite/source.png") != assets.end());
-    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/cyber_gunner/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/subterranean-caverns/bat/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/rustwood-forest/raptor/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/megacity-ruins/cyber_gunner/sprite/source.png") != assets.end());
     REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/items/forged_scrap_blade/icon/source.png") != assets.end());
     REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/items/iron_ore/icon/source.png") != assets.end());
     REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/items/wood_plank/icon/source.png") != assets.end());
@@ -54,11 +54,11 @@ TEST_CASE("Generated enemy rendering records a distinct asset draw", "[render][r
     const CanvasMetrics metrics = Camera::calculateCanvasMetrics(640, 360);
     renderer.beginFrame();
     REQUIRE(renderer.drawGeneratedEntity(
-        "assets/generated/enemies/raptor/sprite/source.png",
+        "assets/generated/enemies/rustwood-forest/raptor/sprite/source.png",
         Vec2{120.0f, 155.0f}, Vec2{22.0f, 18.0f}, camera, metrics, 0.75f, true, false));
     renderer.endFrame(metrics);
 
-    REQUIRE(renderer.getGeneratedDrawCount("assets/generated/enemies/raptor/sprite/source.png") == 1);
+    REQUIRE(renderer.getGeneratedDrawCount("assets/generated/enemies/rustwood-forest/raptor/sprite/source.png") == 1);
     renderer.shutdown();
 }
 

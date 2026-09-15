@@ -440,7 +440,7 @@ FocusedScenarioResult runFocusedScenario(const std::string& scenarioName) {
             if (entry.path().filename() == "request.json") ++requestCount;
             if (entry.path().filename() == "source.png") ++sourceCount;
         }
-        result.passed = requestCount == 16 && sourceCount == 9;
+        result.passed = requestCount == 16 && sourceCount == 16;
         result.detail = "canonical asset folders: " + std::to_string(requestCount) +
                         " requests, " + std::to_string(sourceCount) + " generated images";
     } else if (scenarioName == "all") {

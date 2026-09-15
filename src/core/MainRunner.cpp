@@ -686,9 +686,9 @@ int runGame(int argc, char* argv[]) {
                     } else {
                         const char* assetPath = nullptr;
                         switch (tag.type) {
-                            case EnemyType::Bat: assetPath = "assets/generated/enemies/bat/sprite/source.png"; break;
-                            case EnemyType::Raptor: assetPath = "assets/generated/enemies/raptor/sprite/source.png"; break;
-                            case EnemyType::CyberGunner: assetPath = "assets/generated/enemies/cyber_gunner/sprite/source.png"; break;
+                            case EnemyType::Bat: assetPath = "assets/generated/enemies/subterranean-caverns/bat/sprite/source.png"; break;
+                            case EnemyType::Raptor: assetPath = "assets/generated/enemies/rustwood-forest/raptor/sprite/source.png"; break;
+                            case EnemyType::CyberGunner: assetPath = "assets/generated/enemies/megacity-ruins/cyber_gunner/sprite/source.png"; break;
                             default: break;
                         }
                         if (!assetPath || !renderer.drawGeneratedEntity(assetPath, trans.position, size, camera, metrics,
@@ -798,7 +798,7 @@ int runGame(int argc, char* argv[]) {
                             renderer.getGeneratedDrawCount(assetPath("enemies", "slime_01", "sprite")) > 0 &&
                             renderer.getGeneratedDrawCount(assetPath("enemies", "bat", "sprite")) > 0 &&
                             renderer.getGeneratedDrawCount(assetPath("enemies", "raptor", "sprite")) > 0 &&
-                            renderer.getGeneratedDrawCount(assetPath("enemies", "cyber_gunner", "sprite")) > 0;
+                            renderer.getGeneratedDrawCount("assets/generated/enemies/megacity-ruins/cyber_gunner/sprite/source.png") > 0;
                     }
                     for (const auto& requiredAsset : Renderer::getRequiredGeneratedAssets()) {
                         if (requiredAsset == "assets/generated/classes/gunslinger/sprite/source.png") {

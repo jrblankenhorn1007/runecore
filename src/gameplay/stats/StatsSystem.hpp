@@ -18,6 +18,12 @@ struct DerivedStats {
     float powerRegen{0.0f};
     float physicalArmor{0.0f};
     float energyArmor{0.0f};
+    float fireResistance{0.0f};
+    float coldResistance{0.0f};
+    float shockResistance{0.0f};
+    float natureResistance{0.0f};
+    float darkResistance{0.0f};
+    float holyResistance{0.0f};
     float physicalDamageMultiplier{1.0f};
     float rangedDamageMultiplier{1.0f};
     float magicDamageMultiplier{1.0f};

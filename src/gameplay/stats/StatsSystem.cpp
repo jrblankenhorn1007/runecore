@@ -19,6 +19,12 @@ DerivedStats StatsSystem::calculateDerivedStats(const Attributes& attrs) {
     // Defense & Armor
     d.physicalArmor = attrs.vitality * 1.0f;
     d.energyArmor = attrs.wisdom * 1.0f;
+    d.fireResistance = std::min(0.75f, 0.05f + attrs.wisdom * 0.005f);
+    d.coldResistance = std::min(0.75f, 0.05f + attrs.vitality * 0.005f);
+    d.shockResistance = std::min(0.75f, 0.05f + attrs.cybernetics * 0.005f);
+    d.natureResistance = std::min(0.75f, 0.05f + attrs.wisdom * 0.005f);
+    d.darkResistance = std::min(0.75f, 0.05f + attrs.intelligence * 0.005f);
+    d.holyResistance = std::min(0.75f, 0.05f + attrs.wisdom * 0.005f);
 
     // Offense
     d.physicalDamageMultiplier = 1.0f + (attrs.strength * 0.01f);

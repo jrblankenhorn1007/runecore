@@ -18,6 +18,10 @@ TEST_CASE("StatsSystem Mathematical Attribute Scaling", "[gameplay][stats]") {
     REQUIRE(d.cooldownReduction == Approx(0.09f));
     // Carry Weight: 50 + (15 * 0.5) = 57.5
     REQUIRE(d.carryWeightCapacity == Approx(57.5f));
+    REQUIRE(d.fireResistance == Approx(0.10f));
+    REQUIRE(d.coldResistance == Approx(0.20f));
+    REQUIRE(d.shockResistance == Approx(0.14f));
+    REQUIRE(d.darkResistance == Approx(0.175f));
     // Damage Multipliers
     REQUIRE(d.physicalDamageMultiplier == Approx(1.15f));
     REQUIRE(d.rangedDamageMultiplier == Approx(1.20f));

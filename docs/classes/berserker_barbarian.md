@@ -1,5 +1,10 @@
 # Berserker (The Barbarian / Bio-Bruiser)
 
+**Asset generated:** Yes
+**Asset:** `assets/generated/classes/berserker/sprite/source.png`
+
+![Berserker](../../assets/generated/classes/berserker/sprite/source.png)
+
 The Berserker is the premier high-risk, high-reward melee combatant in Untitled RPG, embodying the brutal archetype of the primal barbarian enhanced by volatile chimeric muscle tissue, hyper-adrenal gland mutations, and savage instinct.
 
 ---

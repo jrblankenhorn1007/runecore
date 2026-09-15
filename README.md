@@ -49,9 +49,24 @@ For headless bot and QA workflows:
 ```sh
 ./build/untitled_rpg --bot
 ./build/untitled_rpg --qa movement
+./build/untitled_rpg --qa-list
+./build/untitled_rpg --qa all
+./build/untitled_rpg --visual-qa movement
+./build/untitled_rpg --visual-qa all
 ```
 
-Available QA scenarios are defined in `CMakeLists.txt` and are intended for focused gameplay checks.
+Every name printed by `--qa-list` is an independent fresh-simulation mini-run. Run any one with
+`--qa <scenario>`; use `--qa all` to execute the complete focused workflow set and print one result per scenario.
+The same scenarios are registered as individual `test_<scenario>` CTest processes in `CMakeLists.txt`.
+
+For a watchable SDL run, use `--visual-qa <scenario>`. Visual mini-runs currently include
+`movement`, `jump`, `mining`, `projectile`, `melee`, `feedback`, `dungeon`, `inventory_drag`,
+`crafting_gui`, `augmentations_gui`, `character_sheet`, and `skill_tree`. Each opens the game window,
+`farming`. Each opens the game window, shows a `VISUAL QA` overlay, performs the scripted action, and
+exits after five seconds.
+Using `--visual-qa all` runs those scenes back-to-back for roughly one minute, changing the overlay
+to identify each mini-run as it starts. Successful runs also save one post-action frame per scene under
+`build/visual_qa/`; the command exits nonzero if a scripted action or screenshot capture fails.
 
 ## Test
 

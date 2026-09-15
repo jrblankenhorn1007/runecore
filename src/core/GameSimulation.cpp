@@ -233,6 +233,7 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
     m_floatingText.update(dt);
     m_particles.update(dt);
     m_audio.update(dt);
+    m_farming.update(dt);
 
     if (input.jumpPressed) {
         m_audio.playSound(SoundEffect::Jump);
@@ -419,22 +420,37 @@ void GameSimulation::playerAttack() {
     const auto& playerPos = m_context.registry.get<TransformComponent>(m_playerEntity).position;
     int facing = m_controller.getFacing();
 
-    // Hitbox directly in front of player
+    entt::entity nearestEnemy = entt::null;
+    float nearestDistance = 64.0f;
+    auto enemies = m_context.registry.view<EnemyTag, TransformComponent, HealthComponent, ColliderComponent>();
+    for (auto [enemy, tag, trans, hp, col] : enemies.each()) {
+        if (hp.isDead) continue;
+        const float distance = playerPos.distanceTo(trans.position);
+        if (distance <= nearestDistance) {
+            nearestDistance = distance;
+            nearestEnemy = enemy;
+        }
+    }
+
     Hitbox attackBox;
     attackBox.damage = 50.0f;
     attackBox.knockbackForce = 120.0f;
     attackBox.owner = m_playerEntity;
-    attackBox.bounds = Rect{
-        playerPos.x + (facing > 0 ? 0.0f : -28.0f),
-        playerPos.y - 16.0f,
-        28.0f,
-        18.0f
-    };
+    if (nearestEnemy != entt::null) {
+        const Vec2& targetPos = m_context.registry.get<TransformComponent>(nearestEnemy).position;
+        attackBox.bounds = Rect{targetPos.x - 14.0f, targetPos.y - 9.0f, 28.0f, 18.0f};
+    } else {
+        attackBox.bounds = Rect{
+            playerPos.x + (facing > 0 ? 0.0f : -28.0f),
+            playerPos.y - 16.0f,
+            28.0f,
+            18.0f
+        };
+    }
 
     m_attackVisualTimer = 0.15f; // 150ms visual slash
     m_lastAttackBox = attackBox;
 
-    auto enemies = m_context.registry.view<EnemyTag, TransformComponent, HealthComponent, ColliderComponent>();
     for (auto [e, tag, trans, hp, col] : enemies.each()) {
         float previousHealth = hp.current;
         CombatSystem::resolveHitbox(m_context.registry, attackBox, e);

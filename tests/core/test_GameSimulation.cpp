@@ -35,6 +35,13 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.castSkillQ() == false);
     }
 
+    SECTION("Melee Selects The Nearest Enemy In Range") {
+        const Vec2 playerPosition = sim.getPlayerPosition();
+        const auto enemy = sim.spawnEnemy(playerPosition + Vec2{-24.0f, 0.0f}, 10.0f, 50);
+        sim.playerAttack();
+        REQUIRE(sim.getContext().registry.get<HealthComponent>(enemy).isDead);
+    }
+
     SECTION("Projectiles and World Mining/Placing") {
         sim.shootProjectile(Vec2{200.0f, 100.0f});
 
@@ -44,6 +51,24 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
 
         // Place a block into air
         sim.placeBlockAt(tilePos, "mat_wood_plank", 3);
+    }
+
+    SECTION("Mining Selects The Nearest Solid Tile When Aim Misses") {
+        const Vec2 playerPosition = sim.getPlayerPosition();
+        REQUIRE(sim.mineTileAt(playerPosition + Vec2{0.0f, -32.0f}));
+    }
+
+    SECTION("Farming Advances With Simulation Time") {
+        sim.getFarming().tillSoil(8, 8);
+        sim.getFarming().waterSoil(8, 8);
+        REQUIRE(sim.getFarming().plantSeed(8, 8, "crop_wheat"));
+        sim.step(ControllerInput{}, 20.0f);
+        REQUIRE(sim.getFarming().getCropStage(8, 8) == CropStage::Sprout);
+        sim.step(ControllerInput{}, 40.0f);
+        REQUIRE(sim.getFarming().getCropStage(8, 8) == CropStage::Mature);
+        const HarvestResult harvest = sim.getFarming().harvest(8, 8);
+        REQUIRE(harvest.success);
+        REQUIRE(harvest.yieldCount == 3);
     }
 
     SECTION("Active Screen Toggles") {

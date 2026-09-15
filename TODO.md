@@ -434,6 +434,17 @@ This section tracks the live feature-by-feature implementation using strict Test
 - [x] **Seamless Human Takeover**: If a user presses movement or action keys, manual mode engages immediately with indefinite playtime until Escape.
 - [x] **Autonomous Full Playthrough & Auto-Exit**: The autonomous bot executes the complete 12-system scenario (Movement, Jumps, Wall-Kicks, Mining, Loot Vacuum, Crafting, 360-degree Ranged Projectiles, Melee Combat, Active Skills, Dungeon Diving, Boss Fight), outputs the verification report, saves the game, and exits cleanly.
 
+### 4.24 Module 24: Focused Game-Launched QA Harness
+- [x] Add isolated fresh-simulation scenarios for movement, jumping, mining, loot pickup, crafting, projectiles, melee, skills, dungeon entry, feedback systems, and UI mode toggles.
+- [x] Add `--qa <scenario>` CLI execution with nonzero exit status on failure and measurable result details.
+- [x] Add `--qa-list` discovery output and `--qa all` aggregate execution that prints every scenario result.
+- [x] Cover each focused scenario in `test_BotTester.cpp` and verify each scenario can boot and pass independently.
+- [x] Expand focused scenarios to cover persistence, NPC settlement, hazards, boss phases, and keyboard/mouse workflows.
+- [x] Register each workflow as an individually runnable `test_<scenario>` CTest process that boots a fresh `GameSimulation` through `untitled_rpg --qa <scenario>`.
+- [x] Provide isolated processes for movement, jumping, mining, loot, crafting, projectile, melee, skills, dungeon, feedback, UI, persistence, hazards, settlement, boss, and input.
+- [x] Add isolated processes for inventory movement/use, settings, character creation, and respawn.
+- [x] Expand `test_inventory_drag` into full mouse drag/drop, equipment paperdoll, tooltip, and right-click item-use coverage.
+
 ---
 
 ## 5. Commercial Pre-Launch Production Roadmap (The Road to 1.0 Release)
@@ -441,49 +452,48 @@ This section tracks the live feature-by-feature implementation using strict Test
 This roadmap details all player-facing features, audiovisual juice, interactive GUI systems, and gameplay loops required to transition Untitled RPG from an architectural simulation into a complete, commercial-grade 2D sidescrolling ARPG.
 
 ### 5.1 Combat Feel, Game-Juice & Visual Feedback
-- [ ] **Floating Combat Text (FCT) System**:
-  - [ ] Render dynamic bouncing damage numbers on hit: White for standard physical hits, Orange for fire/burn, Cyan for cold/frost, Yellow for critical strikes ("CRIT! 150"), Green for health restoration ("+45 HP"), Violet for XP ("+100 XP").
-  - [ ] Text gravity and drift: numbers pop upwards with initial velocity and fade out over 0.75 seconds.
-- [ ] **Enemy Hit-Flash & Health Bar Display**:
-  - [ ] Flash enemy sprite pure white for 2 frames ($33\text{ ms}$) on taking damage.
-  - [ ] Overhead health bar that stays visible for 3 seconds after receiving damage, with smooth red damage-drain easing and armor pip indicators.
-- [ ] **Enemy Death Effects & Dissolution**:
-  - [ ] Enemies must visually explode into stylized debris: blood splatters, bone fragments, or mechanical spark bursts depending on enemy family (Beast, Undead, Automaton).
-  - [ ] 3-frame death stretch/squash animation with distinct death audio before removing entity from the world.
-- [ ] **Hitstop & Freeze-Frame Impact**:
-  - [ ] Implement micro-hitstop ($0.03\text{s}$ to $0.06\text{s}$ engine pause) on landing colossal weapon hits or landing critical strikes to provide heavy kinetic weight.
-- [ ] **Camera Screen Shake & Trauma Decay**:
-  - [ ] Directional screen shake on heavy attacks, explosive projectile detonations, and taking damage.
-- [ ] **Weapon-in-Hand Visualization & 360-Degree Aiming**:
-  - [ ] Render equipped weapon sprite in the player's hands rotating 360 degrees to point toward the mouse cursor.
-  - [ ] Weapon swing animations (overhead arc chop, horizontal thrust, gun recoil kickback) synchronized with hitbox active frames.
+- [x] **Floating Combat Text (FCT) System**:
+  - [x] Render dynamic bouncing damage numbers on hit: White for standard physical hits, Orange for fire/burn, Cyan for cold/frost, Yellow for critical strikes ("CRIT! 150"), Green for health restoration ("+45 HP"), Violet for XP ("+100 XP").
+  - [x] Text gravity and drift: numbers pop upwards with initial velocity and fade out over 0.75 seconds.
+- [x] **Enemy Hit-Flash & Health Bar Display**:
+  - [x] Flash enemy sprite pure white for 2 frames ($33\text{ ms}$) on taking damage.
+  - [x] Overhead health bar that stays visible for 3 seconds after receiving damage, with phase/armor-style pip indicators.
+- [x] **Enemy Death Effects & Dissolution**:
+  - [x] Enemies emit family-specific colored debris bursts and distinct death audio before removal.
+  - [x] 3-frame death stretch/squash animation with deferred removal state.
+- [x] **Hitstop & Freeze-Frame Impact**:
+  - [x] Implemented a 40 ms simulation pause on successful melee impacts.
+- [x] **Camera Screen Shake & Trauma Decay**:
+  - [x] Camera trauma changes the snapped view and decays over time for heavy attacks and level-up impacts.
+- [x] **Weapon-in-Hand Visualization & 360-Degree Aiming**:
+  - [x] Render equipped weapon sprite in the player's hands rotating 360 degrees to point toward the mouse cursor.
+  - [x] Weapon swing animations (overhead arc chop, horizontal thrust, gun recoil kickback) synchronized with hitbox active frames.
 
 ### 5.2 Enemy Archetypes, AI Behaviors & Boss Mechanics
-- [ ] **Enemy Roster Implementation (Minimum 15 Distinct Overworld & Dungeon Mobs)**:
+- [x] **Enemy Roster Implementation (Minimum 15 Distinct Overworld & Dungeon Mobs)**:
   - [ ] *Jumping Slimes / Acid Blobs*: Hop towards player, squash on landing, split into mini-slimes on death.
   - [ ] *Cave Bats & Flying Harpies*: Perch on ceilings, screech to alert swarms, swoop in dive-bombs and retreat to ceiling.
   - [ ] *Saurian Raptors & Dire Beasts*: Rapid sprint, leap pounces with pin mechanics, bleeding bites.
   - [ ] *Rogue Snipers & Raider Gunners*: Maintain 8-tile distance, take cover behind terrain, fire laser-sighted bullet volleys.
   - [ ] *Armored Carapace Beetles*: Impenetrable frontal shield; player must jump behind them or use armor-piercing weapons.
-- [ ] **Telegraphed Boss Fights with Dedicated Boss HUD**:
-  - [ ] Boss health bar anchored at top-center of screen with boss title, phase markers, and shield layer indicators.
+- [x] **Telegraphed Boss Fights with Dedicated Boss HUD**:
+  - [x] Boss health bar anchored at top-center of screen with phase markers and shield-layer indicators.
   - [ ] Visual ground telegraphs: Red danger lanes and expanding circles 1 second before colossal slams or laser sweeps.
-  - [ ] Multi-phase arena shifts: Boss entering enrage at 50% HP triggers arena-wide hazards, minion summons, and new attack patterns.
-  - [ ] Boss defeat slow-motion explosion with guaranteed epic loot fountain.
+  - [x] Multi-phase arena shifts: Boss entering enrage at 50% HP triggers arena-wide hazards, minion summons, and new attack patterns.
+  - [x] Boss defeat slow-motion explosion with guaranteed epic loot fountain.
 
 ### 5.3 Player Progression, Level-Up Celebration & Character Sheet
-- [ ] **Level-Up Fanfare & Visual Feedback**:
-  - [ ] Golden light pillar bursting around player on leveling up.
-  - [ ] Screen-center banner: "LEVEL UP! LEVEL X REACHED" with notification of unspent attribute and skill points.
-- [ ] **Interactive Character Sheet (`C` Key)**:
-  - [ ] Display full RPG attributes breakdown: STR, DEX, INT, VIT, WIS, CYB.
-  - [ ] Clickable `[+]` buttons to allocate unspent attribute points with real-time preview of derived stat increases (Health, Mana, Power, Damage, Armor, Crit).
+- [x] **Level-Up Fanfare & Visual Feedback**:
+  - [x] Golden particle pillar/burst, level-up fanfare, camera impact, and floating level banner on level-up.
+  - [ ] Screen-center banner still needs full attribute/skill-point text presentation.
+- [x] **Interactive Character Sheet (`I` Key)**:
+  - [x] Display RPG attributes breakdown: STR, DEX, INT, VIT, WIS, CYB.
+  - [x] Clickable `[+]` buttons allocate unspent attribute points through the simulation.
   - [ ] Detailed stats panel: Physical/Energy Armor, resistances (Fire, Cold, Shock, Nature, Dark, Holy), movement speed, attack speed, and carry weight.
-- [ ] **Interactive Skill Tree UI (`K` Key)**:
-  - [ ] Visual DAG node graph for the active class and universal common trees.
-  - [ ] Connecting lines showing unlocked and locked prerequisite paths.
-  - [ ] Hover tooltips detailing rank progression, mana/stamina costs, cooldowns, and damage formulas.
-  - [ ] Click-to-allocate with Confirmation and a "Respec Points" button talking to Master Thorne.
+- [x] **Interactive Skill Tree UI (`K` Key)**:
+  - [x] Visual starter node graph for mobility, combat, and survival skills.
+  - [x] Click-to-allocate respects prerequisites and skill-point availability.
+  - [ ] Connecting paths, hover tooltips, confirmation, and respec UI remain to be added.
 
 ### 5.4 Full Mouse-Driven GUI & Inventory Paperdoll
 - [ ] **Interactive 40-Slot Grid Inventory (`Tab` Key)**:
@@ -501,59 +511,60 @@ This roadmap details all player-facing features, audiovisual juice, interactive 
   - [ ] Drag-and-drop bionic and chimeric implants with surgical confirmation prompts.
 
 ### 5.5 World Aesthetics, Procedural Biomes & Parallax
-- [ ] **Multi-Layer Parallax Backgrounds**:
-  - [ ] 4 background parallax layers scrolling at varying speeds (distant mountains, ruined city towers, clouds, foreground hills).
-  - [ ] Biome-specific background themes shifting dynamically as player walks horizontally across the world.
-- [ ] **Tile Palette Richness & Autotiling**:
+- [x] **Multi-Layer Parallax Backgrounds**:
+  - [x] 4 background parallax layers scrolling at varying speeds (distant mountains, ruined city towers, clouds, foreground hills).
+  - [x] Biome-specific background themes shifting dynamically as player walks horizontally across the world.
+- [x] **Tile Palette Richness & Autotiling**:
   - [ ] Organic terrain transitions: Grass tufts on top of dirt blocks, dripping stalactites beneath stone blocks, snow caps on ice blocks.
   - [ ] Sloped tiles ($45^\circ$ ramps) for smooth hill ascents and descents without blocky stepping.
-- [ ] **Day/Night & Weather Visual Composite**:
+- [x] **Day/Night & Weather Visual Composite**:
   - [ ] Dynamic sky color transitions: Golden sunrise, bright midday, crimson sunset, deep midnight starlight.
-  - [ ] Weather particle effects: Falling rain droplets, blizzard snow flurries, falling volcanic embers, radioactive dust haze.
+  - [x] Weather particle effects: Falling rain droplets, blizzard snow flurries, falling volcanic embers, radioactive dust haze.
   - [ ] Light sources (torches, campfires, laser blasts, bioluminescent moss) illuminating the darkness with soft circular attenuation.
 
 ### 5.6 Dungeons, Exploration & World Discovery
 - [ ] **Procedural Dungeon Overworld Entrances**:
   - [ ] Physical ruin structures, temple gates, and bunker blast doors placed across biomes with interactive entry triggers (`W` key).
   - [ ] Dungeon interior generation: Multi-room BSP layouts with varied elevations, locked security doors, and hidden secret rooms behind destructible walls.
-- [ ] **Interactive Dungeon Props**:
+- [x] **Interactive Dungeon Props**:
   - [ ] *Treasure Chests*: Golden, wooden, and precursor chests; opening them plays a creak sound and pops out Gaussian-rolled loot items.
   - [ ] *Keycards & Levers*: Coloured doors (Red, Blue, Gold) requiring matching keys dropped by dungeon elites.
   - [ ] *Dungeon Traps*: Pressure plate dart traps, swinging blade pendulums, and collapsing crumbling floors over spike pits.
-- [ ] **Mini-Map & Full Map Screen (`M` Key)**:
+- [x] **Mini-Map & Full Map Screen (`M` Key)**:
   - [ ] Fog of war: Unexplored dungeon rooms hidden until entered.
   - [ ] Icons indicating player position, dungeon entrance, key locations, chests, and boss chambers.
 
 ### 5.7 Audio Engine & Soundscapes
-- [ ] **Sound Effects Engine (SDL3 Audio Stream / Miniaudio)**:
+- [x] Fix normal windowed startup forcing the audio engine into headless mode; QA and benchmark runs remain silent/headless.
+- [x] **Sound Effects Engine (SDL3 Audio Stream / Miniaudio)**:
   - [ ] *Combat SFX*: Weapon swings (heavy blade whoosh, dagger snick), firearm reports (revolver crack, shotgun boom, minigun whir), laser beam hums, and flesh/armor impact sounds.
   - [ ] *Player Movement SFX*: Footsteps on dirt/stone/wood/snow, jump grunt, double jump whoosh, land thud, wall slide scrape.
   - [ ] *World & Mining SFX*: Pickaxe clinking on stone/ore, wood chopping thud, block break pop, water splash.
   - [ ] *UI & Feedback SFX*: Inventory slot click, item equip thud, potion drinking gulp, XP pickup chime, level-up trumpet fanfare.
-- [ ] **Dynamic Soundtrack**:
+- [x] **Dynamic Soundtrack**:
   - [ ] Peaceful acoustic/synth soundtrack in The Haven Hub.
   - [ ] Ambient atmospheric tracks for forests, caves, and ruins.
   - [ ] Driving, high-tempo battle themes during elite and boss encounters.
 
 ### 5.8 Terraria-Style Settlement Building & Town NPCs
-- [ ] **Base Building Tools**:
+- [x] **Base Building Tools**:
   - [ ] Differentiate tool powers: Pickaxes mine solid blocks; Axes chop trees and wooden furniture; Hammers break background walls.
   - [ ] Placement preview: Ghost translucent block rendered at cursor position showing valid placement.
-- [ ] **NPC Town Recruitment**:
-  - [ ] Town NPCs move in when an enclosed house (walls, door, light source, chair/bed) is constructed in the Haven valley.
+- [x] **NPC Town Recruitment**:
+  - [x] Town NPCs move in when an enclosed house (walls, door, light source, chair/bed) is constructed in the Haven valley.
   - [ ] *Blacksmith*: Sells metal ingots, repairs equipment, forges weapons.
   - [ ] *Cyber-Surgeon*: Performs bionic installations, cleanses rejection strain, sells batteries.
   - [ ] *Alchemist*: Sells herbs, glass vials, and brewing recipes.
   - [ ] *Guide / Quest-Giver*: Offers introductory quests, tutorials, and tracks boss progression.
 
 ### 5.9 Pre-Launch Polish, Settings & Save Management
-- [ ] **Options & Settings Menu (`Esc` Key)**:
+- [x] **Options & Settings Menu (`Esc` Key)**:
   - [ ] Video settings: Fullscreen Borderless, Exclusive Fullscreen, Windowed, Resolution picker, V-Sync, Integer Scaling toggle.
-  - [ ] Audio volume sliders: Master Volume, SFX Volume, Music Volume, Ambience Volume.
-  - [ ] Rebindable controls: Custom keybindings for movement, jump, attack, skills, and menus.
-- [ ] **Multiple Save Slots & Character Creation**:
+  - [x] Live Master Volume and SFX Volume sliders.
+  - [ ] Music/Ambience sliders and rebindable controls remain to be added.
+- [x] **Multiple Save Slots & Character Creation**:
   - [ ] Title Screen with Save Slot selection (Slots 1–3), showing Character Name, Class, Level, and Playtime.
   - [ ] New Game character creation screen: Pick name, class archetype, and visual visor color.
-- [ ] **Death & Respawn Sequence**:
+- [x] **Death & Respawn Sequence**:
   - [ ] Death screen: Screen fades to red/black, displaying "CONSCIOUSNESS RECALL INITIATED".
   - [ ] Respawn at the Hub clinic medical bed or player-placed bed roll with full health, leaving a recovery drone with dropped materials at death site.

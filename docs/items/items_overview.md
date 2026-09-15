@@ -75,6 +75,8 @@ Each base item definition declares:
 
 ## 2. Complete Weapons Catalog
 
+The reorganized weapon documentation is indexed at [docs/items/weapons/weapons_index.md](weapons/weapons_index.md). Weapons are grouped into Melee, Ballistic Firearms, Energy and Beam, Magic Implements, and Shields and Off-Hands; every weapon has its own name-based dossier with detailed stats and usage notes.
+
 Weapons operate with real-time Terraria-style aiming towards the mouse crosshair, imparting physical recoil, screen shake, and hitstop.
 
 ```

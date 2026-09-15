@@ -1,11 +1,17 @@
 #include "core/BotTester.hpp"
 #include "gameplay/ai/BossAI.hpp"
+#include "gameplay/ai/EnemyRoster.hpp"
+#include "gameplay/building/BuildingSystem.hpp"
 #include "gameplay/survival/SettlementSystem.hpp"
+#include "gameplay/survival/Environment.hpp"
 #include "procgen/BiomeSystem.hpp"
+#include "procgen/DungeonProps.hpp"
+#include "procgen/MapFog.hpp"
+#include "procgen/Tilemap.hpp"
 #include "save/SaveManager.hpp"
 #include <iostream>
-#include <iomanip>
 #include <cstdio>
+#include <filesystem>
 
 void BotReport::printSummary() const {
     std::cout << "\n================================================================================\n";
@@ -33,7 +39,10 @@ std::vector<std::string> getFocusedScenarioNames() {
         "movement", "jump", "mining", "loot", "crafting", "projectile",
         "melee", "skills", "dungeon", "feedback", "ui", "persistence",
         "hazards", "settlement", "boss", "input", "inventory_drag",
-        "settings", "character_creation", "respawn"
+        "settings", "character_creation", "respawn", "enemy_roster",
+        "weather_particles", "sky_transitions", "tile_palette", "dungeon_props",
+        "map_fog", "building_tools", "npc_services", "audio_scenes",
+        "crafting_gui", "augmentations_gui", "character_sheet", "skill_tree", "farming", "asset_pipeline"
     };
 }
 
@@ -308,6 +317,132 @@ FocusedScenarioResult runFocusedScenario(const std::string& scenarioName) {
             break;
         }
         result.detail = result.passed ? "player death state restored to full health" : "respawn recovery workflow failed";
+    } else if (scenarioName == "enemy_roster") {
+        const EnemyProfile slime = EnemyRoster::profile(EnemyType::Slime);
+        const EnemyProfile raptor = EnemyRoster::profile(EnemyType::Raptor);
+        const EnemyProfile gunner = EnemyRoster::profile(EnemyType::CyberGunner);
+        const EnemyProfile carapace = EnemyRoster::profile(EnemyType::Carapace);
+        const EnemyAction pounce = EnemyRoster::update(raptor, {0.0f, 0.0f}, {20.0f, 0.0f}, 20.0f, 0.0f);
+        const EnemyAction volley = EnemyRoster::update(gunner, {0.0f, 0.0f}, {20.0f, 0.0f}, 20.0f, 0.0f);
+        result.passed = slime.splitsOnDeath && raptor.canPin && gunner.usesCover && carapace.frontalShield &&
+                        pounce.pin && volley.retreat;
+        result.detail = result.passed ? "slime, raptor, gunner, and carapace profiles passed" : "enemy family behavior mismatch";
+    } else if (scenarioName == "weather_particles") {
+        sim.getContext().dayNight.setWeather(WeatherType::Blizzard);
+        const size_t before = sim.getParticles().getActiveCount();
+        for (int tick = 0; tick < 12; ++tick) sim.step(ControllerInput{}, dt);
+        result.passed = sim.getParticles().getActiveCount() > before;
+        result.detail = result.passed ? "blizzard emitted simulation particles" : "weather emitted no particles";
+    } else if (scenarioName == "sky_transitions") {
+        const Color midnight = SkyTransition::colorAt(0.0f);
+        const Color noon = SkyTransition::colorAt(720.0f);
+        const Color sunset = SkyTransition::colorAt(1080.0f);
+        result.passed = noon.b > midnight.b && sunset.r > noon.r;
+        result.detail = result.passed ? "sunrise, noon, sunset, and midnight colors resolved" : "sky transition colors invalid";
+    } else if (scenarioName == "tile_palette") {
+        Tilemap map;
+        for (int x = 0; x < 3; ++x) map.setBlock(x, 0, BlockLayer::Foreground, 2);
+        map.setSlope(1, 1, true);
+        const uint8_t mask = map.getAutotileMask(1, 0, BlockLayer::Foreground);
+        result.passed = (mask & 10) == 10 && map.isSlope(1, 1) && map.slopeRisesRight(1, 1);
+        result.detail = result.passed ? "autotile accents and rising slope resolved" : "tile palette behavior failed";
+    } else if (scenarioName == "dungeon_props") {
+        DungeonProps props;
+        const bool placedChest = props.place(1, 1, {DungeonPropType::Chest});
+        const bool openedChest = props.interact(1, 1);
+        const bool placedKey = props.place(2, 2, {DungeonPropType::Keycard, KeyColor::Red});
+        const bool unlocked = props.interact(2, 2, KeyColor::Red);
+        result.passed = placedChest && openedChest && placedKey && unlocked && !props.interact(1, 1);
+        result.detail = result.passed ? "chest and keycard interactions passed" : "dungeon prop interaction failed";
+    } else if (scenarioName == "map_fog") {
+        MapFog fog;
+        fog.addMarker({3, 4, MapIcon::Boss});
+        const bool hidden = !fog.isRevealed(7);
+        fog.revealRoom(7);
+        result.passed = hidden && fog.isRevealed(7) && fog.markers().size() == 1;
+        result.detail = result.passed ? "fog reveal and boss marker passed" : "map fog workflow failed";
+    } else if (scenarioName == "building_tools") {
+        BuildingSystem building;
+        const bool placed = building.placeBlock(1, 1, BlockType::Stone);
+        const bool wrongTool = !building.breakBlock(1, 1, BuildingTool::Axe);
+        const bool mined = building.breakBlock(1, 1, BuildingTool::Pickaxe);
+        const bool ghost = building.getPlacementGhost(1, 1, BlockType::WoodWall).valid;
+        result.passed = placed && wrongTool && mined && ghost;
+        result.detail = result.passed ? "specialized tools and placement ghost passed" : "building tool workflow failed";
+    } else if (scenarioName == "npc_services") {
+        SettlementSystem settlement;
+        RoomBounds room{0, 0, 6, 6};
+        const bool assigned = settlement.assignNPC(NPCType::Blacksmith, room) &&
+                              settlement.assignNPC(NPCType::Doctor, room) &&
+                              settlement.assignNPC(NPCType::Alchemist, room) &&
+                              settlement.assignNPC(NPCType::Guide, room);
+        const auto repair = settlement.useService(NPCType::Blacksmith, NPCService::Repair, 10);
+        const auto heal = settlement.useService(NPCType::Doctor, NPCService::Heal);
+        const auto reveal = settlement.useService(NPCType::Guide, NPCService::Reveal);
+        result.passed = assigned && repair.success && heal.value == 25 && reveal.success;
+        result.detail = result.passed ? "blacksmith, doctor, alchemist, and guide services passed" : "NPC service workflow failed";
+    } else if (scenarioName == "audio_scenes") {
+        sim.getAudio().setMusicScene(MusicScene::Mining);
+        sim.getAudio().update(0.5f);
+        const bool mining = sim.getAudio().getMusicScene() == MusicScene::Mining;
+        sim.getAudio().setMusicScene(MusicScene::Combat);
+        sim.getAudio().update(0.5f);
+        const bool combat = sim.getAudio().getMusicScene() == MusicScene::Combat;
+        result.passed = mining && combat && sim.getAudio().getMusicSceneTime() > 0.0f;
+        result.detail = result.passed ? "mining and combat music scenes transitioned" : "audio scene transition failed";
+    } else if (scenarioName == "crafting_gui") {
+        const auto allRecipes = sim.getGuiWorkflows().visibleRecipes(
+            sim.getCraftingEngine(), sim.getInventory(), CraftingStation::None);
+        sim.getGuiWorkflows().setCraftingCategory(CraftingCategory::Weapons);
+        const auto weaponRecipes = sim.getGuiWorkflows().visibleRecipes(
+            sim.getCraftingEngine(), sim.getInventory(), CraftingStation::None);
+        result.passed = !allRecipes.empty() && weaponRecipes.size() <= allRecipes.size();
+        result.detail = result.passed ? "crafting category filtering returned recipe sets" : "crafting GUI filtering failed";
+    } else if (scenarioName == "augmentations_gui") {
+        AugmentDef augment;
+        augment.id = "qa_head_aug";
+        augment.slot = AugmentSlot::Head;
+        augment.humanityStrain = 12.0f;
+        const bool requested = sim.getGuiWorkflows().requestAugmentationInstall(AugmentSlot::Head, augment);
+        const bool confirmed = sim.getGuiWorkflows().confirmAugmentationInstall(sim.getAugmentations());
+        result.passed = requested && confirmed && sim.getAugmentations().getAugment(AugmentSlot::Head) != nullptr;
+        result.detail = result.passed ? "augmentation request and confirmation passed" : "augmentation GUI workflow failed";
+    } else if (scenarioName == "character_sheet") {
+        const Attributes attributes = sim.getGuiWorkflows().characterAttributes(sim.getProgression());
+        const DerivedStats derived = sim.getGuiWorkflows().characterDerivedStats(sim.getProgression());
+        result.passed = attributes.strength > 0 && derived.maxHealth > 0.0f &&
+                        derived.physicalArmor >= 0.0f && derived.fireResistance >= 0.0f;
+        result.detail = result.passed ? "character attributes and derived stats resolved" : "character sheet stats failed";
+    } else if (scenarioName == "skill_tree") {
+        const auto& nodes = sim.getSkillTree().getNodes();
+        if (!nodes.empty()) {
+            const auto node = nodes.begin()->first;
+            const bool hovered = sim.getGuiWorkflows().hoverSkill(sim.getSkillTree(), node);
+            const bool hasDetails = sim.getGuiWorkflows().hoveredSkill(sim.getSkillTree()) != nullptr;
+            result.passed = hovered && hasDetails;
+        }
+        result.detail = result.passed ? "skill node hover details resolved" : "skill tree workflow failed";
+    } else if (scenarioName == "farming") {
+        sim.getFarming().tillSoil(8, 8);
+        sim.getFarming().waterSoil(8, 8);
+        const bool planted = sim.getFarming().plantSeed(8, 8, "crop_wheat");
+        sim.step(ControllerInput{}, 60.0f);
+        const HarvestResult harvest = sim.getFarming().harvest(8, 8);
+        result.passed = planted && harvest.success && harvest.produceItemId == "crop_wheat" && harvest.yieldCount == 3;
+        result.detail = result.passed ? "watered wheat matured and harvested" : "farming growth workflow failed";
+    } else if (scenarioName == "asset_pipeline") {
+        int requestCount = 0;
+        int sourceCount = 0;
+        std::filesystem::path assetRoot = "assets/generated";
+        if (!std::filesystem::exists(assetRoot)) assetRoot = "../assets/generated";
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(assetRoot)) {
+            if (!entry.is_regular_file()) continue;
+            if (entry.path().filename() == "request.json") ++requestCount;
+            if (entry.path().filename() == "source.png") ++sourceCount;
+        }
+        result.passed = requestCount == 16 && sourceCount == 9;
+        result.detail = "canonical asset folders: " + std::to_string(requestCount) +
+                        " requests, " + std::to_string(sourceCount) + " generated images";
     } else if (scenarioName == "all") {
         auto names = getFocusedScenarioNames();
         int passed = 0;

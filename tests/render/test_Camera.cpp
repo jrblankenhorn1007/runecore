@@ -17,6 +17,14 @@ TEST_CASE("Camera Canvas Scaling Math, Snapping, and Shake", "[render][camera]")
         REQUIRE(m720.virtualHeight == 360);
         REQUIRE(m720.virtualWidth == 640);
         REQUIRE(m720.integerScale == 2);
+
+        CanvasMetrics native = Camera::calculateCanvasMetrics(1280, 720);
+        REQUIRE(native.windowWidth == 1280);
+        REQUIRE(native.windowHeight == 720);
+        REQUIRE(native.viewportWidth == 1280);
+        REQUIRE(native.viewportHeight == 720);
+        REQUIRE(native.letterboxX == 0);
+        REQUIRE(native.letterboxY == 0);
     }
 
     SECTION("Position Snapping") {

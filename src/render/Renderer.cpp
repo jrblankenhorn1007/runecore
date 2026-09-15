@@ -1,10 +1,71 @@
+#ifdef __APPLE__
+#define Rect RunecoreMacRect
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreGraphics/CoreGraphics.h>
+#include <ImageIO/ImageIO.h>
+#undef Rect
+#endif
+
 #include "render/Renderer.hpp"
 #include "core/GameSimulation.hpp"
 #include "input/InputManager.hpp"
+#include "gameplay/stats/StatsSystem.hpp"
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstring>
+#include <filesystem>
 #include <unordered_map>
+
+namespace {
+
+#ifdef __APPLE__
+SDL_Surface* loadPngSurface(const char* path) {
+    std::string resolvedPath = path;
+    if (!std::filesystem::exists(resolvedPath) && std::filesystem::exists("../" + resolvedPath)) {
+        resolvedPath = "../" + resolvedPath;
+    }
+    CFURLRef url = CFURLCreateFromFileSystemRepresentation(nullptr,
+                                                            reinterpret_cast<const UInt8*>(resolvedPath.c_str()),
+                                                            resolvedPath.size(), false);
+    if (!url) return nullptr;
+    CGImageSourceRef source = CGImageSourceCreateWithURL(url, nullptr);
+    CFRelease(url);
+    if (!source) return nullptr;
+    CGImageRef image = CGImageSourceCreateImageAtIndex(source, 0, nullptr);
+    CFRelease(source);
+    if (!image) return nullptr;
+
+    const int width = static_cast<int>(CGImageGetWidth(image));
+    const int height = static_cast<int>(CGImageGetHeight(image));
+    SDL_Surface* surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
+    if (!surface) {
+        CGImageRelease(image);
+        return nullptr;
+    }
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate(surface->pixels, width, height, 8,
+                                                   surface->pitch, colorSpace,
+                                                   kCGImageAlphaPremultipliedLast |
+                                                       kCGBitmapByteOrder32Big);
+    CGColorSpaceRelease(colorSpace);
+    if (!context) {
+        SDL_DestroySurface(surface);
+        CGImageRelease(image);
+        return nullptr;
+    }
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
+    CGContextRelease(context);
+    CGImageRelease(image);
+    return surface;
+}
+#else
+SDL_Surface* loadPngSurface(const char*) {
+    return nullptr;
+}
+#endif
+
+} // namespace
 
 Renderer::Renderer() = default;
 
@@ -12,40 +73,95 @@ Renderer::~Renderer() {
     shutdown();
 }
 
-void Renderer::drawPixelText(const std::string& text, float x, float y, float scale, Color color) {
-    static constexpr const char* glyphs[] = {
-        "111101101101111", "010110010010111", "111001111100111", "111001111001111",
-        "101101111001001", "111100111001111", "111100111101111", "111001001001001",
-        "111101111101111", "111101111001111", "010101111101101", "110101110101110",
-        "111100100100111", "110101101101110", "111100111100111", "111100111100100",
-        "111101101111001", "101101111101101", "111010010010111", "111010010010010",
-        "101101101101111", "101101101101010", "101101111111101", "101101010101101",
-        "101101010010010", "111001010100111", "000000000000000", "010010010010010",
-        "000000111000000", "000000000000000", "000000000000000", "000000000000000",
-        "000000000000000", "000000000000000"
+namespace {
+
+const std::vector<std::string>& requiredGeneratedAssets() {
+    static const std::vector<std::string> assets{
+        "assets/generated/classes/berserker/sprite/source.png",
+        "assets/generated/classes/gunslinger/sprite/source.png",
+        "assets/generated/enemies/slime_01/sprite/source.png",
+        "assets/generated/enemies/bat/sprite/source.png",
+        "assets/generated/enemies/raptor/sprite/source.png",
+        "assets/generated/enemies/cyber_gunner/sprite/source.png",
+        "assets/generated/items/forged_scrap_blade/icon/source.png",
+        "assets/generated/items/iron_ore/icon/source.png",
+        "assets/generated/items/wood_plank/icon/source.png"
     };
-    auto glyphIndex = [](char character) {
-        if (character >= 'A' && character <= 'Z') return static_cast<int>(character - 'A') + 10;
-        if (character >= '0' && character <= '9') return static_cast<int>(character - '0');
-        if (character == '+') return 28;
-        if (character == '-') return 29;
-        return 26;
-    };
-    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
-    float cursorX = x;
-    for (char character : text) {
-        if (character == ' ') {
-            cursorX += 4.0f * scale;
-            continue;
-        }
-        const char* glyph = glyphs[glyphIndex(character)];
-        for (int pixel = 0; pixel < 15; ++pixel) {
-            if (glyph[pixel] != '1') continue;
-            SDL_FRect rect{cursorX + static_cast<float>(pixel % 3) * scale, y + (static_cast<float>(pixel) / 3.0f) * scale, scale, scale};
-            SDL_RenderFillRect(m_renderer, &rect);
-        }
-        cursorX += 4.0f * scale;
+    return assets;
+}
+
+} // namespace
+
+const std::vector<std::string>& Renderer::getRequiredGeneratedAssets() {
+    return requiredGeneratedAssets();
+}
+
+std::vector<std::string> Renderer::getMissingGeneratedAssets() const {
+    std::vector<std::string> missing;
+    for (const auto& assetPath : requiredGeneratedAssets()) {
+        const bool loaded = assetPath == "assets/generated/enemies/slime_01/sprite/source.png"
+            ? m_generatedSlimeTexture != nullptr
+            : m_generatedTextures.contains(assetPath) && m_generatedTextures.at(assetPath) != nullptr;
+        if (!loaded) missing.push_back(assetPath);
     }
+    return missing;
+}
+
+int Renderer::getGeneratedDrawCount(const std::string& assetPath) const {
+    const auto found = m_generatedDrawCounts.find(assetPath);
+    return found == m_generatedDrawCounts.end() ? 0 : found->second;
+}
+
+SDL_Texture* Renderer::loadGeneratedTexture(const std::string& assetPath) {
+    const auto existing = m_generatedTextures.find(assetPath);
+    if (existing != m_generatedTextures.end()) return existing->second;
+
+    SDL_Surface* surface = loadPngSurface(assetPath.c_str());
+    if (!surface) {
+        if (std::find(m_missingGeneratedAssets.begin(), m_missingGeneratedAssets.end(), assetPath) ==
+            m_missingGeneratedAssets.end()) {
+            m_missingGeneratedAssets.push_back(assetPath);
+        }
+        return nullptr;
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(m_renderer, surface);
+    SDL_DestroySurface(surface);
+    if (texture) {
+        SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+        m_generatedTextures.emplace(assetPath, texture);
+    } else if (std::find(m_missingGeneratedAssets.begin(), m_missingGeneratedAssets.end(), assetPath) ==
+               m_missingGeneratedAssets.end()) {
+        m_missingGeneratedAssets.push_back(assetPath);
+    }
+    return texture;
+}
+
+void Renderer::drawPixelText(const std::string& text, float x, float y, float scale, Color color) {
+    SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
+    if (scale <= 0.0f || text.empty()) return;
+    SDL_SetRenderScale(m_renderer, static_cast<float>(m_internalRenderScale) * scale,
+                       static_cast<float>(m_internalRenderScale) * scale);
+    SDL_RenderDebugText(m_renderer, x / scale, y / scale, text.c_str());
+    SDL_SetRenderScale(m_renderer, static_cast<float>(m_internalRenderScale),
+                       static_cast<float>(m_internalRenderScale));
+}
+
+int Renderer::pixelGlyphIndex(char character) {
+    const unsigned char unsignedCharacter = static_cast<unsigned char>(character);
+    character = static_cast<char>(std::toupper(unsignedCharacter));
+    if (character >= 'A' && character <= 'Z') return static_cast<int>(character - 'A') + 10;
+    if (character >= '0' && character <= '9') return static_cast<int>(character - '0');
+    if (character == '+') return 36;
+    if (character == '-') return 37;
+    if (character == '%') return 38;
+    if (character == '/') return 39;
+    if (character == '?') return 40;
+    return 41;
+}
+
+int Renderer::pixelGlyphRow(int pixel) {
+    return pixel / 3;
 }
 
 bool Renderer::init(const std::string& title, int windowWidth, int windowHeight, int virtualWidth, int virtualHeight, uint32_t extraFlags) {
@@ -60,7 +176,7 @@ bool Renderer::init(const std::string& title, int windowWidth, int windowHeight,
         title.c_str(),
         windowWidth,
         windowHeight,
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | extraFlags
+        SDL_WINDOW_RESIZABLE | extraFlags
     );
 
     if (!m_window) {
@@ -76,8 +192,8 @@ bool Renderer::init(const std::string& title, int windowWidth, int windowHeight,
         m_renderer,
         SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_TARGET,
-        m_virtualWidth,
-        m_virtualHeight
+        m_virtualWidth * m_internalRenderScale,
+        m_virtualHeight * m_internalRenderScale
     );
 
     if (!m_virtualTexture) {
@@ -85,6 +201,27 @@ bool Renderer::init(const std::string& title, int windowWidth, int windowHeight,
     }
 
     SDL_SetTextureScaleMode(m_virtualTexture, SDL_SCALEMODE_NEAREST);
+    constexpr const char* slimePath = "assets/generated/enemies/slime_01/sprite/source.png";
+    SDL_Surface* slimeSurface = loadPngSurface(slimePath);
+    if (slimeSurface) {
+        m_generatedSlimeTexture = SDL_CreateTextureFromSurface(m_renderer, slimeSurface);
+        SDL_DestroySurface(slimeSurface);
+        if (m_generatedSlimeTexture) {
+            SDL_SetTextureScaleMode(m_generatedSlimeTexture, SDL_SCALEMODE_NEAREST);
+            SDL_SetTextureBlendMode(m_generatedSlimeTexture, SDL_BLENDMODE_BLEND);
+        }
+        else m_missingGeneratedAssets.emplace_back(slimePath);
+    } else {
+        m_missingGeneratedAssets.emplace_back(slimePath);
+    }
+    loadGeneratedTexture("assets/generated/classes/berserker/sprite/source.png");
+    loadGeneratedTexture("assets/generated/classes/gunslinger/sprite/source.png");
+    loadGeneratedTexture("assets/generated/enemies/bat/sprite/source.png");
+    loadGeneratedTexture("assets/generated/enemies/raptor/sprite/source.png");
+    loadGeneratedTexture("assets/generated/enemies/cyber_gunner/sprite/source.png");
+    loadGeneratedTexture("assets/generated/items/forged_scrap_blade/icon/source.png");
+    loadGeneratedTexture("assets/generated/items/iron_ore/icon/source.png");
+    loadGeneratedTexture("assets/generated/items/wood_plank/icon/source.png");
     return true;
 }
 
@@ -93,6 +230,16 @@ void Renderer::shutdown() {
         SDL_DestroyTexture(m_virtualTexture);
         m_virtualTexture = nullptr;
     }
+    if (m_generatedSlimeTexture) {
+        SDL_DestroyTexture(m_generatedSlimeTexture);
+        m_generatedSlimeTexture = nullptr;
+    }
+    for (auto& [path, texture] : m_generatedTextures) {
+        SDL_DestroyTexture(texture);
+    }
+    m_generatedTextures.clear();
+    m_generatedDrawCounts.clear();
+    m_missingGeneratedAssets.clear();
     if (m_renderer) {
         SDL_DestroyRenderer(m_renderer);
         m_renderer = nullptr;
@@ -104,8 +251,79 @@ void Renderer::shutdown() {
     SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 }
 
+bool Renderer::drawGeneratedEntity(const std::string& assetPath, const Vec2& worldPos, const Vec2& size,
+                                   const Camera& camera, const CanvasMetrics& metrics, float healthRatio,
+                                   bool showHealthBar, bool hitFlash) {
+    SDL_Texture* texture = loadGeneratedTexture(assetPath);
+    if (!texture) return false;
+
+    const Vec2 camPos = camera.getSnappedPosition();
+    const float screenX = (worldPos.x - camPos.x) + metrics.virtualWidth * 0.5f;
+    const float screenY = (worldPos.y - camPos.y) + metrics.virtualHeight * 0.5f;
+    const float drawWidth = size.x * 2.0f;
+    const float drawHeight = size.y * 2.0f;
+    SDL_FRect destination{screenX - drawWidth * 0.5f, screenY - drawHeight, drawWidth, drawHeight};
+    SDL_SetTextureColorMod(texture, hitFlash ? 255 : 210, 255, 255);
+    SDL_RenderTexture(m_renderer, texture, nullptr, &destination);
+    ++m_generatedDrawCounts[assetPath];
+    SDL_SetTextureColorMod(texture, 255, 255, 255);
+
+    if (showHealthBar || healthRatio < 1.0f) {
+        SDL_SetRenderDrawColor(m_renderer, 30, 30, 30, 255);
+        SDL_FRect hpBack{destination.x - 2.0f, destination.y - 6.0f, destination.w + 4.0f, 3.0f};
+        SDL_RenderFillRect(m_renderer, &hpBack);
+        SDL_SetRenderDrawColor(m_renderer, 220, 40, 40, 255);
+        SDL_FRect hpFill{destination.x - 1.0f, destination.y - 5.0f,
+                         (destination.w + 2.0f) * std::clamp(healthRatio, 0.0f, 1.0f), 1.0f};
+        SDL_RenderFillRect(m_renderer, &hpFill);
+    }
+    return true;
+}
+
+void Renderer::drawGeneratedSlimeEnemy(const Vec2& worldPos, const Vec2& size,
+                                       const Camera& camera, const CanvasMetrics& metrics,
+                                       float healthRatio, bool showHealthBar, bool hitFlash,
+                                       int animationFrame) {
+    if (!m_generatedSlimeTexture) {
+        drawEntity(worldPos, size, hitFlash ? Color{255, 255, 255, 255} : Color{85, 165, 65, 255},
+                   camera, metrics, -1, false, healthRatio, hitFlash, showHealthBar);
+        return;
+    }
+
+    ++m_generatedDrawCounts["assets/generated/enemies/slime_01/sprite/source.png"];
+
+    const Vec2 camPos = camera.getSnappedPosition();
+    const float screenX = (worldPos.x - camPos.x) + metrics.virtualWidth * 0.5f;
+    const float screenY = (worldPos.y - camPos.y) + metrics.virtualHeight * 0.5f;
+    const float drawWidth = size.x * 2.0f;
+    const float drawHeight = size.y * 2.0f;
+    SDL_FRect source{
+        static_cast<float>((animationFrame % 2) * 512),
+        static_cast<float>(((animationFrame / 2) % 2) * 512),
+        512.0f,
+        512.0f
+    };
+    SDL_FRect destination{screenX - drawWidth * 0.5f, screenY - drawHeight, drawWidth, drawHeight};
+    if (hitFlash) SDL_SetTextureColorMod(m_generatedSlimeTexture, 255, 255, 255);
+    else SDL_SetTextureColorMod(m_generatedSlimeTexture, 190, 255, 190);
+    SDL_RenderTexture(m_renderer, m_generatedSlimeTexture, &source, &destination);
+    SDL_SetTextureColorMod(m_generatedSlimeTexture, 255, 255, 255);
+
+    if (showHealthBar || healthRatio < 1.0f) {
+        SDL_SetRenderDrawColor(m_renderer, 30, 30, 30, 255);
+        SDL_FRect hpBack{destination.x - 2.0f, destination.y - 6.0f, destination.w + 4.0f, 3.0f};
+        SDL_RenderFillRect(m_renderer, &hpBack);
+        SDL_SetRenderDrawColor(m_renderer, 220, 40, 40, 255);
+        SDL_FRect hpFill{destination.x - 1.0f, destination.y - 5.0f,
+                         (destination.w + 2.0f) * healthRatio, 1.0f};
+        SDL_RenderFillRect(m_renderer, &hpFill);
+    }
+}
+
 void Renderer::beginFrame() {
     SDL_SetRenderTarget(m_renderer, m_virtualTexture);
+    SDL_SetRenderScale(m_renderer, static_cast<float>(m_internalRenderScale), static_cast<float>(m_internalRenderScale));
+    SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_NONE);
     // Dark atmospheric background (deep midnight slate)
     SDL_SetRenderDrawColor(m_renderer, 15, 17, 26, 255);
     SDL_RenderClear(m_renderer);
@@ -327,6 +545,29 @@ void Renderer::drawParticle(const Particle& particle, const Camera& camera, cons
     SDL_RenderFillRect(m_renderer, &rect);
 }
 
+void Renderer::drawFarmingPlot(int tileX, int tileY, CropStage stage, const Camera& camera, const CanvasMetrics& metrics) {
+    const Vec2 camPos = camera.getSnappedPosition();
+    const float plotX = tileX * 16.0f - camPos.x + metrics.virtualWidth * 0.5f;
+    const float plotY = tileY * 16.0f - camPos.y + metrics.virtualHeight * 0.5f;
+    SDL_SetRenderDrawColor(m_renderer, 92, 62, 38, 255);
+    SDL_FRect soil{plotX, plotY, 16.0f, 16.0f};
+    SDL_RenderFillRect(m_renderer, &soil);
+    if (stage == CropStage::None) return;
+
+    const float height = stage == CropStage::Seed ? 3.0f : 4.0f + static_cast<float>(stage) * 2.0f;
+    SDL_SetRenderDrawColor(m_renderer, stage == CropStage::Mature ? 235 : 90, stage == CropStage::Mature ? 190 : 190, 70, 255);
+    SDL_FRect stem{plotX + 7.0f, plotY + 16.0f - height, 2.0f, height};
+    SDL_RenderFillRect(m_renderer, &stem);
+    if (stage >= CropStage::Sprout) {
+        SDL_FRect leaf{plotX + 4.0f, plotY + 16.0f - height + 2.0f, 5.0f, 2.0f};
+        SDL_RenderFillRect(m_renderer, &leaf);
+    }
+    if (stage == CropStage::Mature) {
+        SDL_FRect bloom{plotX + 5.0f, plotY + 1.0f, 7.0f, 4.0f};
+        SDL_RenderFillRect(m_renderer, &bloom);
+    }
+}
+
 void Renderer::drawWeapon(const Vec2& playerPos, const Vec2& aimTarget, bool attacking, const Camera& camera, const CanvasMetrics& metrics) {
     Vec2 direction = (aimTarget - playerPos).normalized();
     if (direction.lengthSquared() <= 0.0f) direction = Vec2{1.0f, 0.0f};
@@ -428,15 +669,25 @@ void Renderer::drawLoot(const Vec2& worldPos, const std::string& name, const Cam
     // Floating bob animation
     float bob = std::sin(SDL_GetTicks() * 0.005f) * 2.0f;
 
-    // Glowing halo
-    SDL_SetRenderDrawColor(m_renderer, 240, 200, 70, 100);
-    SDL_FRect halo{screenX - 6.0f, screenY - 6.0f + bob, 12.0f, 12.0f};
-    SDL_RenderFillRect(m_renderer, &halo);
-
-    // Loot Gem/Item cube
-    SDL_SetRenderDrawColor(m_renderer, 255, 220, 80, 255);
-    SDL_FRect itemCube{screenX - 3.0f, screenY - 3.0f + bob, 6.0f, 6.0f};
-    SDL_RenderFillRect(m_renderer, &itemCube);
+    const char* iconPath = nullptr;
+    if (name == "Forged Scrap Blade") {
+        iconPath = "assets/generated/items/forged_scrap_blade/icon/source.png";
+    } else if (name == "Iron Ore") {
+        iconPath = "assets/generated/items/iron_ore/icon/source.png";
+    } else if (name == "Wood Plank") {
+        iconPath = "assets/generated/items/wood_plank/icon/source.png";
+    }
+    SDL_Texture* iconTexture = iconPath ? loadGeneratedTexture(iconPath) : nullptr;
+    if (iconTexture) {
+        SDL_FRect icon{screenX - 6.0f, screenY - 6.0f + bob, 12.0f, 12.0f};
+        SDL_RenderTexture(m_renderer, iconTexture, nullptr, &icon);
+        ++m_generatedDrawCounts[iconPath];
+    } else {
+        // Preserve a visible fallback for loot without a generated icon yet.
+        SDL_SetRenderDrawColor(m_renderer, 255, 220, 80, 255);
+        SDL_FRect itemCube{screenX - 3.0f, screenY - 3.0f + bob, 6.0f, 6.0f};
+        SDL_RenderFillRect(m_renderer, &itemCube);
+    }
 }
 
 void Renderer::drawMinimap(const DungeonLayout& layout, const Vec2& playerPos, const CanvasMetrics& metrics) {
@@ -520,16 +771,29 @@ void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& me
 
             if (idx < static_cast<int>(slots.size()) && slots[idx].has_value()) {
                 const auto& itm = slots[idx].value();
-                // Draw item icon
-                if (itm.category == ItemCategory::Weapon) {
-                    SDL_SetRenderDrawColor(m_renderer, 230, 80, 80, 255);
-                } else if (itm.category == ItemCategory::Material) {
-                    SDL_SetRenderDrawColor(m_renderer, 80, 200, 120, 255);
-                } else {
-                    SDL_SetRenderDrawColor(m_renderer, 240, 200, 60, 255);
-                }
                 SDL_FRect icon{slotX + 4.0f, slotY + 4.0f, 14.0f, 14.0f};
-                SDL_RenderFillRect(m_renderer, &icon);
+                const char* iconPath = nullptr;
+                if (itm.id == "item_starter_blade") {
+                    iconPath = "assets/generated/items/forged_scrap_blade/icon/source.png";
+                } else if (itm.id == "mat_iron_ore") {
+                    iconPath = "assets/generated/items/iron_ore/icon/source.png";
+                } else if (itm.id == "mat_wood_plank") {
+                    iconPath = "assets/generated/items/wood_plank/icon/source.png";
+                }
+                SDL_Texture* iconTexture = iconPath ? loadGeneratedTexture(iconPath) : nullptr;
+                if (iconTexture) {
+                    SDL_RenderTexture(m_renderer, iconTexture, nullptr, &icon);
+                    ++m_generatedDrawCounts[iconPath];
+                } else {
+                    if (itm.category == ItemCategory::Weapon) {
+                        SDL_SetRenderDrawColor(m_renderer, 230, 80, 80, 255);
+                    } else if (itm.category == ItemCategory::Material) {
+                        SDL_SetRenderDrawColor(m_renderer, 80, 200, 120, 255);
+                    } else {
+                        SDL_SetRenderDrawColor(m_renderer, 240, 200, 60, 255);
+                    }
+                    SDL_RenderFillRect(m_renderer, &icon);
+                }
                 if (itm.quantity > 1) {
                     drawPixelText(std::to_string(itm.quantity), slotX + 14.0f, slotY + 14.0f, 0.5f, Color{255, 255, 255, 255});
                 }
@@ -555,9 +819,18 @@ void Renderer::drawInventoryScreen(const Inventory& inv, const CanvasMetrics& me
         drawPixelText(labels[index], slotX + 2.0f, slotY + 2.0f, 0.5f, Color{130, 150, 180, 255});
         if (inv.getEquipped(equipmentSlots[index]) != nullptr) {
             const Item* equipped = inv.getEquipped(equipmentSlots[index]);
-            SDL_SetRenderDrawColor(m_renderer, 220, 180, 65, 255);
             SDL_FRect icon{slotX + 14.0f, slotY + 6.0f, 12.0f, 12.0f};
-            SDL_RenderFillRect(m_renderer, &icon);
+            const char* iconPath = equipped->id == "item_starter_blade"
+                ? "assets/generated/items/forged_scrap_blade/icon/source.png"
+                : nullptr;
+            SDL_Texture* iconTexture = iconPath ? loadGeneratedTexture(iconPath) : nullptr;
+            if (iconTexture) {
+                SDL_RenderTexture(m_renderer, iconTexture, nullptr, &icon);
+                ++m_generatedDrawCounts[iconPath];
+            } else {
+                SDL_SetRenderDrawColor(m_renderer, 220, 180, 65, 255);
+                SDL_RenderFillRect(m_renderer, &icon);
+            }
             drawPixelText(equipped->name.substr(0, 5), slotX + 2.0f, slotY + 14.0f, 0.45f, Color{240, 220, 150, 255});
         }
     }
@@ -730,6 +1003,53 @@ void Renderer::drawCharacterSheet(const Progression& progression, const CanvasMe
         SDL_RenderFillRect(m_renderer, &plusV);
         SDL_RenderFillRect(m_renderer, &plusH);
     }
+
+    Attributes attributes;
+    attributes.strength = progression.getAttribute(Progression::Attribute::Strength);
+    attributes.dexterity = progression.getAttribute(Progression::Attribute::Dexterity);
+    attributes.intelligence = progression.getAttribute(Progression::Attribute::Intelligence);
+    attributes.vitality = progression.getAttribute(Progression::Attribute::Vitality);
+    attributes.wisdom = progression.getAttribute(Progression::Attribute::Wisdom);
+    attributes.cybernetics = progression.getAttribute(Progression::Attribute::Cybernetics);
+    const DerivedStats derived = StatsSystem::calculateDerivedStats(attributes);
+    drawPixelText("DERIVED STATS", panelX + 14.0f, panelY + 226.0f, 1.1f, Color{150, 220, 200, 255});
+
+    const std::pair<const char*, std::string> stats[] = {
+        {"PHYS ARMOR", std::to_string(static_cast<int>(derived.physicalArmor))},
+        {"ENERGY ARMOR", std::to_string(static_cast<int>(derived.energyArmor))},
+        {"FIRE RESIST", std::to_string(static_cast<int>(derived.fireResistance * 100.0f)) + "%"},
+        {"COLD RESIST", std::to_string(static_cast<int>(derived.coldResistance * 100.0f)) + "%"},
+        {"SHOCK RESIST", std::to_string(static_cast<int>(derived.shockResistance * 100.0f)) + "%"},
+        {"NATURE RESIST", std::to_string(static_cast<int>(derived.natureResistance * 100.0f)) + "%"},
+        {"DARK RESIST", std::to_string(static_cast<int>(derived.darkResistance * 100.0f)) + "%"},
+        {"HOLY RESIST", std::to_string(static_cast<int>(derived.holyResistance * 100.0f)) + "%"},
+        {"MOVE SPEED", std::to_string(static_cast<int>(derived.moveSpeedMultiplier * 100.0f)) + "%"},
+        {"ATTACK SPEED", std::to_string(static_cast<int>(derived.attackSpeedMultiplier * 100.0f)) + "%"},
+        {"CARRY WEIGHT", std::to_string(static_cast<int>(derived.carryWeightCapacity))},
+    };
+    for (std::size_t index = 0; index < std::size(stats); ++index) {
+        const float columnX = panelX + 14.0f + (index % 2) * (panelWidth * 0.5f);
+        const float rowY = panelY + 242.0f + (static_cast<float>(index) / 2.0f) * 14.0f;
+        drawPixelText(stats[index].first, columnX, rowY, 0.55f, Color{145, 165, 185, 255});
+        drawPixelText(stats[index].second, columnX + 78.0f, rowY, 0.55f, Color{225, 235, 220, 255});
+    }
+}
+
+void Renderer::drawVisualQaOverlay(const std::string& scenario, float progress, const CanvasMetrics& metrics) {
+    SDL_SetRenderDrawColor(m_renderer, 5, 12, 20, 235);
+    SDL_FRect panel{10.0f, 10.0f, 260.0f, 46.0f};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 70, 220, 190, 255);
+    SDL_FRect accent{10.0f, 10.0f, 4.0f, 46.0f};
+    SDL_RenderFillRect(m_renderer, &accent);
+
+    std::string label = scenario;
+    for (char& character : label) {
+        character = static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
+    }
+    drawPixelText("VISUAL QA  " + label, 22.0f, 18.0f, 0.8f, Color{210, 245, 235, 255});
+    drawPixelText("SCRIPTED MINI RUN  " + std::to_string(static_cast<int>(progress * 100.0f)) + "%",
+                  22.0f, 37.0f, 0.55f, Color{135, 190, 185, 255});
 }
 
 void Renderer::drawSkillTreeScreen(const SkillTree& skillTree, int skillPoints, const CanvasMetrics& metrics) {
@@ -1002,6 +1322,7 @@ void Renderer::drawBossHUD(const GameSimulation& sim, const CanvasMetrics& metri
 void Renderer::endFrame(const CanvasMetrics& metrics) {
     // Switch target back to main window
     SDL_SetRenderTarget(m_renderer, nullptr);
+    SDL_SetRenderScale(m_renderer, 1.0f, 1.0f);
 
     // Crisp black letterbox borders
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);

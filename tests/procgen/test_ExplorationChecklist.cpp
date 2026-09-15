@@ -8,11 +8,20 @@
 #include "gameplay/survival/SettlementSystem.hpp"
 
 TEST_CASE("Enemy roster exposes family-specific behaviors") {
+    auto slime = EnemyRoster::profile(EnemyType::Slime);
+    auto raptor = EnemyRoster::profile(EnemyType::Raptor);
+    auto harpy = EnemyRoster::profile(EnemyType::Harpy);
     auto gunner = EnemyRoster::profile(EnemyType::CyberGunner);
     auto carapace = EnemyRoster::profile(EnemyType::Carapace);
+    REQUIRE(slime.splitsOnDeath);
+    REQUIRE(raptor.canPin);
+    REQUIRE(harpy.behavior == EnemyBehavior::Swoop);
     REQUIRE(gunner.behavior == EnemyBehavior::Volley);
+    REQUIRE(gunner.usesCover);
     REQUIRE(carapace.frontalShield);
     REQUIRE(EnemyRoster::update(gunner, {0, 0}, {20, 0}, 20, 0).retreat);
+    REQUIRE(EnemyRoster::update(raptor, {0, 0}, {20, 0}, 20, 0).pin);
+    REQUIRE(EnemyRoster::update(harpy, {0, 0}, {20, 0}, 20, 0).retreat);
 }
 
 TEST_CASE("Sky transitions cover sunrise noon sunset and midnight") {

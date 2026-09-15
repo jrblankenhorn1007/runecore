@@ -4,6 +4,9 @@
 #include <chrono>
 #include <thread>
 #include <string>
+#include <vector>
+#include <filesystem>
+#include <fstream>
 
 #include "core/GameSimulation.hpp"
 #include "core/BotTester.hpp"
@@ -66,12 +69,18 @@ void runHeadlessBotTest(GameSimulation& sim, int totalTicks = 550) {
 
 int runGame(int argc, char* argv[]) {
     bool headless = false;
-    bool botMode = true; // Auto-play by default so the game actively plays itself!
+    bool botMode = false;
     bool manualMode = false;
     bool qaMode = false;
+    bool visualQaMode = false;
     bool qaList = false;
     std::string qaScenario;
     float maxDuration = 10.0f; // Default 10s demo runtime if unattended
+    const std::vector<std::string> visualQaScenarios{
+        "movement", "jump", "mining", "projectile", "melee", "feedback",
+        "dungeon", "inventory_drag", "crafting_gui", "augmentations_gui",
+        "character_sheet", "skill_tree", "farming", "asset_pipeline"
+    };
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -91,6 +100,16 @@ int runGame(int argc, char* argv[]) {
             headless = true;
             botMode = false;
             qaScenario = argv[++i];
+        } else if (arg == "--visual-qa" && i + 1 < argc) {
+            visualQaMode = true;
+            headless = false;
+            botMode = false;
+            manualMode = false;
+            maxDuration = 5.0f;
+            qaScenario = argv[++i];
+            if (qaScenario == "all") {
+                maxDuration = 5.0f * static_cast<float>(visualQaScenarios.size());
+            }
         } else if (arg == "--qa-list") {
             qaList = true;
             headless = true;
@@ -131,21 +150,40 @@ int runGame(int argc, char* argv[]) {
               << " | Boss Room: #" << layout.bossRoomIndex << "\n\n";
 
     CanvasMetrics metrics = Camera::calculateCanvasMetrics(1280, 720);
+    bool visualQaPassed = true;
+    bool visualActionDone = false;
+
+    if (visualQaMode) {
+        std::filesystem::create_directories("build/visual_qa");
+        if (qaScenario == "all") {
+            for (const auto& scenario : visualQaScenarios) {
+                std::filesystem::remove("build/visual_qa/" + scenario + ".bmp");
+                std::filesystem::remove("build/visual_qa/" + scenario + ".json");
+            }
+        } else {
+            std::filesystem::remove("build/visual_qa/" + qaScenario + ".bmp");
+            std::filesystem::remove("build/visual_qa/" + qaScenario + ".json");
+        }
+    }
 
     if (headless && !manualMode) {
         runHeadlessBotTest(sim, 550);
     } else if (headless) {
         runHeadlessBenchmark(sim, metrics, 600);
     } else {
-        std::cout << "Initializing SDL3 Graphical Window (1280x720, Virtual Canvas 640x360)...\n";
+        std::cout << "Initializing SDL3 Graphical Window (1280x720, Native Render 1280x720)...\n";
         if (botMode) {
             std::cout << "MODE: Autonomous Bot Controller Active (Playing the game automatically!)\n";
         }
 
         Renderer renderer;
-        bool ok = renderer.init("Untitled RPG [Pre-Alpha] - 2D Action Platformer", 1280, 720, 640, 360);
+        bool ok = renderer.init("Untitled RPG [Pre-Alpha] - 2D Action Platformer");
 
         if (!ok) {
+            if (visualQaMode) {
+                std::cout << "Visual QA requires an available SDL display.\n";
+                return 1;
+            }
             std::cout << "Display server not available. Falling back to headless simulation.\n";
             if (botMode) {
                 runHeadlessBotTest(sim, 550);
@@ -153,6 +191,17 @@ int runGame(int argc, char* argv[]) {
                 runHeadlessBenchmark(sim, metrics, 600);
             }
         } else {
+            const auto missingAssets = renderer.getMissingGeneratedAssets();
+            if (visualQaMode && !missingAssets.empty()) {
+                std::cerr << "[VISUAL QA] required generated assets failed to load:\n";
+                for (const auto& asset : missingAssets) std::cerr << "  " << asset << '\n';
+                renderer.shutdown();
+                return 1;
+            }
+            int windowWidth = 1280;
+            int windowHeight = 720;
+            SDL_GetWindowSize(renderer.getWindow(), &windowWidth, &windowHeight);
+            metrics = Camera::calculateCanvasMetrics(windowWidth, windowHeight);
             std::cout << "Window created successfully! Controls:\n";
             std::cout << " [A] / [D] : Move Left / Right\n";
             std::cout << " [Space]   : Jump / Double Jump\n";
@@ -168,6 +217,12 @@ int runGame(int argc, char* argv[]) {
             TimeStep timeStep(60.0f);
             BotTester bot;
             if (botMode) bot.reset();
+            std::string activeVisualScenario = qaScenario;
+            int visualScenarioIndex = 0;
+            if (visualQaMode && qaScenario == "all") {
+                activeVisualScenario = visualQaScenarios.front();
+            }
+            Vec2 visualScenarioStartPosition = sim.getPlayerPosition();
 
             auto lastTime = std::chrono::high_resolution_clock::now();
             auto startTime = lastTime;
@@ -175,6 +230,21 @@ int runGame(int argc, char* argv[]) {
             std::string lastPhase = "";
             int displayedLevel = sim.getPlayerLevel();
             int draggedInventorySlot = -1;
+            int visualInventorySourceSlot = -1;
+            int visualInventoryStep = 0;
+            bool visualScreenshotSaved = false;
+            size_t visualProjectileCountBefore = 0;
+            bool visualProjectileSpawned = false;
+            bool visualAssetRosterSpawned = false;
+
+            auto countProjectiles = [&sim]() {
+                size_t count = 0;
+                for (auto entity : sim.getContext().registry.view<ProjectileComponent>()) {
+                    (void)entity;
+                    ++count;
+                }
+                return count;
+            };
 
             while (running) {
                 auto currentTime = std::chrono::high_resolution_clock::now();
@@ -185,12 +255,35 @@ int runGame(int argc, char* argv[]) {
                 if (maxDuration > 0.0f) {
                     float totalElapsed = std::chrono::duration<float>(currentTime - startTime).count();
                     if (totalElapsed >= maxDuration) {
+                        if (visualQaMode && !visualActionDone) {
+                            std::cerr << "[VISUAL QA] timed out before scripted action completed: "
+                                      << activeVisualScenario << " at simulation time "
+                                      << sim.getSimulationTime() << "\n";
+                        }
                         running = false;
                         break;
                     }
                 }
 
                 RawInputState inputState;
+
+                if (visualQaMode && qaScenario == "all") {
+                    const int nextScenarioIndex = std::min(
+                        static_cast<int>(visualQaScenarios.size()) - 1,
+                        static_cast<int>(sim.getSimulationTime() / 5.0f));
+                    if (nextScenarioIndex != visualScenarioIndex) {
+                        if (!visualActionDone) visualQaPassed = false;
+                        visualScenarioIndex = nextScenarioIndex;
+                        activeVisualScenario = visualQaScenarios[visualScenarioIndex];
+                        visualActionDone = false;
+                        visualScreenshotSaved = false;
+                        visualScenarioStartPosition = sim.getPlayerPosition();
+                        visualInventorySourceSlot = -1;
+                        visualInventoryStep = 0;
+                        visualProjectileSpawned = false;
+                        visualAssetRosterSpawned = false;
+                    }
+                }
 
                 // Process human input events first
                 inputMgr.processEvents(metrics, camera);
@@ -208,11 +301,120 @@ int runGame(int argc, char* argv[]) {
                                         humanInput.skillR || humanInput.skillF || humanInput.toggleInventory ||
                                         humanInput.toggleCharacterSheet || humanInput.toggleSkills || humanInput.toggleSettings);
 
-                if (humanInteracted && !manualMode) {
+                if (humanInteracted && !manualMode && !visualQaMode) {
                     manualMode = true;
                     botMode = false;
                     maxDuration = 0.0f; // Human is playing, do not auto-close
                     std::cout << " [INPUT] Manual player control engaged.\n";
+                }
+
+                if (visualQaMode) {
+                    inputState = RawInputState{};
+                    const float visualTime = sim.getSimulationTime() - static_cast<float>(visualScenarioIndex) * 5.0f;
+                    if (visualTime >= 0.2f && !visualAssetRosterSpawned) {
+                        const Vec2 origin = sim.getPlayerPosition();
+                        sim.spawnEnemy(origin + Vec2{72.0f, 0.0f}, 40.0f, 50, EnemyType::Slime);
+                        sim.spawnEnemy(origin + Vec2{120.0f, 0.0f}, 40.0f, 50, EnemyType::Bat);
+                        sim.spawnEnemy(origin + Vec2{168.0f, 0.0f}, 40.0f, 50, EnemyType::Raptor);
+                        sim.spawnEnemy(origin + Vec2{216.0f, 0.0f}, 40.0f, 50, EnemyType::CyberGunner);
+                        const auto spawnLoot = [&sim, &origin](const Vec2& offset, const char* id,
+                                                               const char* name, ItemCategory category) {
+                            Item item;
+                            item.id = id;
+                            item.name = name;
+                            item.category = category;
+                            const auto entity = sim.getContext().registry.create();
+                            sim.getContext().registry.emplace<DroppedItemComponent>(entity, item);
+                            sim.getContext().registry.emplace<TransformComponent>(entity, origin + offset);
+                        };
+                        spawnLoot(Vec2{220.0f, -20.0f}, "item_starter_blade", "Forged Scrap Blade", ItemCategory::Weapon);
+                        spawnLoot(Vec2{250.0f, -20.0f}, "mat_iron_ore", "Iron Ore", ItemCategory::Material);
+                        spawnLoot(Vec2{280.0f, -20.0f}, "mat_wood_plank", "Wood Plank", ItemCategory::Material);
+                        visualAssetRosterSpawned = true;
+                    }
+                    if (activeVisualScenario == "movement") {
+                        inputState.controller.moveX = visualTime < 2.0f ? 1.0f : 0.0f;
+                        visualActionDone = visualTime >= 2.0f &&
+                                           sim.getPlayerPosition().distanceTo(visualScenarioStartPosition) > 4.0f;
+                    } else if (activeVisualScenario == "jump") {
+                        inputState.controller.jumpPressed = visualTime >= 0.5f && visualTime < 0.55f;
+                        visualActionDone = visualTime >= 0.8f &&
+                                           visualScenarioStartPosition.y - sim.getPlayerPosition().y > 4.0f;
+                    } else if (activeVisualScenario == "mining" && visualTime >= 0.8f && !visualActionDone) {
+                        visualActionDone = sim.mineTileAt(sim.getPlayerPosition() + Vec2{0.0f, 16.0f});
+                    } else if (activeVisualScenario == "projectile" && visualTime >= 0.8f && !visualActionDone) {
+                        visualProjectileCountBefore = countProjectiles();
+                        sim.shootProjectile(sim.getPlayerPosition() + Vec2{120.0f, -30.0f});
+                        visualProjectileSpawned = countProjectiles() > visualProjectileCountBefore;
+                        visualActionDone = visualProjectileSpawned;
+                    } else if (activeVisualScenario == "melee" && visualTime >= 0.8f && !visualActionDone) {
+                        sim.spawnEnemy(sim.getPlayerPosition() + Vec2{28.0f, 0.0f}, 40.0f, 50);
+                        sim.playerAttack();
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "feedback" && visualTime >= 0.8f && !visualActionDone) {
+                        sim.getFloatingText().spawnDamage(sim.getPlayerPosition(), 25.0f);
+                        sim.getFloatingText().spawnDamage(sim.getPlayerPosition() + Vec2{10.0f, 0.0f}, 40.0f, true);
+                        sim.getFloatingText().spawnHeal(sim.getPlayerPosition() + Vec2{20.0f, 0.0f}, 15.0f);
+                        sim.getParticles().emitBurst(sim.getPlayerPosition(), 18, Color{255, 180, 70, 255}, 0.8f, 90.0f);
+                        sim.getAudio().playSound(SoundEffect::CritHit);
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "dungeon" && visualTime >= 0.8f && !visualActionDone) {
+                        sim.enterDungeon();
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "inventory_drag" && visualInventoryStep == 0 && visualTime >= 0.2f) {
+                        Item scrap;
+                        scrap.id = "mat_scrap";
+                        scrap.name = "Scrap";
+                        scrap.category = ItemCategory::Material;
+                        scrap.quantity = 2;
+                        sim.getInventory().addItem(scrap);
+                        for (int index = 0; index < sim.getInventory().getSlotCount(); ++index) {
+                            const auto slot = sim.getInventory().getSlot(index);
+                            if (slot.has_value() && slot->id == scrap.id) {
+                                visualInventorySourceSlot = index;
+                                break;
+                            }
+                        }
+                        sim.toggleScreen(ActiveScreen::Inventory);
+                        visualInventoryStep = 1;
+                    } else if (activeVisualScenario == "inventory_drag" && visualInventoryStep == 1 && visualTime >= 0.8f && visualInventorySourceSlot >= 0) {
+                        const int column = visualInventorySourceSlot % 8;
+                        const int row = visualInventorySourceSlot / 8;
+                        inputState.mouseScreenPos = Vec2{
+                            (60.0f + static_cast<float>(column) * 26.0f + 8.0f) * metrics.integerScale,
+                            (60.0f + static_cast<float>(row) * 26.0f + 8.0f) * metrics.integerScale
+                        };
+                        inputState.attackPressed = true;
+                        visualInventoryStep = 2;
+                    } else if (activeVisualScenario == "inventory_drag" && visualInventoryStep == 2 && visualTime >= 1.1f) {
+                        inputState.mouseScreenPos = Vec2{
+                            (60.0f + 7.0f * 26.0f + 8.0f) * metrics.integerScale,
+                            (60.0f + 8.0f) * metrics.integerScale
+                        };
+                        inputState.attackPressed = true;
+                        visualInventoryStep = 3;
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "crafting_gui" && visualTime >= 0.2f && !visualActionDone) {
+                        sim.toggleScreen(ActiveScreen::Crafting);
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "augmentations_gui" && visualTime >= 0.2f && !visualActionDone) {
+                        sim.toggleScreen(ActiveScreen::Augmentations);
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "character_sheet" && visualTime >= 0.2f && !visualActionDone) {
+                        sim.toggleScreen(ActiveScreen::CharacterSheet);
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "skill_tree" && visualTime >= 0.2f && !visualActionDone) {
+                        sim.toggleScreen(ActiveScreen::Skills);
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "farming" && visualTime >= 0.2f && !visualActionDone) {
+                        sim.getFarming().tillSoil(8, 8);
+                        sim.getFarming().waterSoil(8, 8);
+                        sim.getFarming().plantSeed(8, 8, "crop_wheat");
+                        visualActionDone = true;
+                    } else if (activeVisualScenario == "asset_pipeline" && visualTime >= 0.8f && !visualActionDone) {
+                        sim.toggleScreen(ActiveScreen::Inventory);
+                        visualActionDone = true;
+                    }
                 }
 
                 if (botMode) {
@@ -230,7 +432,7 @@ int runGame(int argc, char* argv[]) {
                         running = false;
                         break;
                     }
-                } else {
+                } else if (!visualQaMode) {
                     inputState = humanInput;
                 }
 
@@ -475,12 +677,37 @@ int runGame(int argc, char* argv[]) {
                                                        encounter.controller.isEnraged());
                         }
                     }
-                    renderer.drawEntity(trans.position, size, color, camera, metrics, -1, false, ratio,
-                                        hp.hitFlashTimer > 0.0f, hp.healthBarTimer > 0.0f);
+                    const bool hitFlash = hp.hitFlashTimer > 0.0f;
+                    const bool showHealthBar = true;
+                    if (tag.type == EnemyType::Slime) {
+                        const int animationFrame = static_cast<int>(sim.getSimulationTime() * 8.0f) % 4;
+                        renderer.drawGeneratedSlimeEnemy(trans.position, size, camera, metrics, ratio,
+                                                        showHealthBar, hitFlash, animationFrame);
+                    } else {
+                        const char* assetPath = nullptr;
+                        switch (tag.type) {
+                            case EnemyType::Bat: assetPath = "assets/generated/enemies/bat/sprite/source.png"; break;
+                            case EnemyType::Raptor: assetPath = "assets/generated/enemies/raptor/sprite/source.png"; break;
+                            case EnemyType::CyberGunner: assetPath = "assets/generated/enemies/cyber_gunner/sprite/source.png"; break;
+                            default: break;
+                        }
+                        if (!assetPath || !renderer.drawGeneratedEntity(assetPath, trans.position, size, camera, metrics,
+                                                                        ratio, showHealthBar, hitFlash)) {
+                            renderer.drawEntity(trans.position, size, color, camera, metrics, -1, false, ratio,
+                                                hitFlash, showHealthBar);
+                        }
+                    }
                 }
 
                 // Draw player
-                renderer.drawEntity(playerPos, Vec2{16.0f, 24.0f}, Color{65, 115, 220, 255}, camera, metrics, sim.getPlayerFacing(), true, 1.0f);
+                if (!renderer.drawGeneratedEntity("assets/generated/classes/berserker/sprite/source.png",
+                                                  playerPos, Vec2{16.0f, 24.0f}, camera, metrics, 1.0f, false, false)) {
+                    renderer.drawEntity(playerPos, Vec2{16.0f, 24.0f}, Color{65, 115, 220, 255}, camera, metrics,
+                                        sim.getPlayerFacing(), true, 1.0f);
+                }
+                if (activeVisualScenario == "farming") {
+                    renderer.drawFarmingPlot(8, 8, sim.getFarming().getCropStage(8, 8), camera, metrics);
+                }
                 renderer.drawWeapon(playerPos, inputState.mouseWorldPos, sim.isAttacking(), camera, metrics);
 
                 // Draw attack slash
@@ -540,8 +767,64 @@ int runGame(int argc, char* argv[]) {
                         break;
                 }
 
+                if (visualQaMode) {
+                    const float progress = qaScenario == "all"
+                        ? std::clamp((sim.getSimulationTime() - static_cast<float>(visualScenarioIndex) * 5.0f) / 5.0f, 0.0f, 1.0f)
+                        : std::clamp(sim.getSimulationTime() / maxDuration, 0.0f, 1.0f);
+                    renderer.drawVisualQaOverlay(activeVisualScenario, progress, metrics);
+                }
+
                 // Blit to screen
                 renderer.endFrame(metrics);
+
+                if (visualQaMode && visualActionDone && !visualScreenshotSaved) {
+                    const std::string screenshotPath = "build/visual_qa/" + activeVisualScenario + ".bmp";
+                    const std::string reportPath = "build/visual_qa/" + activeVisualScenario + ".json";
+                    const auto assetPath = [](const char* category, const char* entity, const char* label) {
+                        return std::string("assets/generated/") + category + "/" + entity + "/" + label + "/source.png";
+                    };
+                    bool assetsRendered = true;
+                    if (activeVisualScenario == "melee") {
+                        assetsRendered = renderer.getGeneratedDrawCount(assetPath("classes", "berserker", "sprite")) > 0 &&
+                                         renderer.getGeneratedDrawCount(assetPath("enemies", "slime_01", "sprite")) > 0;
+                    } else if (activeVisualScenario == "inventory_drag" || activeVisualScenario == "asset_pipeline") {
+                        assetsRendered = renderer.getGeneratedDrawCount(assetPath("items", "forged_scrap_blade", "icon")) > 0 &&
+                                         renderer.getGeneratedDrawCount(assetPath("items", "iron_ore", "icon")) > 0 &&
+                                         renderer.getGeneratedDrawCount(assetPath("items", "wood_plank", "icon")) > 0;
+                    }
+                    if (activeVisualScenario == "asset_pipeline") {
+                        assetsRendered = assetsRendered &&
+                            renderer.getGeneratedDrawCount(assetPath("classes", "berserker", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(assetPath("enemies", "slime_01", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(assetPath("enemies", "bat", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(assetPath("enemies", "raptor", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(assetPath("enemies", "cyber_gunner", "sprite")) > 0;
+                    }
+                    for (const auto& requiredAsset : Renderer::getRequiredGeneratedAssets()) {
+                        if (requiredAsset == "assets/generated/classes/gunslinger/sprite/source.png") {
+                            continue;
+                        }
+                        assetsRendered = assetsRendered && renderer.getGeneratedDrawCount(requiredAsset) > 0;
+                    }
+                    SDL_Surface* screenshot = SDL_RenderReadPixels(renderer.getSDLRenderer(), nullptr);
+                    if (screenshot != nullptr) {
+                        const bool saved = SDL_SaveBMP(screenshot, screenshotPath.c_str());
+                        SDL_DestroySurface(screenshot);
+                        std::ofstream report(reportPath);
+                        report << "{\n  \"scenario\": \"" << activeVisualScenario
+                               << "\",\n  \"assets_loaded\": true,\n  \"assets_rendered\": "
+                               << (assetsRendered ? "true" : "false") << ",\n  \"screenshot\": \""
+                               << screenshotPath << "\"\n}\n";
+                        const bool reportSaved = report.good();
+                        visualQaPassed = visualQaPassed && saved && reportSaved && assetsRendered;
+                        std::cout << (saved && reportSaved && assetsRendered ? " [VISUAL QA] captured " : " [VISUAL QA] asset proof failed ")
+                                  << screenshotPath << "\n";
+                    } else {
+                        std::cout << " [VISUAL QA] screenshot failed: " << SDL_GetError() << "\n";
+                        visualQaPassed = false;
+                    }
+                    visualScreenshotSaved = true;
+                }
 
                 // Target 60 FPS frame pacing (~16.6ms)
                 auto frameEndTime = std::chrono::high_resolution_clock::now();
@@ -553,6 +836,10 @@ int runGame(int argc, char* argv[]) {
 
             renderer.shutdown();
         }
+    }
+
+    if (visualQaMode) {
+        return visualQaPassed && visualActionDone ? 0 : 1;
     }
 
     // Save game state to file

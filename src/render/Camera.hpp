@@ -2,8 +2,8 @@
 #include "core/Math.hpp"
 
 struct CanvasMetrics {
-    int windowWidth{1920};
-    int windowHeight{1080};
+    int windowWidth{1280};
+    int windowHeight{720};
     int virtualWidth{640};
     int virtualHeight{360};
     int integerScale{3};

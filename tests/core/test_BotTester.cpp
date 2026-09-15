@@ -3,8 +3,6 @@
 #include "core/BotTester.hpp"
 #include "core/GameSimulation.hpp"
 
-using Catch::Approx;
-
 TEST_CASE("BotTester Autonomous Scenario Execution and Reporting", "[core][bot_tester]") {
     GameSimulation sim;
     sim.initialize(ClassType::Juggernaut);
@@ -64,7 +62,7 @@ TEST_CASE("BotTester Autonomous Scenario Execution and Reporting", "[core][bot_t
 
 TEST_CASE("Focused QA Scenarios Start Fresh and Pass Independently", "[core][qa]") {
     const auto scenarios = getFocusedScenarioNames();
-    REQUIRE(scenarios.size() == 20);
+    REQUIRE(scenarios.size() == 35);
     for (const auto& scenario : scenarios) {
         const FocusedScenarioResult result = runFocusedScenario(scenario);
         INFO("scenario=" << scenario << " detail=" << result.detail);

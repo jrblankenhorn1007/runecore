@@ -14,12 +14,38 @@ bool WorldInteraction::mineTile(
         return false;
     }
 
-    float tileSize = m_physics.getTileSize();
+    const float tileSize = m_physics.getTileSize();
     int tx = static_cast<int>(std::floor(targetWorldPos.x / tileSize));
     int ty = static_cast<int>(std::floor(targetWorldPos.y / tileSize));
 
     if (!m_physics.isSolid(tx, ty)) {
-        return false; // Nothing to mine
+        float bestTargetDistance = reachDistance;
+        float bestPlayerDistance = reachDistance;
+        bool found = false;
+        const int playerTileX = static_cast<int>(std::floor(playerPos.x / tileSize));
+        const int playerTileY = static_cast<int>(std::floor(playerPos.y / tileSize));
+        const int tileRadius = static_cast<int>(std::ceil(reachDistance / tileSize));
+        for (int candidateY = playerTileY - tileRadius; candidateY <= playerTileY + tileRadius; ++candidateY) {
+            for (int candidateX = playerTileX - tileRadius; candidateX <= playerTileX + tileRadius; ++candidateX) {
+                if (!m_physics.isSolid(candidateX, candidateY)) continue;
+                const Vec2 candidateCenter{
+                    candidateX * tileSize + tileSize * 0.5f,
+                    candidateY * tileSize + tileSize * 0.5f
+                };
+                const float playerDistance = playerPos.distanceTo(candidateCenter);
+                const float targetDistance = targetWorldPos.distanceTo(candidateCenter);
+                if (playerDistance <= reachDistance &&
+                    (targetDistance < bestTargetDistance ||
+                     (targetDistance == bestTargetDistance && playerDistance < bestPlayerDistance))) {
+                    tx = candidateX;
+                    ty = candidateY;
+                    bestTargetDistance = targetDistance;
+                    bestPlayerDistance = playerDistance;
+                    found = true;
+                }
+            }
+        }
+        if (!found) return false;
     }
 
     uint16_t blockId = m_tilemap.getBlock(tx, ty, BlockLayer::Foreground);

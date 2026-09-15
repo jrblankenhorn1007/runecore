@@ -17,6 +17,9 @@ struct EnemyProfile {
     float moveSpeed{50.0f};
     float cooldown{1.0f};
     bool frontalShield{false};
+    bool splitsOnDeath{false};
+    bool usesCover{false};
+    bool canPin{false};
 };
 
 struct EnemyAction {
@@ -24,6 +27,7 @@ struct EnemyAction {
     Vec2 movement{0.0f, 0.0f};
     bool attack{false};
     bool retreat{false};
+    bool pin{false};
 };
 
 class EnemyRoster {

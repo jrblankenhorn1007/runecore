@@ -1,5 +1,10 @@
 # Gunslinger (The Ranger / Cyber-Sharpshooter)
 
+**Asset generated:** Yes
+**Asset:** `assets/generated/classes/gunslinger/sprite/source.png`
+
+![Gunslinger](../../assets/generated/classes/gunslinger/sprite/source.png)
+
 The Gunslinger is the master of long-range ballistic marksmanship, high-tech weapon handling, tactical gadgetry, and battlefield distance control in Untitled RPG.
 
 ---

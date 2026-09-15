@@ -3,6 +3,88 @@
 #include "core/GameSimulation.hpp"
 #include "input/InputManager.hpp"
 #include "render/Camera.hpp"
+#include <algorithm>
+
+TEST_CASE("Renderer loads the complete generated asset roster", "[render][renderer][assets]") {
+    Renderer renderer;
+    const bool ok = renderer.init("GeneratedAssetRoster", 640, 360, 640, 360, SDL_WINDOW_HIDDEN);
+    if (!ok) return;
+
+    const auto& assets = Renderer::getRequiredGeneratedAssets();
+    REQUIRE(assets.size() == 9);
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/classes/berserker/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/classes/gunslinger/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/slime_01/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/bat/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/raptor/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/enemies/cyber_gunner/sprite/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/items/forged_scrap_blade/icon/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/items/iron_ore/icon/source.png") != assets.end());
+    REQUIRE(std::find(assets.begin(), assets.end(), "assets/generated/items/wood_plank/icon/source.png") != assets.end());
+    REQUIRE(renderer.getMissingGeneratedAssets().empty());
+
+    renderer.shutdown();
+}
+
+TEST_CASE("World loot uses generated item icons", "[render][renderer][assets]") {
+    Renderer renderer;
+    const bool ok = renderer.init("GeneratedLoot", 640, 360, 640, 360, SDL_WINDOW_HIDDEN);
+    if (!ok) return;
+
+    Camera camera;
+    camera.setPosition(Vec2{100.0f, 160.0f});
+    const CanvasMetrics metrics = Camera::calculateCanvasMetrics(640, 360);
+    renderer.beginFrame();
+    renderer.drawLoot(Vec2{110.0f, 155.0f}, "Forged Scrap Blade", camera, metrics);
+    renderer.drawLoot(Vec2{130.0f, 155.0f}, "Iron Ore", camera, metrics);
+    renderer.drawLoot(Vec2{150.0f, 155.0f}, "Wood Plank", camera, metrics);
+    renderer.endFrame(metrics);
+
+    REQUIRE(renderer.getGeneratedDrawCount("assets/generated/items/forged_scrap_blade/icon/source.png") > 0);
+    REQUIRE(renderer.getGeneratedDrawCount("assets/generated/items/iron_ore/icon/source.png") > 0);
+    REQUIRE(renderer.getGeneratedDrawCount("assets/generated/items/wood_plank/icon/source.png") > 0);
+    renderer.shutdown();
+}
+
+TEST_CASE("Generated enemy rendering records a distinct asset draw", "[render][renderer][assets]") {
+    Renderer renderer;
+    REQUIRE(renderer.init("GeneratedEnemy", 640, 360, 640, 360, SDL_WINDOW_HIDDEN));
+
+    Camera camera;
+    const CanvasMetrics metrics = Camera::calculateCanvasMetrics(640, 360);
+    renderer.beginFrame();
+    REQUIRE(renderer.drawGeneratedEntity(
+        "assets/generated/enemies/raptor/sprite/source.png",
+        Vec2{120.0f, 155.0f}, Vec2{22.0f, 18.0f}, camera, metrics, 0.75f, true, false));
+    renderer.endFrame(metrics);
+
+    REQUIRE(renderer.getGeneratedDrawCount("assets/generated/enemies/raptor/sprite/source.png") == 1);
+    renderer.shutdown();
+}
+
+TEST_CASE("Pixel text maps supported characters to bounded glyphs", "[render][renderer][text]") {
+    REQUIRE(Renderer::pixelGlyphIndex('0') == 0);
+    REQUIRE(Renderer::pixelGlyphIndex('9') == 9);
+    REQUIRE(Renderer::pixelGlyphIndex('A') == 10);
+    REQUIRE(Renderer::pixelGlyphIndex('P') == 25);
+    REQUIRE(Renderer::pixelGlyphIndex('Q') == 26);
+    REQUIRE(Renderer::pixelGlyphIndex('Z') == 35);
+    REQUIRE(Renderer::pixelGlyphIndex('a') == Renderer::pixelGlyphIndex('A'));
+    REQUIRE(Renderer::pixelGlyphIndex('+') == 36);
+    REQUIRE(Renderer::pixelGlyphIndex('-') == 37);
+    REQUIRE(Renderer::pixelGlyphIndex('%') == 38);
+    REQUIRE(Renderer::pixelGlyphIndex('/') == 39);
+    REQUIRE(Renderer::pixelGlyphIndex('?') == 40);
+}
+
+TEST_CASE("Pixel text advances glyph rows on integer pixel coordinates", "[render][renderer][text]") {
+    REQUIRE(Renderer::pixelGlyphRow(0) == 0);
+    REQUIRE(Renderer::pixelGlyphRow(1) == 0);
+    REQUIRE(Renderer::pixelGlyphRow(2) == 0);
+    REQUIRE(Renderer::pixelGlyphRow(3) == 1);
+    REQUIRE(Renderer::pixelGlyphRow(6) == 2);
+    REQUIRE(Renderer::pixelGlyphRow(14) == 4);
+}
 
 TEST_CASE("Renderer Complete Drawing Functions and Offscreen Pipeline", "[render][renderer]") {
     Renderer renderer;

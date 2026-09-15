@@ -14,6 +14,7 @@
 #include "gameplay/crafting/CraftingEngine.hpp"
 #include "gameplay/crafting/ModificationForge.hpp"
 #include "gameplay/building/WorldInteraction.hpp"
+#include "gameplay/building/FarmingSystem.hpp"
 #include "procgen/DungeonGenerator.hpp"
 #include "render/FloatingText.hpp"
 #include "render/ParticleSystem.hpp"
@@ -102,6 +103,8 @@ public:
     const SkillTree& getSkillTree() const { return m_skillTree; }
     GuiWorkflows& getGuiWorkflows() { return m_guiWorkflows; }
     const GuiWorkflows& getGuiWorkflows() const { return m_guiWorkflows; }
+    FarmingSystem& getFarming() { return m_farming; }
+    const FarmingSystem& getFarming() const { return m_farming; }
     FloatingTextSystem& getFloatingText() { return m_floatingText; }
     const FloatingTextSystem& getFloatingText() const { return m_floatingText; }
     AudioEngine& getAudio() { return m_audio; }
@@ -131,6 +134,7 @@ private:
     ParticleSystem m_particles;
     AudioEngine m_audio;
     GuiWorkflows m_guiWorkflows;
+    FarmingSystem m_farming;
 
     entt::entity m_playerEntity{entt::null};
     uint64_t m_tickCount{0};

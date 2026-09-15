@@ -1,0 +1,22 @@
+# Void-Warped Striders
+
+**Stable ID:** `arm_bt_t6_02`  
+**Entity type:** Armor  
+**Category:** Armor  
+**Implemented:** No  
+**Implementation:** `Not mapped to runtime code`  
+**Asset generated:** No  
+**Asset:** No generated asset  
+**Source catalog:** [armor_index.md](../armor_index.md)
+
+## Catalog Data
+
+| Field | Value |
+|---|---|
+| ID | `arm_bt_t6_02` |
+| Name | *Void-Warped Striders* |
+| Type | Cloth |
+| Armor Range | 15 – 22 |
+| Speed Bonus | +22% Speed |
+| Special / Implicit Perk | Phase walk (ignore enemy hitboxes) |
+

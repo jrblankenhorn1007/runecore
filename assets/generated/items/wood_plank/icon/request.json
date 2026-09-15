@@ -1,0 +1,15 @@
+{
+  "id": "item_wood_plank_icon",
+  "category": "items",
+  "label": "icon",
+  "prompt": "A wood plank item icon, readable pixel art on transparent background",
+  "style": "runecore_pixel_v1",
+  "camera": "orthographic",
+  "presentation_tier": "pixel",
+  "width": 128,
+  "height": 128,
+  "transparent_background": true,
+  "animation_frames": 1,
+  "intended_use": "inventory_icon",
+  "documentation": "docs/items/materials/materials_index.md"
+}

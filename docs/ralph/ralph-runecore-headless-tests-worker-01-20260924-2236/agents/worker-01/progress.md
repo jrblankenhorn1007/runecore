@@ -40,4 +40,44 @@
 - The project's `.github/memory/` store is absent on the active base. The worker has not edited memory; post-merge memory review remains with the coordinator.
 - **Implementation commit:** `git commit -m "test: run CTest headlessly by default" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"` — PASS, commit `28c5277c1233790476b15feef3d467fcb82eb7b7`. The required co-author trailer is present.
 - **Pre-publish fetch:** `git fetch origin` — PASS; `origin/main` remained `b5a3437ceaec52828b19a73a761fed33ab649e78`, equal to the recorded base, so no rebase was required.
-- **Current state:** `IN_PROGRESS`; checks are complete and the branch is preparing for commit/publication. The unfiltered suite and Windows/Linux remain unverified.
+- **Branch publication:** `git push -u origin ralph/runecore-headless-tests-worker-01-20260924-2236` — PASS; Git set the remote tracking branch.
+- **PR creation:** `gh` is not installed. The available GitHub MCP methods do not include PR creation, and the loaded `create-pr` skill falls back to `gh`; its required creation path is unavailable. The worker did not use the Git-provided PR URL in a browser. No PR was opened, and the branch is preserved.
+- **Memory disposition:** `.github/memory/` is absent and this worker does not own shared memory. The coordinator must perform the post-merge memory review if integration later succeeds.
+- **Worker sign-off:** `SELF_ATTESTATION`, `NOT_CRYPTOGRAPHICALLY_SIGNED`, attested `2026-09-25T03:17:17Z`, bound to `28c5277c1233790476b15feef3d467fcb82eb7b7`. The exact structured payload is:
+
+  ```json
+  {
+    "run_id": "runecore-ralph-bootstrap-20260924",
+    "task_ids": ["headless-test-runner"],
+    "worker_id": "worker-01",
+    "worker_name": "worker-01 / headless test runner",
+    "runtime_agent_id": "copilotcli:/286513af-1841-42ac-b897-2d88633b63c2",
+    "iteration": 1,
+    "branch": "ralph/runecore-headless-tests-worker-01-20260924-2236",
+    "worktree": "/Users/jrblankenhorn/Documents/untitled_rpg.worktrees/runecore-headless-tests-worker-01-20260924-2236",
+    "pull_request": {
+      "status": "NOT_OPENED",
+      "number": null,
+      "url": null
+    },
+    "decision_record_path": "docs/decisions/ralph-runecore-headless-tests-worker-01-20260924-2236/agents/worker-01/pr-not-opened.md",
+    "base_origin_main_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+    "implementation_commit_sha": "28c5277c1233790476b15feef3d467fcb82eb7b7",
+    "checks": [
+      { "command": "cmake -S /Users/jrblankenhorn/Documents/untitled_rpg.worktrees/runecore-headless-tests-worker-01-20260924-2236 -B /Users/jrblankenhorn/Documents/untitled_rpg.worktrees/runecore-headless-tests-worker-01-20260924-2236/build -G Ninja", "result": "PASS" },
+      { "command": "cmake --build /Users/jrblankenhorn/Documents/untitled_rpg.worktrees/runecore-headless-tests-worker-01-20260924-2236/build --target test_InputManager test_Renderer test_AssetPipeline untitled_rpg", "result": "PASS" },
+      { "command": "ctest --test-dir /Users/jrblankenhorn/Documents/untitled_rpg.worktrees/runecore-headless-tests-worker-01-20260924-2236/build --output-on-failure -R '^(test_InputManager|test_Renderer|test_AssetPipeline|test_asset_pipeline)$'", "result": "PASS" },
+      { "command": "./tools/run-headless-tests.sh -R '^(test_InputManager|test_Renderer|test_AssetPipeline|test_asset_pipeline)$'", "result": "PASS" },
+      { "command": "sh -n tools/run-headless-tests.sh && test -x tools/run-headless-tests.sh", "result": "PASS" },
+      { "command": "git diff --check", "result": "PASS" }
+    ],
+    "blockers": [
+      "PR creation unavailable: gh is not installed and the available GitHub MCP surface has no create-PR operation."
+    ],
+    "attested_at_utc": "2026-09-25T03:17:17Z",
+    "attestation_kind": "SELF_ATTESTATION",
+    "cryptographic_signature_status": "NOT_CRYPTOGRAPHICALLY_SIGNED",
+    "statement": "I, worker-01, sign off iteration 1 for headless-test-runner at implementation commit 28c5277c1233790476b15feef3d467fcb82eb7b7."
+  }
+  ```
+- **Current state:** `BLOCKED` — checks are complete and branch is published, but PR creation is unavailable. The unfiltered suite and Windows/Linux remain unverified.

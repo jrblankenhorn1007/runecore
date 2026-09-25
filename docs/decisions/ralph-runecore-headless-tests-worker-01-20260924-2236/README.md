@@ -6,4 +6,4 @@
 
 ## Agent / PR records
 
-- [worker-01 — PR pending](agents/worker-01/pr-pending.md)
+- [worker-01 — PR not opened](agents/worker-01/pr-not-opened.md)

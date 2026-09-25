@@ -34,6 +34,16 @@ std::string shellQuote(const std::string& value) {
     return quoted;
 }
 
+std::string curlConfigValue(const std::string& value) {
+    std::string escaped;
+    escaped.reserve(value.size());
+    for (char character : value) {
+        if (character == '\\' || character == '"') escaped += '\\';
+        escaped += character;
+    }
+    return escaped;
+}
+
 std::filesystem::path temporaryPath(const std::string& suffix) {
     std::random_device random;
     std::ostringstream name;
@@ -181,12 +191,33 @@ bool OpenAIImageProvider::generate(const GenerationRequest& request, const std::
     const auto responsePath = temporaryPath(".json");
     const auto payloadPath = temporaryPath(".payload");
     std::error_code cleanupError;
-    const std::string curlConfig =
-        "url = \"" + m_config.apiUrl + "\"\n"
+    const bool hasReferenceImage = !request.referenceImage.empty();
+    std::string endpoint = m_config.apiUrl;
+    if (hasReferenceImage) {
+        const auto generationSuffix = endpoint.rfind("/generations");
+        if (generationSuffix != std::string::npos) {
+            endpoint.replace(generationSuffix, std::string("/generations").size(), "/edits");
+        }
+        else endpoint += "/edits";
+    }
+    std::string curlConfig =
+        "url = \"" + endpoint + "\"\n"
         "request = POST\n"
-        "header = \"Authorization: Bearer " + apiKey + "\"\n"
-        "header = \"Content-Type: application/json\"\n"
-        "data-binary = \"@" + payloadPath.string() + "\"\n"
+        "header = \"Authorization: Bearer " + apiKey + "\"\n";
+    if (hasReferenceImage) {
+        curlConfig +=
+            "form = \"model=" + m_config.model + "\"\n"
+            "form = \"prompt=" + curlConfigValue(prompt) + "\"\n"
+            "form = \"size=" + supportedGenerationSize(request) + "\"\n"
+            "form = \"background=" + std::string(request.transparentBackground ? "transparent" : "opaque") + "\"\n"
+            "form = \"output_format=png\"\n"
+            "form = \"image=@" + curlConfigValue(request.referenceImage) + "\"\n";
+    } else {
+        curlConfig +=
+            "header = \"Content-Type: application/json\"\n"
+            "data-binary = \"@" + payloadPath.string() + "\"\n";
+    }
+    curlConfig +=
         "output = \"" + responsePath.string() + "\"\n"
         "silent\nshow-error\n";
     if (!writeText(configPath, curlConfig, error)) return false;
@@ -198,6 +229,10 @@ bool OpenAIImageProvider::generate(const GenerationRequest& request, const std::
     const int exitCode = std::system(command.c_str());
     std::ifstream response(responsePath);
     std::string responseText((std::istreambuf_iterator<char>(response)), std::istreambuf_iterator<char>());
+        if (responseText.empty()) {
+            error = "OpenAI request returned an empty response. Check the configured image endpoint and request fields.";
+            return false;
+        }
     std::filesystem::remove(configPath, cleanupError);
     std::filesystem::remove(payloadPath, cleanupError);
     std::filesystem::remove(responsePath, cleanupError);
@@ -227,7 +262,8 @@ bool OpenAIImageProvider::generate(const GenerationRequest& request, const std::
         }
         return validateGeneratedImage(outputPath, error);
     } catch (const std::exception& exception) {
-        error = std::string("Unable to parse OpenAI response: ") + exception.what();
+        error = std::string("Unable to parse OpenAI response: ") + exception.what() +
+            " Response: " + responseText.substr(0, 1000);
         return false;
     }
 }
@@ -253,6 +289,7 @@ bool loadGenerationRequest(const std::filesystem::path& path, GenerationRequest&
         request.animationFrames = data.value("animation_frames", 1);
         request.intendedUse = data.value("intended_use", "");
         request.documentationPath = data.value("documentation", "");
+        request.referenceImage = data.value("reference_image", "");
         return true;
     } catch (const std::exception& exception) {
         error = std::string("Invalid request metadata: ") + exception.what();
@@ -268,7 +305,7 @@ bool writeGenerationRequest(const std::filesystem::path& path, const GenerationR
         {"width", request.width}, {"height", request.height},
         {"transparent_background", request.transparentBackground},
         {"animation_frames", request.animationFrames}, {"intended_use", request.intendedUse},
-        {"documentation", request.documentationPath}
+        {"documentation", request.documentationPath}, {"reference_image", request.referenceImage}
     };
     if (!path.parent_path().empty()) std::filesystem::create_directories(path.parent_path());
     return writeText(path, data.dump(2) + "\n", error);

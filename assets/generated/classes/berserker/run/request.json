@@ -1,0 +1,16 @@
+{
+  "id": "class_berserker_run",
+  "category": "classes",
+  "label": "run",
+  "prompt": "Use the attached standing sprite as the exact character reference. Create exactly one full-body side-view pixel-art Berserker figure with the same medium warm-brown skin, muscular physique, long dark hair, simple unarmored cloth waist wrap and plain boots. Show one powerful forward-leaning running pose with empty hands. No weapon, shield, helmet, armor, face covering, duplicate figure, animation sheet, grid, or extra poses. Transparent background, no text.",
+  "style": "runecore_pixel_v1",
+  "camera": "side_view",
+  "presentation_tier": "pixel",
+  "width": 1024,
+  "height": 1024,
+  "transparent_background": true,
+  "animation_frames": 1,
+  "intended_use": "class_world_animation",
+  "documentation": "docs/classes/berserker_barbarian.md",
+  "reference_image": "assets/generated/classes/berserker/sprite/source.png"
+}

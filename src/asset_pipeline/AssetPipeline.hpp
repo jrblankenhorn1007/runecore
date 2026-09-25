@@ -19,6 +19,7 @@ struct GenerationRequest {
     int animationFrames{1};
     std::string intendedUse;
     std::string documentationPath;
+    std::string referenceImage;
 };
 
 struct PipelineConfig {

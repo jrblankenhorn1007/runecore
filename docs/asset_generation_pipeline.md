@@ -101,12 +101,15 @@ Example:
   "transparent_background": true,
   "animation_frames": 4,
         "intended_use": "world_enemy",
-        "documentation": "docs/enemies/rune-core-cave-slime.md"
+        "documentation": "docs/enemies/rune-core-cave-slime.md",
+        "reference_image": "assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png"
 }
 ```
 
-Each generated enemy request must identify its associated documentation markdown
-with `documentation`. The image remains under `assets/generated/` or a later
+Each generated request must identify its associated documentation markdown with
+`documentation`. Animation or pose requests may identify a canonical source image
+with `reference_image`; the provider uses that image to preserve character
+identity across states. The image remains under `assets/generated/` or a later
 processed/approved asset directory; the markdown references that image with a
 relative link instead of storing a copy in `docs/`.
 

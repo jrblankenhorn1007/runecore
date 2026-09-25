@@ -23,6 +23,7 @@ TEST_CASE("Asset pipeline request metadata round trips", "[asset_pipeline]") {
     expected.height = 128;
     expected.animationFrames = 4;
     expected.documentationPath = "docs/enemies/subterranean-caverns/rune-core-cave-slime.md";
+    expected.referenceImage = "assets/generated/enemies/subterranean-caverns/slime_01/sprite/source.png";
 
     std::string error;
     REQUIRE(asset_pipeline::writeGenerationRequest(path, expected, error));
@@ -35,6 +36,7 @@ TEST_CASE("Asset pipeline request metadata round trips", "[asset_pipeline]") {
     REQUIRE(actual.width == expected.width);
     REQUIRE(actual.animationFrames == expected.animationFrames);
     REQUIRE(actual.documentationPath == expected.documentationPath);
+    REQUIRE(actual.referenceImage == expected.referenceImage);
 
     std::filesystem::remove_all(testDirectory);
 }

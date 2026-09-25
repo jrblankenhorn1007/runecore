@@ -5,6 +5,34 @@
 
 ![Berserker](../../assets/generated/classes/berserker/sprite/source.png)
 
+## Animation Asset Set
+
+Each pose is kept in its own asset folder with one `request.json` and one
+`source.png`. Every source image is a single full-body pose, not a sprite sheet;
+runtime animation can sequence these approved poses later. The standing sprite
+is the primary class image and the visual reference for every other pose.
+
+| Animation | Folder | Frames | Intended use |
+|---|---|---:|---|
+| Standing | `sprite/` | 1 | Default idle/world sprite |
+| Walk | `walk/` | 1 | Ground movement pose |
+| Run | `run/` | 1 | Sprint movement pose |
+| Jump | `jump/` | 1 | First jump pose |
+| Double jump | `double_jump/` | 1 | Mid-air second launch pose |
+| Attack | `attack/` | 1 | Empty-handed melee pose |
+| Block | `block/` | 1 | Empty-handed defensive pose |
+| Ability | `ability/` | 1 | Rage activation pose |
+| Hurt | `hurt/` | 1 | Hit reaction pose |
+| Defeat | `defeat/` | 1 | Kneeling defeat pose |
+
+All Berserker animation assets live under
+`assets/generated/classes/berserker/<animation>/`. The source requests are
+ready for regeneration through `runecore_asset_pipeline`.
+
+All Berserker poses use the same medium warm-brown skin, long dark hair, muscular
+unarmored body, simple cloth waist wrap, and plain boots. This asset set has no
+equipped armor, helmet, shield, weapon, or face covering.
+
 The Berserker is the premier high-risk, high-reward melee combatant in Untitled RPG, embodying the brutal archetype of the primal barbarian enhanced by volatile chimeric muscle tissue, hyper-adrenal gland mutations, and savage instinct.
 
 ---

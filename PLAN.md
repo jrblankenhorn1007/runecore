@@ -907,6 +907,12 @@ All game content is data-driven. The C++ engine deserializes these definitions a
 
 ## 12. Phased Implementation Roadmap (TDD Driven: Step 0 through M10)
 
+> **Historical planning note:** The phase boxes in this section are historical
+> design and implementation planning, not current project status or the live
+> game-completion backlog. Use the unchecked leaf tasks in Section 5 of
+> `TODO.md` as candidates, and verify current source and test evidence before
+> changing implementation or tracking. See [`docs/ralph-loop.md`](docs/ralph-loop.md).
+
 Development strictly follows **Test-Driven Development (TDD)**:
 1. **Red**: Write a failing unit test in `tests/test_*.cpp` specifying the required behavior or mathematical outcome.
 2. **Green**: Implement the minimal, clean C++ code in `src/` to make the test pass.
@@ -1030,4 +1036,3 @@ cmake --build build
 - **ECS**: Components are pure POD data structs without logic. Systems are free functions `void UpdateX(entt::registry& registry, float dt)`.
 - **Data-Driven**: All stats, costs, damage values, and drop rates live in `assets/data/*.json`. Hardcoded constants in C++ gameplay logic are prohibited.
 - **Testing**: Every core system (Stats pipeline, Inventory/Augmentation equipping, Dungeon generation) has accompanying Catch2 tests in `tests/`.
-

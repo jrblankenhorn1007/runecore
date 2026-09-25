@@ -1,6 +1,16 @@
 # TODO Execution Checklist
 
-This is the executable order derived from `TODO.md`. Each item must have a focused `test_<workflow>` process or a mirrored unit test before it is marked complete.
+This checklist records the execution order originally derived from `TODO.md`.
+Its original completion rule required a focused `test_<workflow>` process or a
+mirrored unit test before an item was marked complete.
+
+> **Status clarification:** This is the completed execution-baseline checklist,
+> not the current game-completion backlog. Its checked boxes are baseline
+> tracking, not proof that current source behavior or tests still pass. Some
+> descriptions overlap unchecked leaves in Section 5 of `TODO.md`; reconcile
+> any overlap only after checking current source and relevant test evidence.
+> See [`docs/ralph-loop.md`](docs/ralph-loop.md) for the active iteration
+> rules.
 
 ## 1. Combat Feedback
 - [x] `fct`: add typed combat text colors for physical, elemental, critical, healing, and XP events; verify fade, upward drift, and gravity in `test_feedback`.
@@ -36,4 +46,8 @@ This is the executable order derived from `TODO.md`. Each item must have a focus
 - [x] `respawn`: add death overlay, recovery drone/drop materials, and bed/clinic spawn selection; verify in `test_respawn`.
 
 ## Execution Rule
-After each item: update this checklist, update `TODO.md`, run the focused test, then continue to the next unchecked item. A passing test is a checkpoint, not the end of the work.
+This rule describes the original workflow for the completed baseline above;
+it is not a live instruction to continue through this checklist. Current
+game-completion work selects unchecked leaf tasks from Section 5 of `TODO.md`
+and follows [`docs/ralph-loop.md`](docs/ralph-loop.md). A passing test
+supports only the behavior it covers.

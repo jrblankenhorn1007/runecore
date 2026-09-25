@@ -449,6 +449,12 @@ This section tracks the live feature-by-feature implementation using strict Test
 
 ## 5. Commercial Pre-Launch Production Roadmap (The Road to 1.0 Release)
 
+> **Ralph Loop backlog:** For game-completion iterations, the candidate list
+> is the unchecked leaf tasks in this section. An unchecked child remains open
+> even when its parent is checked. Verify behavior against current source and
+> tests before acting on a stale-looking item; overlapping checklist entries
+> are not proof of current status. See [`docs/ralph-loop.md`](docs/ralph-loop.md).
+
 This roadmap details all player-facing features, audiovisual juice, interactive GUI systems, and gameplay loops required to transition Untitled RPG from an architectural simulation into a complete, commercial-grade 2D sidescrolling ARPG.
 
 ### 5.1 Combat Feel, Game-Juice & Visual Feedback

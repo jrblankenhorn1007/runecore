@@ -70,17 +70,36 @@ to identify each mini-run as it starts. Successful runs also save one post-actio
 
 ## Test
 
-Run the complete Catch2 and game-launched test suite with:
+Run the complete Catch2 and game-launched test suite headlessly:
 
 ```sh
-ctest --test-dir build --output-on-failure
+./tools/run-headless-tests.sh
 ```
 
-After changing source files, rebuild first:
+CTest applies SDL's dummy video and audio drivers to every test process. The
+helper is quiet on success; all CTest output is saved to
+`build/headless-tests.log`. The status file, `build/headless-tests.status`,
+contains `RUNNING` while the suite executes and `EXIT_CODE=<code>` when it
+finishes. On failure, the helper returns a nonzero exit code and points to the
+log, which retains CTest's failure output.
+
+Pass normal CTest options through the helper to select tests:
+
+```sh
+./tools/run-headless-tests.sh -R 'test_(InputManager|Renderer)'
+```
+
+After changing source files, rebuild before running the helper:
 
 ```sh
 cmake --build build
-ctest --test-dir build --output-on-failure
+./tools/run-headless-tests.sh
+```
+
+To run the full suite in the background from the repository root:
+
+```sh
+nohup ./tools/run-headless-tests.sh > /dev/null 2>&1 < /dev/null &
 ```
 
 ## Controls

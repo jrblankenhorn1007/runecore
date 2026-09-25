@@ -11,6 +11,9 @@ set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
+# Headless CTest processes rely on SDL's dummy video and audio backends.
+set(SDL_DUMMYAUDIO ON CACHE BOOL "" FORCE)
+set(SDL_DUMMYVIDEO ON CACHE BOOL "" FORCE)
 add_subdirectory(external/sdl3 EXCLUDE_FROM_ALL)
 if(TARGET SDL3-static)
     target_compile_options(SDL3-static PRIVATE -w)
@@ -130,3 +133,11 @@ foreach(QA_SCENARIO ${FOCUSED_QA_SCENARIOS})
         COMMAND untitled_rpg --qa ${QA_SCENARIO}
     )
 endforeach()
+
+# Keep every CTest-launched process headless, including unit tests and focused QA.
+get_property(RUNECORE_CTEST_TESTS DIRECTORY PROPERTY TESTS)
+if(RUNECORE_CTEST_TESTS)
+    set_tests_properties(${RUNECORE_CTEST_TESTS} PROPERTIES
+        ENVIRONMENT "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy"
+    )
+endif()

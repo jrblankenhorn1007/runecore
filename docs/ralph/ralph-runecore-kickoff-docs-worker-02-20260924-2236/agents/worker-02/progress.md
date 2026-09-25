@@ -111,12 +111,16 @@
       "command": "SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ctest --test-dir build --quiet --output-log build/ctest.log",
       "result": "NOT_RUN"
     },
-    { "command": "TDD Red-Green-Refactor", "result": "NOT_RUN (documentation-only)" }
+    {
+      "command": "TDD Red-Green-Refactor",
+      "result": "NOT_RUN",
+      "note": "Documentation-only; Red/Green/Refactor are not applicable."
+    }
   ],
   "blockers": [
     "No supported PR-creation tool is available: gh is not installed and the available GitHub MCP operations do not create pull requests."
   ],
-  "attested_at_utc": "2026-09-25T03:14:17Z",
+  "attested_at_utc": "2026-09-25T03:17:55Z",
   "attestation_kind": "SELF_ATTESTATION",
   "cryptographic_signature_status": "NOT_CRYPTOGRAPHICALLY_SIGNED",
   "statement": "I, worker-02, sign off iteration 1 for game-backlog-prompt at implementation commit 70c297585074dae8c0190397a7af5d576205851e."

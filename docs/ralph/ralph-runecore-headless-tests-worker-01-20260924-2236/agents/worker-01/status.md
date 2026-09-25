@@ -9,10 +9,10 @@ branch_slug: "ralph-runecore-headless-tests-worker-01-20260924-2236"
 iteration: 1
 status: IN_PROGRESS
 started_at_utc: "2026-09-25T03:02:34Z"
-updated_at_utc: "2026-09-25T03:11:53Z"
+updated_at_utc: "2026-09-25T03:13:11Z"
 base_origin_main_sha: "b5a3437ceaec52828b19a73a761fed33ab649e78"
 rebased_onto_origin_main_sha: null
-implementation_commit_sha: null
+implementation_commit_sha: "28c5277c1233790476b15feef3d467fcb82eb7b7"
 checks:
   - command: "cmake -S <worktree> -B <worktree>/build -G Ninja"
     result: PASS
@@ -29,7 +29,7 @@ checks:
   - command: "git diff --check"
     result: PASS
 blockers: []
-next_action: "Commit and publish the verified changes; check whether a supported PR-creation tool is available."
+next_action: "Publish the committed branch; create a PR if supported, without merging before coordinator authorization."
 pull_request:
   status: PENDING
   number: null

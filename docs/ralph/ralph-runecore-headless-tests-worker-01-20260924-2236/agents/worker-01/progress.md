@@ -38,4 +38,6 @@
 - **Refactor/final checks:** no separate behavior-neutral refactor was warranted for this small CMake/script change. `sh -n tools/run-headless-tests.sh`, executable-mode verification, `git diff --check`, the CTest environment assertion, and the four targeted tests all passed after implementation.
 - The configure output noted optional missing PkgConfig/LibUSB detection; SDL configuration still completed and the required drivers were enabled. Only macOS was tested. Windows and Linux were not run; the unfiltered 87-test suite was not run.
 - The project's `.github/memory/` store is absent on the active base. The worker has not edited memory; post-merge memory review remains with the coordinator.
+- **Implementation commit:** `git commit -m "test: run CTest headlessly by default" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"` — PASS, commit `28c5277c1233790476b15feef3d467fcb82eb7b7`. The required co-author trailer is present.
+- **Pre-publish fetch:** `git fetch origin` — PASS; `origin/main` remained `b5a3437ceaec52828b19a73a761fed33ab649e78`, equal to the recorded base, so no rebase was required.
 - **Current state:** `IN_PROGRESS`; checks are complete and the branch is preparing for commit/publication. The unfiltered suite and Windows/Linux remain unverified.

@@ -1,0 +1,22 @@
+{
+  "owner": {
+    "agent_id": "coordinator",
+    "operation": "STATUS",
+    "run_id": "runecore-boss-telegraphs-20261007-0510",
+    "runtime_agent_id": "copilotcli:/a9d56901-462d-4292-b210-7b738822dc4f",
+    "signed_in_at_utc": "2026-10-07T05:10:58Z",
+    "start_main_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+    "token": "62df96dace8e6cfebea71c2b35d6f2eb",
+    "worktree_path": null
+  },
+  "ref": "refs/heads/main",
+  "repository": "jrblankenhorn1007/runecore",
+  "revision": 1,
+  "schema_version": 1,
+  "sign_out": {
+    "at_utc": null,
+    "outcome": null,
+    "result_commit_sha": null
+  },
+  "state": "OWNED"
+}

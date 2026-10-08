@@ -279,3 +279,66 @@
   change; the new guard does not alter those visual scenes.
 - Complete-game rating remains pending. Automated checks prove launch and
   pause behavior, not campaign completeness or a full human playthrough.
+
+## Rebase verification and implementation sign-off - 2026-10-08
+
+- Rebased the implementation onto the verified task-status sign-out
+  `190a15b2eda23736193e17bbd6d1221243715c3c`.
+- Exact rebased implementation commit:
+  `263ac7a116d3732afac40a1cbda8cbc0a3a7abb4`.
+- Post-rebase command:
+  `cmake --build build --target test_MainRunner test_GameSimulation test_BossAI test_Renderer untitled_rpg -j 4 && ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_BossAI|test_Renderer|test_boss)$' --output-on-failure`
+  — **PASS**, 5/5 tests in 27.96 seconds.
+- The build emitted the existing Apple CoreGraphics enum-conversion
+  deprecation warning in `Renderer.cpp` image loading; it is unrelated to this
+  iteration and was not changed.
+- I sign off on implementation commit
+  `263ac7a116d3732afac40a1cbda8cbc0a3a7abb4` for integration. This is a
+  self-attestation, not a cryptographic signature. The user-requested 9/10
+  rating remains open and must not be inferred from these checks.
+
+### Structured implementation sign-off
+
+```json
+{
+  "run_id": "runecore-boss-telegraphs-20261007-0510",
+  "task_ids": ["boss-warning-telegraphs"],
+  "worker_id": "coordinator",
+  "worker_name": "Coordinator - boss warning telegraphs",
+  "runtime_agent_id": "copilotcli:/a9d56901-462d-4292-b210-7b738822dc4f",
+  "iteration": 1,
+  "branch": "ralph/boss-telegraph-warnings-20261007",
+  "worktree": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegraph-warnings-20261007",
+  "pull_request": {
+    "status": "NOT_OPENED",
+    "number": null,
+    "url": null
+  },
+  "decision_record_path": "docs/decisions/ralph-boss-telegraph-warnings-20261007/agents/coordinator/pr-not-opened.md",
+  "base_origin_main_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+  "parent_branch": "ralph/boss-telegraph-warnings-20261007",
+  "parent_worktree": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegraph-warnings-20261007",
+  "parent_base_origin_main_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+  "rebased_onto_origin_main_sha": "190a15b2eda23736193e17bbd6d1221243715c3c",
+  "implementation_commit_sha": "263ac7a116d3732afac40a1cbda8cbc0a3a7abb4",
+  "checks": [
+    {
+      "command": "cmake --build build --target test_MainRunner test_GameSimulation test_BossAI test_Renderer untitled_rpg -j 4 && ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_BossAI|test_Renderer|test_boss)$' --output-on-failure",
+      "result": "PASS: 5/5 tests in 27.96 seconds after rebase"
+    },
+    {
+      "command": "cmake --build build -j 4 && ctest --test-dir build --output-on-failure",
+      "result": "PASS: 87/87 tests in 39.05 seconds before rebase"
+    },
+    {
+      "command": "SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ./build/untitled_rpg --visual-qa all",
+      "result": "PASS: 14 offscreen scenes before the final modal-only guard"
+    }
+  ],
+  "blockers": [],
+  "attested_at_utc": "2026-10-08T03:29:08Z",
+  "attestation_kind": "SELF_ATTESTATION",
+  "cryptographic_signature_status": "NOT_CRYPTOGRAPHICALLY_SIGNED",
+  "statement": "I, coordinator, sign off iteration 1 for boss-warning-telegraphs at commit 263ac7a116d3732afac40a1cbda8cbc0a3a7abb4."
+}
+```

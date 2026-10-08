@@ -87,3 +87,26 @@
   version 2; `JSON.parse` validated the agent-sync status at revision 8.
 - The full build and 88/88 headless CTest suite remained green. The full
   manual game loop and rating were deliberately left unchecked.
+
+## MERGE lease, rebase, and sign-off
+
+- Committed the implementation and branch records as pre-reservation commit
+  `f27b1cc77c88f3555fc71792bf5311f41c92b999`, including the required Copilot
+  co-author trailer.
+- Refreshed the clean main integration worktree to origin/main
+  `5607ad0541a7a97fe5aa7b8e6a183c6dc267385d`.
+- Acquired the exclusive MERGE lease with the repository helper. The verified
+  sign-in commit and lease base are
+  `f28f6b75005e7658384d2127782557c3f0c373b2` (ownership revision 27); the
+  token is intentionally not recorded.
+- Rebased the unpublished implementation branch onto the sign-in commit with
+  no conflicts, producing exact implementation commit
+  `e146bea8e78dd02ab0c07498eac28e32002818d7`. Fast-forwarded the clean main
+  integration worktree to the same sign-in SHA.
+- Reran
+  `cmake --build build --target test_GameSimulation test_SaveManager test_Renderer test_MainRunner --parallel 4 && ctest --test-dir build --output-on-failure -R '^(test_GameSimulation|test_SaveManager|test_Renderer|test_MainRunner)$'`;
+  all 4 tests passed in 31.65 seconds under dummy SDL drivers.
+- **SELF_ATTESTATION:** I, coordinator, sign off iteration 3 on exact
+  post-rebase implementation commit
+  `e146bea8e78dd02ab0c07498eac28e32002818d7`. This statement is not
+  cryptographically signed.

@@ -10,7 +10,10 @@
 - Post-rebase implementation commit:
   `e146bea8e78dd02ab0c07498eac28e32002818d7`
 - MERGE sign-in base: `f28f6b75005e7658384d2127782557c3f0c373b2`
+- Verified remote-main fast-forward: `7682534b8c814820e60d426175488f254d528fc0`
 - Pull request: `NOT_OPENED`
 
 The repository's normal integration path is the authorized no-PR
 fast-forward under a fresh MERGE lease, with post-push remote verification.
+The signed-off branch tip was fast-forwarded and verified on `origin/main`;
+the active lease remains to be released through the repository helper.

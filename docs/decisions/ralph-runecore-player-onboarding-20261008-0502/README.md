@@ -20,9 +20,14 @@
   while completed characters are not interrupted on later sessions.
 - Keep the complete-game 9/10 gate open. A clear ending and direct
   start-to-finish playtest remain unverified.
-- Preserve the dedicated post-merge memory-review blocker for iterations 1
-  and 2. Continue serially because Resource Manager has no available slot;
+- Preserve the dedicated post-merge memory-review blocker for iterations 1,
+  2, and 3. Continue serially because Resource Manager has no available slot;
   do not substitute coordinator self-review.
 - The pre-reservation implementation commit was rebased without conflicts
   onto the authorized MERGE sign-in commit; the four focused headless tests
   passed again on the exact implementation SHA.
+- Fast-forwarded signed-off branch tip
+  `7682534b8c814820e60d426175488f254d528fc0` to remote main under the active
+  MERGE lease and verified that both it and implementation commit
+  `e146bea8e78dd02ab0c07498eac28e32002818d7` are ancestors of fetched
+  `origin/main`.

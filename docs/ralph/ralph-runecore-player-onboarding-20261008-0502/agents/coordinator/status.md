@@ -11,11 +11,11 @@ branch: "ralph/runecore-player-onboarding-20261008-0502"
 branch_slug: "ralph-runecore-player-onboarding-20261008-0502"
 worktree: "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-player-onboarding-20261008-0502"
 iteration: 3
-status: AWAITING_MERGE
+status: BLOCKED
 started_at_utc: "2026-10-08T05:03:24Z"
-updated_at_utc: "2026-10-08T05:29:34Z"
+updated_at_utc: "2026-10-08T05:35:45Z"
 resource_usage:
-  time_spent_seconds: 1570
+  time_spent_seconds: 1941
   time_basis: WALL_CLOCK_ELAPSED
   token_spend:
     status: NOT_REPORTED
@@ -50,12 +50,12 @@ merge_actor_worker_id: "coordinator"
 decision_record_path: "docs/decisions/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/pr-not-opened.md"
 decision_index_path: "docs/decisions/ralph-runecore-player-onboarding-20261008-0502/README.md"
 merge:
-  status: PENDING
-  sha: null
+  status: VERIFIED
+  sha: "7682534b8c814820e60d426175488f254d528fc0"
   verified_remote_ref: "refs/heads/main"
-  verified_origin_main_sha: null
-  verification_method: null
-  verified_at_utc: null
+  verified_origin_main_sha: "7682534b8c814820e60d426175488f254d528fc0"
+  verification_method: "Fetched origin/main after the authorized fast-forward; its tip exactly matched the signed-off branch tip 7682534b8c814820e60d426175488f254d528fc0, and ancestry checks confirmed both the implementation commit e146bea8e78dd02ab0c07498eac28e32002818d7 and branch tip are on remote main."
+  verified_at_utc: "2026-10-08T05:33:27Z"
 checks:
   - command: "git fetch origin"
     result: "PASS; fetched origin/main c72c8c2484ddcb456e809af506ad33d3a6baad8a before creating the branch."
@@ -93,11 +93,17 @@ checks:
     result: "PASS; fast-forwarded the clean main integration worktree to the MERGE sign-in SHA f28f6b75005e7658384d2127782557c3f0c373b2."
   - command: "cmake --build build --target test_GameSimulation test_SaveManager test_Renderer test_MainRunner --parallel 4 && ctest --test-dir build --output-on-failure -R '^(test_GameSimulation|test_SaveManager|test_Renderer|test_MainRunner)$'"
     result: "PASS after rebase; all 4 focused headless tests passed in 31.65 seconds."
+  - command: "git push --dry-run origin HEAD:refs/heads/main && git push origin HEAD:refs/heads/main"
+    result: "PASS under the active MERGE lease; fast-forwarded remote main from f28f6b75005e7658384d2127782557c3f0c373b2 to 7682534b8c814820e60d426175488f254d528fc0."
+  - command: "git fetch origin && test \"$(git rev-parse origin/main)\" = 7682534b8c814820e60d426175488f254d528fc0 && git merge-base --is-ancestor e146bea8e78dd02ab0c07498eac28e32002818d7 origin/main && git merge-base --is-ancestor 7682534b8c814820e60d426175488f254d528fc0 origin/main"
+    result: "PASS; fetched origin/main exactly matched the fast-forwarded branch tip, and both implementation and branch-tip ancestry checks succeeded."
+  - command: "git -C <main-integration-worktree> pull --ff-only"
+    result: "PASS; fast-forwarded the clean main integration worktree from MERGE sign-in f28f6b75005e7658384d2127782557c3f0c373b2 to verified main tip 7682534b8c814820e60d426175488f254d528fc0."
 blockers:
-  - "The dedicated Project Memory Update reviews for merged iterations 1 and 2 remain pending. Resource Manager reports 3 active sessions, max_agents=2, available_slots=0; no reviewer or worker was dispatched."
+  - "The dedicated Project Memory Update reviews for merged iterations 1, 2, and 3 remain pending. Resource Manager reports 3 active sessions, max_agents=2, available_slots=0; no reviewer or worker was dispatched."
 memory_review_status: PENDING
-memory_review_blocker: "Do not self-review or record NO_UPDATE; reserve and invoke the dedicated updater exactly once for each pending handoff when capacity is available."
-next_action: "Publish branch tip e146bea8e78dd02ab0c07498eac28e32002818d7 and fast-forward it to main under active MERGE lease f28f6b75005e7658384d2127782557c3f0c373b2; fetch and verify the merged SHA, then release the lease. Preserve the memory-review and 9/10 blockers."
+memory_review_blocker: "Resource Manager reports 3 active sessions, max_agents=2, available_slots=0. Do not self-review or record NO_UPDATE; reserve and invoke the dedicated updater exactly once for each pending iteration 1-3 handoff when capacity is available."
+next_action: "The onboarding implementation is merged and verified at 7682534b8c814820e60d426175488f254d528fc0. Release the active MERGE lease, then continue serially on a fresh branch toward a clear ending and direct start-to-finish playtest. Keep the 9/10 rating gate open until the complete game merits it."
 worker_sign_off:
   status: SIGNED_OFF
   attestation_kind: SELF_ATTESTATION

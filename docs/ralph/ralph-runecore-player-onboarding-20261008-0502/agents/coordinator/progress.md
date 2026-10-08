@@ -110,3 +110,23 @@
   post-rebase implementation commit
   `e146bea8e78dd02ab0c07498eac28e32002818d7`. This statement is not
   cryptographically signed.
+
+## Remote integration verification - 2026-10-08
+
+- Before publishing, fetched `origin/main` at MERGE sign-in
+  `f28f6b75005e7658384d2127782557c3f0c373b2` and confirmed it was an ancestor
+  of the signed-off branch.
+- `git push --dry-run origin HEAD:refs/heads/main` and
+  `git push origin HEAD:refs/heads/main` passed under the active MERGE lease;
+  remote main was fast-forwarded to branch tip
+  `7682534b8c814820e60d426175488f254d528fc0`.
+- A subsequent `git fetch origin` confirmed `origin/main` exactly matched
+  `7682534b8c814820e60d426175488f254d528fc0`. Ancestry checks passed for
+  implementation commit `e146bea8e78dd02ab0c07498eac28e32002818d7` and the
+  branch tip. The clean main integration worktree was fast-forwarded to the
+  same verified tip.
+- The implementation and merge are complete, but no complete-game playthrough
+  or direct playtest has been done. No 9/10 rating is assigned. Dedicated
+  Project Memory Update reviews for iterations 1-3 remain pending because
+  Resource Manager still has zero available slots; coordinator self-review
+  remains prohibited.

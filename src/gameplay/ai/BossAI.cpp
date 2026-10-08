@@ -30,9 +30,13 @@ BossAction BossAI::update(
 
     action.moveDirection = (playerPos - bossPos).normalized();
 
-    if (m_cooldownTimer > 0.0f && m_cooldownTimer <= 1.0f) {
+    constexpr float telegraphDuration = 1.0f;
+    constexpr float telegraphStartRadius = 8.0f;
+    if (m_cooldownTimer > 0.0f && m_cooldownTimer <= telegraphDuration) {
         action.telegraphActive = true;
-        action.telegraphRadius = m_phase == BossPhase::Phase2 ? 48.0f : 32.0f;
+        const float progress = std::clamp(1.0f - m_cooldownTimer / telegraphDuration, 0.0f, 1.0f);
+        const float finalRadius = m_phase == BossPhase::Phase2 ? 48.0f : 32.0f;
+        action.telegraphRadius = telegraphStartRadius + (finalRadius - telegraphStartRadius) * progress;
     }
 
     if (m_cooldownTimer <= 0.0f) {

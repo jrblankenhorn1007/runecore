@@ -83,6 +83,33 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.getActiveScreen() == ActiveScreen::None);
     }
 
+    SECTION("Settings screen pauses gameplay and resumes it when closed") {
+        const float initialTime = sim.getSimulationTime();
+        const Vec2 initialPosition = sim.getPlayerPosition();
+        ControllerInput input;
+        input.moveX = 1.0f;
+        input.jumpPressed = true;
+
+        sim.toggleScreen(ActiveScreen::Settings);
+        sim.step(input, 1.0f / 60.0f);
+        REQUIRE(sim.getSimulationTime() == Approx(initialTime));
+        REQUIRE(sim.getPlayerPosition().x == Approx(initialPosition.x));
+        REQUIRE(sim.getPlayerPosition().y == Approx(initialPosition.y));
+
+        sim.toggleScreen(ActiveScreen::Settings);
+        sim.step(input, 1.0f / 60.0f);
+        REQUIRE(sim.getSimulationTime() == Approx(initialTime + 1.0f / 60.0f));
+    }
+
+    SECTION("Settings remains modal until explicitly closed") {
+        sim.toggleScreen(ActiveScreen::Settings);
+        sim.toggleScreen(ActiveScreen::Inventory);
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::Settings);
+
+        sim.toggleScreen(ActiveScreen::Settings);
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::None);
+    }
+
     SECTION("Weather Emits Typed Environmental Particles") {
         sim.getContext().dayNight.setWeather(WeatherType::Clear);
         sim.step(ControllerInput{}, 1.0f / 60.0f);

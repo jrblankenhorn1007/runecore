@@ -4,6 +4,7 @@
 #include "input/InputManager.hpp"
 #include "render/Camera.hpp"
 #include <algorithm>
+#include <cmath>
 
 TEST_CASE("Renderer loads the complete generated asset roster", "[render][renderer][assets]") {
     Renderer renderer;
@@ -60,6 +61,63 @@ TEST_CASE("Generated enemy rendering records a distinct asset draw", "[render][r
 
     REQUIRE(renderer.getGeneratedDrawCount("assets/generated/enemies/rustwood-forest/raptor/sprite/source.png") == 1);
     renderer.shutdown();
+}
+
+TEST_CASE("Boss warning renders a red lane toward the player camera", "[render][renderer][boss]") {
+    Renderer renderer;
+    REQUIRE(renderer.init("BossTelegraphLane", 640, 360, 640, 360, SDL_WINDOW_HIDDEN));
+
+    Camera camera;
+    const CanvasMetrics metrics = Camera::calculateCanvasMetrics(640, 360);
+    const Vec2 bossPosition{80.0f, 0.0f};
+    const float radius = 32.0f;
+    const Vec2 cameraPosition = camera.getSnappedPosition();
+    const Vec2 bossScreen{
+        bossPosition.x - cameraPosition.x + metrics.virtualWidth * 0.5f,
+        bossPosition.y - cameraPosition.y + metrics.virtualHeight * 0.5f - 8.0f
+    };
+    const Vec2 playerScreen{metrics.virtualWidth * 0.5f, metrics.virtualHeight * 0.5f};
+    const Vec2 direction = (playerScreen - bossScreen).normalized();
+    const Vec2 perpendicular{-direction.y, direction.x};
+
+    renderer.beginFrame();
+    renderer.drawBossTelegraph(bossPosition, radius, camera, metrics);
+    SDL_Surface* frame = SDL_RenderReadPixels(renderer.getSDLRenderer(), nullptr);
+    REQUIRE(frame != nullptr);
+
+    const float scaleX = static_cast<float>(frame->w) / static_cast<float>(metrics.virtualWidth);
+    const float scaleY = static_cast<float>(frame->h) / static_cast<float>(metrics.virtualHeight);
+    bool foundForwardLane = false;
+    bool foundBackwardLane = false;
+    for (int y = 0; y < frame->h; ++y) {
+        for (int x = 0; x < frame->w; ++x) {
+            Uint8 red = 0;
+            Uint8 green = 0;
+            Uint8 blue = 0;
+            Uint8 alpha = 0;
+            if (!SDL_ReadSurfacePixel(frame, x, y, &red, &green, &blue, &alpha) ||
+                red < 200 || green > 100 || blue > 100) {
+                continue;
+            }
+
+            const Vec2 pixel{
+                (static_cast<float>(x) + 0.5f) / scaleX,
+                (static_cast<float>(y) + 0.5f) / scaleY
+            };
+            const Vec2 offset = pixel - bossScreen;
+            const float alongLane = offset.dot(direction);
+            const float acrossLane = std::abs(offset.dot(perpendicular));
+            if (acrossLane > 8.0f) continue;
+            foundForwardLane |= alongLane > radius + 2.0f && alongLane < radius * 2.2f;
+            foundBackwardLane |= alongLane < -2.0f;
+        }
+    }
+    SDL_DestroySurface(frame);
+    renderer.endFrame(metrics);
+    renderer.shutdown();
+
+    REQUIRE(foundForwardLane);
+    REQUIRE_FALSE(foundBackwardLane);
 }
 
 TEST_CASE("Pixel text maps supported characters to bounded glyphs", "[render][renderer][text]") {

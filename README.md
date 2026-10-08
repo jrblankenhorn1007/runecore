@@ -44,6 +44,10 @@ The game executable is written to `build/untitled_rpg` while the internal CMake 
 ./build/untitled_rpg
 ```
 
+The default launch starts an interactive game session and stays open until the
+game window is closed. For a timed smoke run, use `--duration <seconds>` (for
+example, `./build/untitled_rpg --duration 10`).
+
 For headless bot and QA workflows:
 
 ```sh
@@ -61,10 +65,10 @@ The same scenarios are registered as individual `test_<scenario>` CTest processe
 
 For a watchable SDL run, use `--visual-qa <scenario>`. Visual mini-runs currently include
 `movement`, `jump`, `mining`, `projectile`, `melee`, `feedback`, `dungeon`, `inventory_drag`,
-`crafting_gui`, `augmentations_gui`, `character_sheet`, and `skill_tree`. Each opens the game window,
-`farming`. Each opens the game window, shows a `VISUAL QA` overlay, performs the scripted action, and
-exits after five seconds.
-Using `--visual-qa all` runs those scenes back-to-back for roughly one minute, changing the overlay
+`crafting_gui`, `augmentations_gui`, `character_sheet`, `skill_tree`, `farming`, and `asset_pipeline`.
+Each opens the game window, shows a `VISUAL QA` overlay, performs the scripted action, and exits
+after five seconds.
+Using `--visual-qa all` runs those scenes back-to-back for roughly 70 seconds, changing the overlay
 to identify each mini-run as it starts. Successful runs also save one post-action frame per scene under
 `build/visual_qa/`; the command exits nonzero if a scripted action or screenshot capture fails.
 
@@ -75,6 +79,9 @@ Run the complete Catch2 and game-launched test suite with:
 ```sh
 ctest --test-dir build --output-on-failure
 ```
+
+CTest forces SDL's dummy video and audio drivers, so even tests that exercise
+windowed code paths run without opening a game window or using audio devices.
 
 After changing source files, rebuild first:
 

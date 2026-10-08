@@ -520,6 +520,25 @@ void Renderer::drawBossTelegraph(const Vec2& worldPos, float radius, const Camer
     float centerX = (worldPos.x - camPos.x) + (metrics.virtualWidth * 0.5f);
     float centerY = (worldPos.y - camPos.y) + (metrics.virtualHeight * 0.5f) - 8.0f;
     Color color = enraged ? Color{255, 70, 45, 220} : Color{255, 205, 55, 210};
+
+    Vec2 direction = Vec2{metrics.virtualWidth * 0.5f - centerX,
+                          metrics.virtualHeight * 0.5f - centerY}.normalized();
+    if (direction.lengthSquared() > 0.0f) {
+        const Vec2 perpendicular{-direction.y, direction.x};
+        const Vec2 laneStart{centerX + direction.x * radius * 0.7f,
+                             centerY + direction.y * radius * 0.7f};
+        const Vec2 laneEnd{centerX + direction.x * radius * 2.2f,
+                           centerY + direction.y * radius * 2.2f};
+        constexpr float laneHalfWidth = 4.0f;
+        const Vec2 laneOffset{perpendicular.x * laneHalfWidth, perpendicular.y * laneHalfWidth};
+        SDL_SetRenderDrawColor(m_renderer, 255, 40, 40, 255);
+        SDL_RenderLine(m_renderer, laneStart.x + laneOffset.x, laneStart.y + laneOffset.y,
+                       laneEnd.x + laneOffset.x, laneEnd.y + laneOffset.y);
+        SDL_RenderLine(m_renderer, laneStart.x - laneOffset.x, laneStart.y - laneOffset.y,
+                       laneEnd.x - laneOffset.x, laneEnd.y - laneOffset.y);
+        SDL_RenderLine(m_renderer, laneStart.x, laneStart.y, laneEnd.x, laneEnd.y);
+    }
+
     SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
     constexpr int segments = 32;
     for (int segment = 0; segment < segments; ++segment) {

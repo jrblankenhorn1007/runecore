@@ -21,11 +21,26 @@ TEST_CASE("BossAI Multi-Phase Progression and Enrage Dynamics", "[gameplay][ai]"
         REQUIRE(act2.attackTriggered == false);
         BossAction warning = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 2.0f);
         REQUIRE(warning.telegraphActive == true);
-        REQUIRE(warning.telegraphRadius == Approx(32.0f));
+        REQUIRE(warning.telegraphRadius < 32.0f);
+        REQUIRE(warning.telegraphRadius > 8.0f);
 
         // Cooldown expires during 3.5s update and triggers attack
         BossAction act3 = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 3.5f);
         REQUIRE(act3.attackTriggered == true);
+    }
+
+    SECTION("Telegraph expands through the one-second warning window") {
+        boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 0.1f);
+
+        BossAction warningStart = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 2.0f);
+        REQUIRE(warningStart.telegraphActive);
+        REQUIRE(warningStart.telegraphRadius == Approx(8.0f));
+        REQUIRE(warningStart.moveDirection.x == Approx(1.0f));
+
+        BossAction warningMiddle = boss.update(bossPos, playerPos, 1000.0f, 1000.0f, 0.5f);
+        REQUIRE(warningMiddle.telegraphActive);
+        REQUIRE(warningMiddle.telegraphRadius == Approx(20.0f));
+        REQUIRE(warningMiddle.telegraphRadius > warningStart.telegraphRadius);
     }
 
     SECTION("Phase 2 Trigger at <= 50% HP") {

@@ -75,7 +75,7 @@ int runGame(int argc, char* argv[]) {
     bool visualQaMode = false;
     bool qaList = false;
     std::string qaScenario;
-    float maxDuration = 10.0f; // Default 10s demo runtime if unattended
+    float maxDuration = 0.0f; // Interactive gameplay runs until the player closes the window.
     const std::vector<std::string> visualQaScenarios{
         "movement", "jump", "mining", "projectile", "melee", "feedback",
         "dungeon", "inventory_drag", "crafting_gui", "augmentations_gui",
@@ -210,7 +210,7 @@ int runGame(int argc, char* argv[]) {
             std::cout << " [R-Click] : Shoot Projectile / Place Block\n";
             std::cout << " [Q,E,R,F] : Active Skills\n";
             std::cout << " [Tab]     : Inventory | [C] Crafting | [U] Augments | [M] Minimap\n";
-            std::cout << " [Esc]     : Quit\n\n";
+            std::cout << " [Esc]     : Pause / Settings | Close Window : Quit\n\n";
 
             InputManager inputMgr;
             Camera camera;
@@ -337,9 +337,9 @@ int runGame(int argc, char* argv[]) {
                         visualActionDone = visualTime >= 2.0f &&
                                            sim.getPlayerPosition().distanceTo(visualScenarioStartPosition) > 4.0f;
                     } else if (activeVisualScenario == "jump") {
-                        inputState.controller.jumpPressed = visualTime >= 0.5f && visualTime < 0.55f;
-                        visualActionDone = visualTime >= 0.8f &&
-                                           visualScenarioStartPosition.y - sim.getPlayerPosition().y > 4.0f;
+                        const float jumpRise = visualScenarioStartPosition.y - sim.getPlayerPosition().y;
+                        inputState.controller.jumpPressed = visualTime >= 0.5f && jumpRise <= 4.0f;
+                        visualActionDone = visualTime >= 0.5f && jumpRise > 4.0f;
                     } else if (activeVisualScenario == "mining" && visualTime >= 0.8f && !visualActionDone) {
                         visualActionDone = sim.mineTileAt(sim.getPlayerPosition() + Vec2{0.0f, 16.0f});
                     } else if (activeVisualScenario == "projectile" && visualTime >= 0.8f && !visualActionDone) {
@@ -546,6 +546,18 @@ int runGame(int argc, char* argv[]) {
                         sim.getAudio().setAmbienceVolume(std::clamp((virtualX - 170.0f) / 300.0f, 0.0f, 1.0f));
                         handledUiClick = true;
                     }
+                }
+
+                if (sim.getActiveScreen() == ActiveScreen::Settings) {
+                    inputState.controller = ControllerInput{};
+                    inputState.attackPressed = false;
+                    inputState.attackHeld = false;
+                    inputState.secondaryPressed = false;
+                    inputState.interactPressed = false;
+                    inputState.skillQ = false;
+                    inputState.skillE = false;
+                    inputState.skillR = false;
+                    inputState.skillF = false;
                 }
 
                 // Handle Dungeon Entrance / Exit Interaction
@@ -783,10 +795,13 @@ int runGame(int argc, char* argv[]) {
                     const auto assetPath = [](const char* category, const char* entity, const char* label) {
                         return std::string("assets/generated/") + category + "/" + entity + "/" + label + "/source.png";
                     };
+                    const auto enemyAssetPath = [](const char* biome, const char* entity, const char* label) {
+                        return std::string("assets/generated/enemies/") + biome + "/" + entity + "/" + label + "/source.png";
+                    };
                     bool assetsRendered = true;
                     if (activeVisualScenario == "melee") {
                         assetsRendered = renderer.getGeneratedDrawCount(assetPath("classes", "berserker", "sprite")) > 0 &&
-                                         renderer.getGeneratedDrawCount(assetPath("enemies", "slime_01", "sprite")) > 0;
+                                         renderer.getGeneratedDrawCount(enemyAssetPath("subterranean-caverns", "slime_01", "sprite")) > 0;
                     } else if (activeVisualScenario == "inventory_drag" || activeVisualScenario == "asset_pipeline") {
                         assetsRendered = renderer.getGeneratedDrawCount(assetPath("items", "forged_scrap_blade", "icon")) > 0 &&
                                          renderer.getGeneratedDrawCount(assetPath("items", "iron_ore", "icon")) > 0 &&
@@ -795,10 +810,10 @@ int runGame(int argc, char* argv[]) {
                     if (activeVisualScenario == "asset_pipeline") {
                         assetsRendered = assetsRendered &&
                             renderer.getGeneratedDrawCount(assetPath("classes", "berserker", "sprite")) > 0 &&
-                            renderer.getGeneratedDrawCount(assetPath("enemies", "slime_01", "sprite")) > 0 &&
-                            renderer.getGeneratedDrawCount(assetPath("enemies", "bat", "sprite")) > 0 &&
-                            renderer.getGeneratedDrawCount(assetPath("enemies", "raptor", "sprite")) > 0 &&
-                            renderer.getGeneratedDrawCount("assets/generated/enemies/megacity-ruins/cyber_gunner/sprite/source.png") > 0;
+                            renderer.getGeneratedDrawCount(enemyAssetPath("subterranean-caverns", "slime_01", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(enemyAssetPath("subterranean-caverns", "bat", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(enemyAssetPath("rustwood-forest", "raptor", "sprite")) > 0 &&
+                            renderer.getGeneratedDrawCount(enemyAssetPath("megacity-ruins", "cyber_gunner", "sprite")) > 0;
                     }
                     for (const auto& requiredAsset : Renderer::getRequiredGeneratedAssets()) {
                         if (requiredAsset == "assets/generated/classes/gunslinger/sprite/source.png") {

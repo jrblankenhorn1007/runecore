@@ -1,8 +1,32 @@
 # Project Planning & Design Tracking
 
-This document tracks all user-requested planning, design specifications, content expansions, and repository preparation for Untitled RPG. Implementation is strictly paused until all conceptual design specifications are complete.
+This document tracks user-requested design specifications, active implementation work, and production acceptance criteria for Untitled RPG. A checked design item does not mean its feature implementation is complete.
 
 ---
+
+## 0. Active User Acceptance Gate: Playable Complete Game (Target: 9/10)
+
+The user requires a genuinely playable game and an evidence-based self-rating of
+at least 9/10 as a completed game. Unit tests, automated bot reports, and
+scripted screenshots verify implementation but do not establish game
+completeness or justify the score. Keep this gate open until the player-facing
+start-to-finish criteria below are implemented and directly playtested.
+
+- [x] Normal launch starts a player-controlled session that remains open until
+  the player quits; bot, timed, and scripted QA runs require explicit flags.
+- [x] Escape opens a pause/settings screen, freezes simulation, and resumes
+  gameplay when closed.
+- [ ] Provide a real title/start flow with new game, three save-slot selection,
+  character creation, and resume.
+- [ ] Load and save meaningful player progress so a returning player can
+  continue a run rather than always starting at level 1.
+- [ ] Onboard a new player with a first objective, readable combat feedback,
+  and accessible controls without relying on developer-only QA instructions.
+- [ ] Complete and manually play the core game loop from a new character
+  through exploration, progression, dungeon/boss victory, and a clear ending.
+- [ ] After that direct playtest, self-rate the complete game against gameplay,
+  onboarding, usability, content, presentation, and reliability; the rating
+  must be at least 9/10. Do not infer the rating from test pass counts.
 
 ## 1. User Design Requests & Status
 
@@ -429,10 +453,10 @@ This section tracks the live feature-by-feature implementation using strict Test
   - [x] Measured **98.0% line coverage** and **97.6% function coverage** across all engine, gameplay, physics, procgen, rendering, and persistence modules via `gcov` and `gcovr`.
   - [x] 100% line coverage achieved across `GameSimulation`, `Math`, `Random`, `Time`, `EnemyAI`, `BossAI`, `BuildingSystem`, `FarmingSystem`, `WorldInteraction`, `CombatSystem`, `DamageCalculator`, `StatusEffects`, `WeaponArsenal`, `CraftingEngine`, `ModificationForge`, `ItemGenerator`, `LootSystem`, `SkillExecutor`, `SkillRegistry`, `SkillTree`, `Progression`, `StatsSystem`, `Environment`, `Metabolism`, `QuestSystem`, `SettlementSystem`, `InputManager`, `CharacterController`, `CollisionWorld`, `BiomeSystem`, `DungeonGenerator`, `Tilemap`, `Camera`, `ParticleSystem`, and `SaveManager`.
 
-### 4.23 Module 23: Autonomous Gameplay Auto-Pilot & Non-Blocking Execution
-- [x] **Default Auto-Pilot Mode**: Running `./build/untitled_rpg` actively plays the game on screen automatically without waiting for user action.
-- [x] **Seamless Human Takeover**: If a user presses movement or action keys, manual mode engages immediately with indefinite playtime until Escape.
-- [x] **Autonomous Full Playthrough & Auto-Exit**: The autonomous bot executes the complete 12-system scenario (Movement, Jumps, Wall-Kicks, Mining, Loot Vacuum, Crafting, 360-degree Ranged Projectiles, Melee Combat, Active Skills, Dungeon Diving, Boss Fight), outputs the verification report, saves the game, and exits cleanly.
+### 4.23 Module 23: Player-Controlled Launch & Optional Gameplay Bot
+- [x] **Default Interactive Mode**: Running `./build/untitled_rpg` starts player-controlled gameplay and remains open until the player quits.
+- [x] **Explicit Bot Mode**: Use `--bot` to run the autonomous gameplay bot; use `--headless --bot` for offscreen verification. The bot is not the default player experience.
+- [x] **Optional Timed Runs**: `--duration <seconds>` opts into a timed smoke/demo session; visual QA and focused QA also require explicit flags.
 
 ### 4.24 Module 24: Focused Game-Launched QA Harness
 - [x] Add isolated fresh-simulation scenarios for movement, jumping, mining, loot pickup, crafting, projectiles, melee, skills, dungeon entry, feedback systems, and UI mode toggles.
@@ -478,7 +502,7 @@ This roadmap details all player-facing features, audiovisual juice, interactive 
   - [ ] *Armored Carapace Beetles*: Impenetrable frontal shield; player must jump behind them or use armor-piercing weapons.
 - [x] **Telegraphed Boss Fights with Dedicated Boss HUD**:
   - [x] Boss health bar anchored at top-center of screen with phase markers and shield-layer indicators.
-  - [ ] Visual ground telegraphs: Red danger lanes and expanding circles 1 second before colossal slams or laser sweeps.
+  - [x] Visual ground telegraphs: Red danger lanes and expanding circles 1 second before colossal slams or laser sweeps.
   - [x] Multi-phase arena shifts: Boss entering enrage at 50% HP triggers arena-wide hazards, minion summons, and new attack patterns.
   - [x] Boss defeat slow-motion explosion with guaranteed epic loot fountain.
 
@@ -558,13 +582,13 @@ This roadmap details all player-facing features, audiovisual juice, interactive 
   - [ ] *Guide / Quest-Giver*: Offers introductory quests, tutorials, and tracks boss progression.
 
 ### 5.9 Pre-Launch Polish, Settings & Save Management
-- [x] **Options & Settings Menu (`Esc` Key)**:
+- [ ] **Options & Settings Menu (`Esc` Key)**:
   - [ ] Video settings: Fullscreen Borderless, Exclusive Fullscreen, Windowed, Resolution picker, V-Sync, Integer Scaling toggle.
   - [x] Live Master Volume and SFX Volume sliders.
   - [ ] Music/Ambience sliders and rebindable controls remain to be added.
-- [x] **Multiple Save Slots & Character Creation**:
+- [ ] **Multiple Save Slots & Character Creation**:
   - [ ] Title Screen with Save Slot selection (Slots 1–3), showing Character Name, Class, Level, and Playtime.
   - [ ] New Game character creation screen: Pick name, class archetype, and visual visor color.
-- [x] **Death & Respawn Sequence**:
+- [ ] **Death & Respawn Sequence**:
   - [ ] Death screen: Screen fades to red/black, displaying "CONSCIOUSNESS RECALL INITIATED".
   - [ ] Respawn at the Hub clinic medical bed or player-placed bed roll with full health, leaving a recovery drone with dropped materials at death site.

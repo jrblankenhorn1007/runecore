@@ -93,6 +93,7 @@ endif()
 
 # Testing
 enable_testing()
+set(RUNECORE_HEADLESS_TEST_ENV "SDL_VIDEODRIVER=dummy;SDL_AUDIODRIVER=dummy")
 
 file(GLOB_RECURSE TEST_FILES "tests/*/test_*.cpp" "tests/*/*/test_*.cpp" "tests/*/*/*/test_*.cpp")
 list(FILTER TEST_FILES EXCLUDE REGEX "/asset_pipeline/test_AssetPipeline\\.cpp$")
@@ -108,6 +109,7 @@ foreach(TEST_PATH ${TEST_FILES})
         ${CMAKE_CURRENT_SOURCE_DIR}/external/catch2
     )
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    set_tests_properties(${TEST_NAME} PROPERTIES ENVIRONMENT "${RUNECORE_HEADLESS_TEST_ENV}")
 endforeach()
 
 add_executable(test_AssetPipeline tests/asset_pipeline/test_AssetPipeline.cpp)
@@ -118,6 +120,7 @@ target_include_directories(test_AssetPipeline PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external/catch2
 )
 add_test(NAME test_AssetPipeline COMMAND test_AssetPipeline)
+set_tests_properties(test_AssetPipeline PROPERTIES ENVIRONMENT "${RUNECORE_HEADLESS_TEST_ENV}")
 
 set(FOCUSED_QA_SCENARIOS
     movement jump mining loot crafting projectile melee skills dungeon feedback ui persistence hazards settlement boss input
@@ -129,4 +132,5 @@ foreach(QA_SCENARIO ${FOCUSED_QA_SCENARIOS})
         NAME test_${QA_SCENARIO}
         COMMAND untitled_rpg --qa ${QA_SCENARIO}
     )
+    set_tests_properties(test_${QA_SCENARIO} PROPERTIES ENVIRONMENT "${RUNECORE_HEADLESS_TEST_ENV}")
 endforeach()

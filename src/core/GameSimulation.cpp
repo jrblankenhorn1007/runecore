@@ -216,6 +216,10 @@ entt::entity GameSimulation::spawnEnemy(const Vec2& position, float health, int 
 }
 
 void GameSimulation::step(const ControllerInput& input, float dt) {
+    if (m_activeScreen == ActiveScreen::Settings) {
+        return;
+    }
+
     if (m_hitstopTimer > 0.0f) {
         m_hitstopTimer = std::max(0.0f, m_hitstopTimer - dt);
         return;
@@ -586,6 +590,10 @@ bool GameSimulation::castSkillF() {
 }
 
 void GameSimulation::toggleScreen(ActiveScreen screen) {
+    if (m_activeScreen == ActiveScreen::Settings && screen != ActiveScreen::Settings) {
+        return;
+    }
+
     if (m_activeScreen == screen) {
         m_activeScreen = ActiveScreen::None;
     } else {

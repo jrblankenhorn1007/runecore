@@ -93,7 +93,7 @@
 ## Implementation sign-off
 
 - Implementation commit:
-  `f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa` (`feat: add title and
+  `f32c62494763998bc5017d7d13867ae56f7b8661` (`feat: add title and
   save-resume flow`).
 - The full 88/88 CTest suite and the targeted headless tests all passed before
   this documentation-only sign-off update. `git diff --check` passed for the
@@ -102,3 +102,27 @@
   implementation commit above. This statement is not cryptographically signed.
 - Branch status is now `AWAITING_MERGE`; the implementation has not yet been
   published or integrated.
+
+## Published-branch supersession and sign-off correction
+
+- The exact implementation SHA is
+  `f32c62494763998bc5017d7d13867ae56f7b8661`; an earlier status update
+  accidentally recorded an incorrect full SHA. This correction preserves the
+  real commit identity and rebinds the self-attestation to it.
+- The signed-off branch had already been published when the MERGE lease
+  advanced `origin/main` to `b395a1419618939b6f5049d1bae530fe2565070c`.
+  Per workflow, the published branch remains preserved and is not rebased or
+  force-pushed; a fresh successor branch was created from the sign-in commit.
+- Initial MERGE lease sign-in:
+  `b395a1419618939b6f5049d1bae530fe2565070c`; this candidate was not merged,
+  and the lease was released with `FAILED` at sign-out commit
+  `bb3250d03143e1066a68905d94010ec22bd041cc`.
+- Scope revision 6 was published with STATUS sign-in
+  `6f41e1e1b1041efc8ffb7c292db28d40f8c14057`, status commit
+  `1c25a7e6b8a0f37c8272df04e41068d9f5ba14f1`, and sign-out/current
+  `origin/main` `90c07dd694052254f8ed731f5eb7646b0ddfc8fb`.
+- The successor worktree was fast-forwarded from the merge sign-in commit to
+  that verified `origin/main` before edits. The superseded branch and worktree
+  are retained for audit; no forced update or deletion was performed.
+- The published pre-lease branch is now `BLOCKED` and its dashboard entry
+  reflects that it is superseded; the successor carries the source and tests.

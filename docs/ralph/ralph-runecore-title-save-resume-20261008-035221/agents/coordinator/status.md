@@ -11,11 +11,11 @@ branch: "ralph/runecore-title-save-resume-20261008-035221"
 branch_slug: "ralph-runecore-title-save-resume-20261008-035221"
 worktree: "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-title-save-resume-20261008-035221"
 iteration: 2
-status: AWAITING_MERGE
+status: BLOCKED
 started_at_utc: "2026-10-08T03:54:27Z"
-updated_at_utc: "2026-10-08T04:22:51Z"
+updated_at_utc: "2026-10-08T04:31:40Z"
 resource_usage:
-  time_spent_seconds: 1704
+  time_spent_seconds: 2233
   time_basis: WALL_CLOCK_ELAPSED
   token_spend:
     status: NOT_REPORTED
@@ -26,7 +26,7 @@ resource_usage:
     source: null
 base_origin_main_sha: "7a0d6753e208bc3549c2d9dc20e7bdbad6030e13"
 rebased_onto_origin_main_sha: null
-implementation_commit_sha: "f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa"
+implementation_commit_sha: "f32c62494763998bc5017d7d13867ae56f7b8661"
 pull_request:
   status: NOT_OPENED
   number: null
@@ -69,20 +69,22 @@ checks:
     result: "PASS."
 blockers:
   - "The required dedicated Project Memory Update review for iteration 1 remains pending because Resource Manager has no available slot."
-next_action: "Publish branch ralph/runecore-title-save-resume-20261008-035221, acquire the MERGE lease, integrate its sign-in commit, rerun focused checks, fast-forward origin/main, and verify/release the lease. Keep the memory review pending and 9/10 gate open."
+  - "This published branch was superseded after its base advanced for the MERGE lease; integration must use the fresh successor branch."
+next_action: "Preserve this already-published branch; the fresh successor branch ralph/runecore-title-save-resume-successor-20261008-0425 carries the implementation onto current origin/main. Do not merge this pre-lease tip."
+
 worker_sign_off:
   status: SIGNED_OFF
   attestation_kind: SELF_ATTESTATION
   cryptographic_signature_status: NOT_CRYPTOGRAPHICALLY_SIGNED
-  attested_at_utc: "2026-10-08T04:22:51Z"
-  statement: "I, coordinator, sign off iteration 2 for boss-warning-telegraphs at the exact implementation commit f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa. This is a self-attestation and is not cryptographically signed."
+  attested_at_utc: "2026-10-08T04:31:40Z"
+  statement: "Correction: I, coordinator, sign off iteration 2 for boss-warning-telegraphs at the exact implementation commit f32c62494763998bc5017d7d13867ae56f7b8661. This is a self-attestation and is not cryptographically signed."
 commit_signature_verification:
   status: NOT_CRYPTOGRAPHICALLY_SIGNED
   verifier: null
   evidence: null
   verified_at_utc: null
 memory_handoff:
-  implementation_summary: "Iteration 2 implements the tested three-slot title, character-class/visor creation, and cross-session save/resume flows. Full headless CTest passes; implementation commit f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa is awaiting authorized integration."
+  implementation_summary: "Iteration 2 implements the tested three-slot title, character-class/visor creation, and cross-session save/resume flows. Full headless CTest passes; implementation commit f32c62494763998bc5017d7d13867ae56f7b8661 is carried by successor branch ralph/runecore-title-save-resume-successor-20261008-0425."
   lesson_candidates: []
   no_durable_lessons_reason: "A durable-lesson review is deferred until the implementation and its evidence are complete."
 ```

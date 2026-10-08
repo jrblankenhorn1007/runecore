@@ -342,3 +342,64 @@
   "statement": "I, coordinator, sign off iteration 1 for boss-warning-telegraphs at commit 263ac7a116d3732afac40a1cbda8cbc0a3a7abb4."
 }
 ```
+
+## Merge-lease rebase and renewed sign-off - 2026-10-08
+
+- The authorized MERGE reservation advanced remote main from
+  `190a15b2eda23736193e17bbd6d1221243715c3c` to sign-in commit
+  `b7cbb458160c7d081c51549188be169540ee5468`.
+- Rebase command:
+  `git -C /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegraph-warnings-20261007 rebase origin/main`
+  — **PASS**, two commits replayed without conflict.
+- Rebase rewrote implementation commit
+  `263ac7a116d3732afac40a1cbda8cbc0a3a7abb4` to
+  `34de481fcca5925d4bf705f3812b1ce2061cfd98`; the prior sign-off is retained
+  above as history and this renewed sign-off binds the new exact SHA.
+- Post-rebase command:
+  `cmake --build build --target test_MainRunner test_GameSimulation test_BossAI test_Renderer untitled_rpg -j 4 && ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_BossAI|test_Renderer|test_boss)$' --output-on-failure`
+  — **PASS**, 5/5 tests in 27.89 seconds.
+- `git diff --check origin/main...HEAD` — **PASS**.
+- The build again reported the pre-existing Apple CoreGraphics enum-conversion
+  warning in `Renderer.cpp`; it is unchanged and unrelated.
+
+### Renewed structured implementation sign-off
+
+```json
+{
+  "run_id": "runecore-boss-telegraphs-20261007-0510",
+  "task_ids": ["boss-warning-telegraphs"],
+  "worker_id": "coordinator",
+  "worker_name": "Coordinator - boss warning telegraphs",
+  "runtime_agent_id": "copilotcli:/a9d56901-462d-4292-b210-7b738822dc4f",
+  "iteration": 1,
+  "branch": "ralph/boss-telegraph-warnings-20261007",
+  "worktree": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegraph-warnings-20261007",
+  "pull_request": {
+    "status": "NOT_OPENED",
+    "number": null,
+    "url": null
+  },
+  "decision_record_path": "docs/decisions/ralph-boss-telegraph-warnings-20261007/agents/coordinator/pr-not-opened.md",
+  "base_origin_main_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+  "parent_branch": "ralph/boss-telegraph-warnings-20261007",
+  "parent_worktree": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegraph-warnings-20261007",
+  "parent_base_origin_main_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+  "rebased_onto_origin_main_sha": "b7cbb458160c7d081c51549188be169540ee5468",
+  "implementation_commit_sha": "34de481fcca5925d4bf705f3812b1ce2061cfd98",
+  "checks": [
+    {
+      "command": "cmake --build build --target test_MainRunner test_GameSimulation test_BossAI test_Renderer untitled_rpg -j 4 && ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_BossAI|test_Renderer|test_boss)$' --output-on-failure",
+      "result": "PASS: 5/5 tests in 27.89 seconds after rebase onto b7cbb458160c7d081c51549188be169540ee5468"
+    },
+    {
+      "command": "git diff --check origin/main...HEAD",
+      "result": "PASS"
+    }
+  ],
+  "blockers": [],
+  "attested_at_utc": "2026-10-08T03:31:37Z",
+  "attestation_kind": "SELF_ATTESTATION",
+  "cryptographic_signature_status": "NOT_CRYPTOGRAPHICALLY_SIGNED",
+  "statement": "I, coordinator, sign off iteration 1 for boss-warning-telegraphs at commit 34de481fcca5925d4bf705f3812b1ce2061cfd98."
+}
+```

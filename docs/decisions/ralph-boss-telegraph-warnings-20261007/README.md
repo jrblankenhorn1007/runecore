@@ -4,9 +4,10 @@
 - Task: `boss-warning-telegraphs`
 - Branch: `ralph/boss-telegraph-warnings-20261007`
 - Initial `origin/main`: `b5a3437ceaec52828b19a73a761fed33ab649e78`
-- Current implementation rebase base (verified status-sign-out
-  `origin/main`): `190a15b2eda23736193e17bbd6d1221243715c3c`
-- Implementation commit: `263ac7a116d3732afac40a1cbda8cbc0a3a7abb4`
+- Current implementation rebase base (MERGE reservation sign-in):
+  `b7cbb458160c7d081c51549188be169540ee5468`
+- Current implementation commit:
+  `34de481fcca5925d4bf705f3812b1ce2061cfd98`
 - Agent record: [coordinator / no PR](agents/coordinator/pr-not-opened.md)
 
 ## Split plan

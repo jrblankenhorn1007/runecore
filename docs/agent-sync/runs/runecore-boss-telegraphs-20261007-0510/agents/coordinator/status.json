@@ -58,7 +58,7 @@
   },
   "prompt_path": "docs/agent-sync/runs/runecore-boss-telegraphs-20261007-0510/agents/coordinator/prompt.md",
   "prompt_sha256": "73cba8c82ab4bee59bcb8d88344f582e14746dec9812afc71143fdb0cf6e20e9",
-  "revision": 8,
+  "revision": 9,
   "run_id": "runecore-boss-telegraphs-20261007-0510",
   "schema_version": 1,
   "scope_update": {
@@ -66,9 +66,8 @@
       "docs/ralph/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/",
       "docs/decisions/ralph-runecore-player-onboarding-20261008-0502/"
     ],
-    "recorded_at_utc": "2026-10-08T05:02:49Z",
+    "recorded_at_utc": "2026-10-08T05:38:34Z",
     "remaining_acceptance": [
-      "Implement in-game new-player onboarding that explains the immediate objective and essential controls.",
       "Complete and manually play the core game loop from a fresh character through exploration, progression, dungeon/boss victory, and a clear ending.",
       "Perform a direct end-to-end playtest and support a 9/10 rating only if the completed game merits it."
     ],
@@ -77,17 +76,23 @@
   },
   "sign_in_at_utc": "2026-10-07T05:10:24Z",
   "sign_out": {
-    "at_utc": null,
-    "checks": [],
-    "implementation_commit_sha": null,
-    "next_action": null,
-    "summary": null
+    "at_utc": "2026-10-08T05:38:34Z",
+    "checks": [
+      "cmake --build build --parallel 4; ctest --test-dir build --output-on-failure: PASS; all 88/88 tests passed headlessly before rebase.",
+      "cmake --build build --target test_GameSimulation test_SaveManager test_Renderer test_MainRunner --parallel 4 && ctest --test-dir build --output-on-failure -R ^(test_GameSimulation|test_SaveManager|test_Renderer|test_MainRunner)$: PASS after rebase; 4/4 focused headless targets passed.",
+      "git push origin HEAD:refs/heads/main: PASS; fast-forward and post-push fetch verified e146bea8e78dd02ab0c07498eac28e32002818d7 and 7682534b8c814820e60d426175488f254d528fc0 as ancestors of origin/main; MERGE lease released with outcome MERGED.",
+      "YAML.safe_load and JSON.parse: PASS for the updated Ralph status and agent-sync snapshot.",
+      "No full-game manual playthrough or direct end-to-end playtest has been performed; no 9/10 rating is claimed."
+    ],
+    "implementation_commit_sha": "e146bea8e78dd02ab0c07498eac28e32002818d7",
+    "next_action": "Continue serial development on a fresh branch from latest origin/main toward a clear ending and complete playable loop. Reserve the dedicated Project Memory Update reviews for iterations 1-3 when Resource Manager capacity returns; do not self-review or rate the incomplete game.",
+    "summary": "Implemented a paused first-run objective/control briefing with safe acknowledgement and backward-compatible persistence. Full headless CTest passed 88/88 before rebase; 4/4 focused headless tests passed after rebase. Fast-forwarded iteration branch tip 7682534b8c814820e60d426175488f254d528fc0 to main; status follow-up b3ba2ef05bff85f65f059469919b4cb853291fa0 is on main, and the MERGE lease was released at b7cba0d942d8944bc75d328a2963f16495f1e564. The complete game, ending, direct playtest, and rating gate remain open."
   },
   "started_at_utc": "2026-10-07T05:10:24Z",
   "status": "IN_PROGRESS",
-  "status_reason": "Title/save/resume iteration 2 is merged and verified on origin/main. Iteration 3 is starting the in-game new-player onboarding acceptance item on fresh branch ralph/runecore-player-onboarding-20261008-0502 from origin/main c72c8c2484ddcb456e809af506ad33d3a6baad8a. The dedicated Project Memory Update reviews for iterations 1 and 2 remain pending because Resource Manager reports three active sessions, a two-agent maximum, and zero available slots; no worker or reviewer was dispatched. The complete-game 9/10 gate remains open.",
+  "status_reason": "Iteration 3 onboarding is implemented, merged, and verified on origin/main (implementation e146bea8e78dd02ab0c07498eac28e32002818d7; merge branch tip 7682534b8c814820e60d426175488f254d528fc0). The overall complete-game task continues. Dedicated Project Memory Update reviews for iterations 1-3 remain pending because Resource Manager has zero available slots; the clear ending, direct full-game playtest, and evidence-based 9/10 rating remain open.",
   "task_id": "boss-warning-telegraphs",
-  "updated_at_utc": "2026-10-08T05:02:49Z",
+  "updated_at_utc": "2026-10-08T05:38:34Z",
   "worker_id": "coordinator",
   "worker_name": "Coordinator - boss warning telegraphs"
 }

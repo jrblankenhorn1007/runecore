@@ -11,6 +11,10 @@ void Metabolism::setThirst(float val) {
     m_thirst = std::clamp(val, 0.0f, 100.0f);
 }
 
+void Metabolism::setBodyTemperature(float val) {
+    m_bodyTemp = std::clamp(val, 20.0f, 50.0f);
+}
+
 void Metabolism::eat(float hungerRestore) {
     m_hunger = std::min(100.0f, m_hunger + hungerRestore);
 }

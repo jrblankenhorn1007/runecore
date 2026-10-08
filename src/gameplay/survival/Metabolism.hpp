@@ -10,6 +10,7 @@ public:
 
     void setHunger(float val);
     void setThirst(float val);
+    void setBodyTemperature(float val);
 
     void eat(float hungerRestore);
     void drink(float thirstRestore);

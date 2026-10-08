@@ -21,6 +21,7 @@ void InputManager::processEvents(const CanvasMetrics& metrics, const Camera& cam
     m_state.toggleSkills = false;
     m_state.toggleSettings = false;
     m_state.interactPressed = false;
+    m_state.pressedKeys.clear();
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -28,6 +29,7 @@ void InputManager::processEvents(const CanvasMetrics& metrics, const Camera& cam
             m_state.quitRequested = true;
         } else if (event.type == SDL_EVENT_KEY_DOWN) {
             if (event.key.repeat == 0) {
+                m_state.pressedKeys.push_back(event.key.key);
                 switch (event.key.key) {
                     case SDLK_SPACE:
                         m_state.controller.jumpPressed = true;

@@ -3,6 +3,7 @@
 #include "physics/CharacterController.hpp"
 #include "render/Camera.hpp"
 #include "core/Math.hpp"
+#include <vector>
 
 struct RawInputState {
     ControllerInput controller;
@@ -23,6 +24,7 @@ struct RawInputState {
     bool toggleSettings{false};
     bool interactPressed{false};
     bool quitRequested{false};
+    std::vector<SDL_Keycode> pressedKeys;
     Vec2 mouseScreenPos{0.0f, 0.0f};
     Vec2 mouseWorldPos{0.0f, 0.0f};
 };

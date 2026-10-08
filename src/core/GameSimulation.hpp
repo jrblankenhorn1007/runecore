@@ -38,6 +38,8 @@ struct CharacterCreation {
     Color visorColor{65, 115, 220, 255};
 };
 
+struct SaveData;
+
 class GameSimulation {
 public:
     GameSimulation();
@@ -60,6 +62,8 @@ public:
     Vec2 getRespawnPoint() const { return m_respawnPoint; }
     bool createCharacter(const CharacterCreation& character);
     const CharacterCreation& getCharacter() const { return m_character; }
+    SaveData captureSaveData() const;
+    bool restoreSaveData(const SaveData& data);
     bool allocateAttribute(int attributeIndex);
     bool allocateSkill(const std::string& nodeId);
 

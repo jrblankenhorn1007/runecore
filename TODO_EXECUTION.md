@@ -32,13 +32,13 @@ This is the executable order derived from `TODO.md`. Each item must have a focus
 - [x] `audio_scenes`: add movement, mining, environment, and dynamic combat music states; verify in `test_AudioEngine` and game-launched scenarios.
 - [x] `audio_boot`: keep normal windowed gameplay on the SDL playback device while retaining headless audio for QA and benchmark runs.
 - [ ] `settings`: finish video toggles, music/ambience persistence, and control rebinding; verify in `test_settings`.
-- [ ] `character_creation`: add title screen, three save slots, class selection, and visor color; verify in `test_character_creation`.
+- [x] `character_creation`: add title screen, three save slots, class selection, and visor color; verify in `test_TitleFlow` and the headless `test_MainRunner` launch scenario.
 - [ ] `respawn`: add death overlay, recovery drone/drop materials, and bed/clinic spawn selection; verify in `test_respawn`.
 
 ## 6. Playable Complete-Game Acceptance (User Target: 9/10)
 - [x] `interactive_launch`: default startup is player-controlled and indefinite; automated bot, timed, and scripted QA modes are opt-in.
 - [x] `pause_resume`: Escape pauses simulation and suppresses gameplay input until settings closes; verify with simulation and launch tests.
-- [ ] `save_resume`: title flow selects a save slot, loads existing progress, and saves changes across sessions.
+- [x] `save_resume`: title flow selects a save slot, loads existing progress, and saves changes across sessions; verify with headless `test_MainRunner`, `test_GameSimulation`, and `test_SaveManager`.
 - [ ] `new_player_onboarding`: explain the immediate objective and essential controls in-game.
 - [ ] `complete_game_loop`: manually play a fresh character from start through progression and final boss victory with a clear ending.
 - [ ] `release_playtest_and_rating`: conduct and record a direct end-to-end playable build assessment; rate the complete game at least 9/10 only when supported by that playtest. Test coverage and scripted captures alone are insufficient evidence.

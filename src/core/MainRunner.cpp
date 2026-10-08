@@ -5,6 +5,8 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include <array>
+#include <optional>
 #include <filesystem>
 #include <fstream>
 
@@ -18,6 +20,50 @@
 #include "render/Camera.hpp"
 #include "input/InputManager.hpp"
 #include "core/Time.hpp"
+#include "ui/TitleFlow.hpp"
+
+namespace {
+std::string resolveSaveDirectory() {
+    if (const char* overrideDirectory = std::getenv("RUNECORE_SAVE_DIR")) {
+        return overrideDirectory;
+    }
+
+    char* preferredDirectory = SDL_GetPrefPath("Runecore", "Runecore");
+    if (preferredDirectory == nullptr) return {};
+    std::string directory{preferredDirectory};
+    SDL_free(preferredDirectory);
+    return directory;
+}
+
+std::optional<ClassType> findClassType(const ClassRegistry& classes, const std::string& name) {
+    for (const auto& definition : classes.getAllClasses()) {
+        if (definition.name == name) return definition.type;
+    }
+    return std::nullopt;
+}
+
+std::array<TitleSlotPreview, 3> loadTitleSlotPreviews(
+    const std::string& directory, const ClassRegistry& classes) {
+    std::array<TitleSlotPreview, 3> previews{};
+    for (const int slot : SaveManager::availableSlots(directory)) {
+        TitleSlotPreview& preview = previews[static_cast<size_t>(slot - 1)];
+        preview.state = TitleSlotState::Corrupt;
+
+        SaveData data;
+        if (!SaveManager::loadSlot(directory, slot, data) ||
+            data.playerName.empty() || data.level < 1 ||
+            !findClassType(classes, data.className).has_value()) {
+            continue;
+        }
+
+        preview.state = TitleSlotState::Ready;
+        preview.playerName = data.playerName;
+        preview.className = data.className;
+        preview.level = data.level;
+    }
+    return previews;
+}
+}
 
 void runHeadlessBenchmark(GameSimulation& sim, const CanvasMetrics& metrics, int totalTicks = 600) {
     std::cout << "Running headless simulation benchmark (" << totalTicks << " ticks @ 60 Hz)...\n";
@@ -122,8 +168,11 @@ int runGame(int argc, char* argv[]) {
     std::cout << "                   C++20 / SDL3 / Box2D v3 / EnTT Architecture                  \n";
     std::cout << "================================================================================\n";
 
+    const bool titleMode = !headless && !botMode && !qaMode && !visualQaMode && !qaList;
     GameSimulation sim;
-    sim.initialize(ClassType::Juggernaut, headless || qaMode);
+    bool gameStarted = !titleMode;
+    int exitCode = 0;
+    if (gameStarted) sim.initialize(ClassType::Juggernaut, headless || qaMode);
 
     if (qaList) {
         std::cout << "Focused QA scenarios:\n";
@@ -152,6 +201,8 @@ int runGame(int argc, char* argv[]) {
     CanvasMetrics metrics = Camera::calculateCanvasMetrics(1280, 720);
     bool visualQaPassed = true;
     bool visualActionDone = false;
+    std::string saveDirectory;
+    int activeSaveSlot = 0;
 
     if (visualQaMode) {
         std::filesystem::create_directories("build/visual_qa");
@@ -185,6 +236,7 @@ int runGame(int argc, char* argv[]) {
                 return 1;
             }
             std::cout << "Display server not available. Falling back to headless simulation.\n";
+            if (!gameStarted) sim.initialize(ClassType::Juggernaut, true);
             if (botMode) {
                 runHeadlessBotTest(sim, 550);
             } else {
@@ -197,6 +249,17 @@ int runGame(int argc, char* argv[]) {
                 for (const auto& asset : missingAssets) std::cerr << "  " << asset << '\n';
                 renderer.shutdown();
                 return 1;
+            }
+            std::optional<TitleFlow> titleFlow;
+            if (titleMode) {
+                saveDirectory = resolveSaveDirectory();
+                if (saveDirectory.empty()) {
+                    std::cerr << "[SAVE ERROR] Unable to locate the Runecore save directory.\n";
+                    renderer.shutdown();
+                    return 1;
+                }
+                titleFlow.emplace(loadTitleSlotPreviews(
+                    saveDirectory, sim.getContext().classRegistry));
             }
             int windowWidth = 1280;
             int windowHeight = 720;
@@ -226,9 +289,10 @@ int runGame(int argc, char* argv[]) {
 
             auto lastTime = std::chrono::high_resolution_clock::now();
             auto startTime = lastTime;
+            auto lastAutosaveTime = lastTime;
             bool running = true;
             std::string lastPhase = "";
-            int displayedLevel = sim.getPlayerLevel();
+            int displayedLevel = gameStarted ? sim.getPlayerLevel() : 1;
             int draggedInventorySlot = -1;
             int visualInventorySourceSlot = -1;
             int visualInventoryStep = 0;
@@ -294,6 +358,88 @@ int runGame(int argc, char* argv[]) {
                     break;
                 }
 
+                const bool titleWasActive = titleMode && !gameStarted;
+                if (titleWasActive) {
+                    TitleAction action;
+                    for (const SDL_Keycode key : humanInput.pressedKeys) {
+                        action = titleFlow->handleKey(key);
+                        if (action.kind != TitleActionKind::None) break;
+                    }
+
+                    if (action.kind == TitleActionKind::Quit) {
+                        running = false;
+                        break;
+                    }
+
+                    if (action.kind == TitleActionKind::NewGame) {
+                        const auto& choice = titleFlow->getCharacter();
+                        sim.initialize(choice.classType, false);
+                        if (!sim.createCharacter(CharacterCreation{
+                                choice.name, choice.classType, choice.visorColor})) {
+                            std::cerr << "[TITLE ERROR] Unable to create the selected character.\n";
+                            exitCode = 1;
+                            running = false;
+                            break;
+                        }
+                        activeSaveSlot = action.slot;
+                        if (!SaveManager::saveSlot(saveDirectory, activeSaveSlot,
+                                                   sim.captureSaveData())) {
+                            std::cerr << "[SAVE ERROR] Unable to create save slot "
+                                      << activeSaveSlot << ".\n";
+                            exitCode = 1;
+                            running = false;
+                            break;
+                        }
+                        gameStarted = true;
+                        displayedLevel = sim.getPlayerLevel();
+                        camera.setPosition(sim.getPlayerPosition());
+                        lastAutosaveTime = currentTime;
+                        std::cout << "[TITLE] New RUNECORE character " << choice.name
+                                  << " (" << sim.getContext().classRegistry
+                                         .getClass(choice.classType).name
+                                  << ") started in slot " << activeSaveSlot << ".\n";
+                    } else if (action.kind == TitleActionKind::Resume) {
+                        SaveData save;
+                        const auto classType = SaveManager::loadSlot(saveDirectory, action.slot, save)
+                            ? findClassType(sim.getContext().classRegistry, save.className)
+                            : std::nullopt;
+                        if (!classType.has_value()) {
+                            titleFlow->setMessage("SAVE UNAVAILABLE OR CLASS UNKNOWN");
+                        } else {
+                            sim.initialize(*classType, false);
+                            if (!sim.restoreSaveData(save)) {
+                                std::cerr << "[SAVE ERROR] Save slot " << action.slot
+                                          << " contains invalid player data.\n";
+                                exitCode = 1;
+                                running = false;
+                                break;
+                            }
+                            activeSaveSlot = action.slot;
+                            gameStarted = true;
+                            displayedLevel = sim.getPlayerLevel();
+                            camera.setPosition(sim.getPlayerPosition());
+                            lastAutosaveTime = currentTime;
+                            std::cout << "[TITLE] Resumed RUNECORE save slot "
+                                      << activeSaveSlot << " for " << save.playerName
+                                      << " at level " << save.level << ".\n";
+                        }
+                    }
+
+                    if (!gameStarted) {
+                        renderer.beginFrame();
+                        renderer.drawTitleScreen(*titleFlow,
+                                                 sim.getContext().classRegistry, metrics);
+                        renderer.endFrame(metrics);
+                        const auto frameEnd = std::chrono::high_resolution_clock::now();
+                        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            frameEnd - currentTime);
+                        if (elapsed.count() < 16) {
+                            std::this_thread::sleep_for(std::chrono::milliseconds(16 - elapsed.count()));
+                        }
+                        continue;
+                    }
+                }
+
                 // Check if human acted to override bot
                 bool humanInteracted = (humanInput.controller.moveX != 0.0f || humanInput.controller.moveY != 0.0f ||
                                         humanInput.controller.jumpPressed || humanInput.attackPressed ||
@@ -301,7 +447,7 @@ int runGame(int argc, char* argv[]) {
                                         humanInput.skillR || humanInput.skillF || humanInput.toggleInventory ||
                                         humanInput.toggleCharacterSheet || humanInput.toggleSkills || humanInput.toggleSettings);
 
-                if (humanInteracted && !manualMode && !visualQaMode) {
+                if (humanInteracted && !titleWasActive && !manualMode && !visualQaMode) {
                     manualMode = true;
                     botMode = false;
                     maxDuration = 0.0f; // Human is playing, do not auto-close
@@ -432,7 +578,7 @@ int runGame(int argc, char* argv[]) {
                         running = false;
                         break;
                     }
-                } else if (!visualQaMode) {
+                } else if (!visualQaMode && !titleWasActive) {
                     inputState = humanInput;
                 }
 
@@ -607,6 +753,16 @@ int runGame(int argc, char* argv[]) {
                         sim.getAudio().playSound(SoundEffect::LevelUp);
                         camera.addShake(3.0f, 0.12f);
                     }
+                }
+
+                if (titleMode && gameStarted && activeSaveSlot > 0 &&
+                    currentTime - lastAutosaveTime >= std::chrono::seconds(30)) {
+                    if (!SaveManager::saveSlot(saveDirectory, activeSaveSlot,
+                                               sim.captureSaveData())) {
+                        std::cerr << "[SAVE ERROR] Autosave failed for slot "
+                                  << activeSaveSlot << ".\n";
+                    }
+                    lastAutosaveTime = currentTime;
                 }
 
                 // Camera follows player
@@ -857,23 +1013,17 @@ int runGame(int argc, char* argv[]) {
         return visualQaPassed && visualActionDone ? 0 : 1;
     }
 
-    // Save game state to file
-    SaveData save;
-    save.playerName = "Vanguard";
-    save.className = "Juggernaut";
-    save.level = sim.getPlayerLevel();
-    save.currentXP = sim.getPlayerXP();
-    save.health = sim.getPlayerHealth();
-    save.hunger = sim.getPlayerHunger();
-    save.settings.masterVolume = sim.getAudio().getMasterVolume();
-    save.settings.sfxVolume = sim.getAudio().getSFXVolume();
-    save.settings.musicVolume = sim.getAudio().getMusicVolume();
-    save.settings.ambienceVolume = sim.getAudio().getAmbienceVolume();
-
-    const std::string saveDirectory = ".";
-    bool saved = SaveManager::saveSlot(saveDirectory, 1, save);
-    std::cout << "\nGame session saved to 'save_slot_01.sav': " << (saved ? "SUCCESS" : "FAILED") << "\n";
+    if (titleMode && gameStarted && activeSaveSlot > 0) {
+        const bool saved = SaveManager::saveSlot(
+            saveDirectory, activeSaveSlot, sim.captureSaveData());
+        if (!saved) {
+            std::cerr << "[SAVE ERROR] Unable to save slot " << activeSaveSlot
+                      << " at session end.\n";
+            return 1;
+        }
+        std::cout << "[SAVE] Session saved to slot " << activeSaveSlot << ".\n";
+    }
     std::cout << "Untitled RPG execution completed cleanly.\n";
 
-    return 0;
+    return exitCode;
 }

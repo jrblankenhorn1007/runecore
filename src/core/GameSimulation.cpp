@@ -1,6 +1,8 @@
 #include "core/GameSimulation.hpp"
 #include "ecs/Components.hpp"
 #include "gameplay/combat/CombatSystem.hpp"
+#include "save/SaveManager.hpp"
+#include <cmath>
 
 GameSimulation::GameSimulation()
     : m_skillExecutor(m_context.skillRegistry),
@@ -192,6 +194,133 @@ bool GameSimulation::respawnPlayer() {
 bool GameSimulation::createCharacter(const CharacterCreation& character) {
     if (character.name.empty()) return false;
     m_character = character;
+    return true;
+}
+
+SaveData GameSimulation::captureSaveData() const {
+    SaveData data;
+    data.playerName = m_character.name;
+    data.className = m_context.classRegistry.getClass(m_character.classType).name;
+    data.visorColor = m_character.visorColor;
+    data.level = m_progression.getLevel();
+    data.currentXP = m_progression.getCurrentXP();
+    data.attributePoints = m_progression.getAttributePoints();
+    data.skillPoints = m_progression.getSkillPoints();
+    data.health = getPlayerHealth();
+    data.mana = getPlayerMana();
+    data.power = getPlayerPower();
+    data.playerX = getPlayerPosition().x;
+    data.playerY = getPlayerPosition().y;
+    data.inDungeon = isInsideDungeon();
+    data.attributes = Attributes{
+        m_progression.getAttribute(Progression::Attribute::Strength),
+        m_progression.getAttribute(Progression::Attribute::Dexterity),
+        m_progression.getAttribute(Progression::Attribute::Intelligence),
+        m_progression.getAttribute(Progression::Attribute::Vitality),
+        m_progression.getAttribute(Progression::Attribute::Wisdom),
+        m_progression.getAttribute(Progression::Attribute::Cybernetics)
+    };
+    data.hunger = m_metabolism.getHunger();
+    data.thirst = m_metabolism.getThirst();
+    data.bodyTemp = m_metabolism.getBodyTemperature();
+
+    for (const auto& slot : m_inventory.getSlots()) {
+        if (slot.has_value()) data.inventoryItems.push_back(*slot);
+    }
+
+    static constexpr EquipSlot equipmentSlots[]{
+        EquipSlot::MainHand, EquipSlot::OffHand, EquipSlot::Helmet,
+        EquipSlot::Chestplate, EquipSlot::Greaves, EquipSlot::Boots,
+        EquipSlot::Ring1, EquipSlot::Ring2, EquipSlot::Amulet, EquipSlot::Relic
+    };
+    for (const EquipSlot slot : equipmentSlots) {
+        if (const Item* item = m_inventory.getEquipped(slot)) {
+            data.equippedItems.push_back(SaveData::EquippedItem{slot, *item});
+        }
+    }
+
+    data.settings.masterVolume = m_audio.getMasterVolume();
+    data.settings.sfxVolume = m_audio.getSFXVolume();
+    data.settings.musicVolume = m_audio.getMusicVolume();
+    data.settings.ambienceVolume = m_audio.getAmbienceVolume();
+    return data;
+}
+
+bool GameSimulation::restoreSaveData(const SaveData& data) {
+    if (data.playerName.empty() ||
+        data.className != m_context.classRegistry.getClass(m_character.classType).name ||
+        data.level < 1 || !std::isfinite(data.health) || !std::isfinite(data.mana) ||
+        !std::isfinite(data.power) || !std::isfinite(data.playerX) ||
+        !std::isfinite(data.playerY) || !std::isfinite(data.hunger) ||
+        !std::isfinite(data.thirst) || !std::isfinite(data.bodyTemp)) {
+        return false;
+    }
+
+    if (!m_progression.restoreState(
+            data.level, data.currentXP, data.attributePoints,
+            data.skillPoints, data.attributes)) {
+        return false;
+    }
+
+    CharacterCreation character{data.playerName, m_character.classType, data.visorColor};
+    if (!createCharacter(character)) return false;
+
+    if (data.inDungeon && !isInsideDungeon()) enterDungeon();
+    auto& position = m_context.registry.get<TransformComponent>(m_playerEntity).position;
+    auto& velocity = m_context.registry.get<VelocityComponent>(m_playerEntity).linear;
+    position = Vec2{data.playerX, data.playerY};
+    velocity = Vec2{};
+
+    auto& health = m_context.registry.get<HealthComponent>(m_playerEntity);
+    health.current = std::clamp(data.health, 0.0f, health.max);
+    health.isDead = health.current <= 0.0f;
+    health.invulnTimer = 0.0f;
+
+    auto& mana = m_context.registry.get<ManaComponent>(m_playerEntity);
+    mana.current = std::clamp(data.mana, 0.0f, mana.max);
+    auto& power = m_context.registry.get<PowerComponent>(m_playerEntity);
+    power.current = std::clamp(data.power, 0.0f, power.max);
+
+    m_metabolism.setHunger(data.hunger);
+    m_metabolism.setThirst(data.thirst);
+    m_metabolism.setBodyTemperature(data.bodyTemp);
+
+    for (int slotIndex = 0; slotIndex < m_inventory.getSlotCount(); ++slotIndex) {
+        const auto item = m_inventory.getSlot(slotIndex);
+        if (item.has_value()) {
+            const int itemCount = m_inventory.getItemCount(item->id);
+            if (itemCount > 0) m_inventory.removeItem(item->id, itemCount);
+        }
+    }
+    for (const auto& item : data.inventoryItems) {
+        if (item.quantity <= 0 || !m_inventory.addItem(item)) return false;
+    }
+    for (const auto& equipped : data.equippedItems) {
+        const int slotValue = static_cast<int>(equipped.slot);
+        if (slotValue <= static_cast<int>(EquipSlot::None) ||
+            slotValue > static_cast<int>(EquipSlot::Relic) ||
+            equipped.item.quantity <= 0 || equipped.item.equipSlot != equipped.slot ||
+            !m_inventory.addItem(equipped.item)) {
+            return false;
+        }
+
+        bool equippedItem = false;
+        for (int slotIndex = 0; slotIndex < m_inventory.getSlotCount(); ++slotIndex) {
+            const auto item = m_inventory.getSlot(slotIndex);
+            if (item.has_value() && item->id == equipped.item.id &&
+                item->equipSlot == equipped.slot &&
+                m_inventory.equipItem(equipped.slot, slotIndex)) {
+                equippedItem = true;
+                break;
+            }
+        }
+        if (!equippedItem) return false;
+    }
+
+    m_audio.setMasterVolume(data.settings.masterVolume);
+    m_audio.setSFXVolume(data.settings.sfxVolume);
+    m_audio.setMusicVolume(data.settings.musicVolume);
+    m_audio.setAmbienceVolume(data.settings.ambienceVolume);
     return true;
 }
 

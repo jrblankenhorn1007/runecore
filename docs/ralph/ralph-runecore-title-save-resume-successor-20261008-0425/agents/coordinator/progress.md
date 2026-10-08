@@ -61,5 +61,35 @@
 - **SELF_ATTESTATION:** I, coordinator, sign off iteration 2 on the successor
   branch at the exact post-rebase implementation commit above. This statement
   is not cryptographically signed.
-- The successor branch is `AWAITING_MERGE`; it has not yet been published or
-  integrated.
+- At sign-off, the successor branch was `AWAITING_MERGE`; the following
+  section records its subsequent publication and remote integration.
+
+## 2026-10-08 - Successor integrated and verified on remote main
+
+- Published successor branch tip
+  `e9d4ddb1cf06a4a2e020b937685589a47303d76c` and verified the remote branch
+  with `git ls-remote`.
+- Rechecked that MERGE lease sign-in
+  `7d9338acec22d607e2bf3c46afc0edc72cc4db2a` was the fetched `origin/main`
+  tip and that the successor descended from it. `git push --dry-run
+  origin HEAD:refs/heads/main` passed.
+- Fast-forwarded `origin/main` from `7d9338acec22d607e2bf3c46afc0edc72cc4db2a`
+  to `e9d4ddb1cf06a4a2e020b937685589a47303d76c` under the active MERGE lease.
+- Fetched and verified both the integration commit
+  `e9d4ddb1cf06a4a2e020b937685589a47303d76c` and implementation commit
+  `c7486f4ae378eb5c7f7b9991e03e39ce50e2651c` as ancestors of remote main.
+- Released the MERGE lease through `publish_agent_sync.py` with outcome
+  `MERGED`; the release commit is `f639730f7501559600f23fd0cf9ef047c7865e74`
+  and ownership is `FREE` at revision 20.
+- Published task status revision 7 through the authorized STATUS transaction:
+  status commit `82423681299af242f365d985f19d4c303dc60aba`, sign-in
+  `5791ff0a7c06fe8d90051d4af4cf511e6619770b`, and sign-out/fetched `origin/main`
+  `a81bc6a193be54398a82fb0de40db56b3e837dc4`. The ownership record is `FREE`
+  at revision 22.
+- The dedicated Project Memory Update review for iteration 1 remains pending;
+  iteration 2 also needs its post-merge review. The refreshed Resource Manager
+  snapshot shows three live sessions, a two-agent maximum, and zero available
+  slots. No review was self-performed and no `NO_UPDATE` outcome was recorded.
+- The 9/10 gate remains open. Onboarding, a clear ending, fresh-save
+  progression through the final boss, and direct end-to-end playtesting are
+  unfinished; no rating has been assigned.

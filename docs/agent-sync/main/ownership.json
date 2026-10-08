@@ -11,12 +11,12 @@
   },
   "ref": "refs/heads/main",
   "repository": "jrblankenhorn1007/runecore",
-  "revision": 13,
+  "revision": 14,
   "schema_version": 1,
   "sign_out": {
-    "at_utc": null,
-    "outcome": null,
-    "result_commit_sha": null
+    "at_utc": "2026-10-08T03:53:26Z",
+    "outcome": "PUBLISHED",
+    "result_commit_sha": "c773f203b301a7c6ec7333ea7db92f31103f5d69"
   },
-  "state": "OWNED"
+  "state": "FREE"
 }

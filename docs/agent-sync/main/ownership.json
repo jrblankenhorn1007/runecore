@@ -4,19 +4,19 @@
     "operation": "STATUS",
     "run_id": "runecore-boss-telegraphs-20261007-0510",
     "runtime_agent_id": "copilotcli:/a9d56901-462d-4292-b210-7b738822dc4f",
-    "signed_in_at_utc": "2026-10-07T05:26:41Z",
-    "start_main_sha": "a544914f9a9ed8013b2ec0ae247346ae1acbb254",
-    "token": "f4e875044ce80b0738b853a7336c343a",
+    "signed_in_at_utc": "2026-10-08T03:16:38Z",
+    "start_main_sha": "edbbf70c955e19cbb412c62ac971266aee75f112",
+    "token": "514232081547dddf83f4e372e1055967",
     "worktree_path": null
   },
   "ref": "refs/heads/main",
   "repository": "jrblankenhorn1007/runecore",
-  "revision": 4,
+  "revision": 5,
   "schema_version": 1,
   "sign_out": {
-    "at_utc": "2026-10-07T05:26:44Z",
-    "outcome": "PUBLISHED",
-    "result_commit_sha": "fe235f2e700a09a182405a618b12cffdd9328be2"
+    "at_utc": null,
+    "outcome": null,
+    "result_commit_sha": null
   },
-  "state": "FREE"
+  "state": "OWNED"
 }

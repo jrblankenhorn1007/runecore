@@ -87,5 +87,18 @@
   gated on that playtest.
 - The run remains blocked on the prior iteration's required dedicated Project
   Memory Update review; Resource Manager had no free worker slot at kickoff.
-- Implementation is not yet committed, published, integrated, or verified on
-  remote `main`.
+- At the time this section was first recorded, implementation was not yet
+  committed, published, integrated, or verified on remote `main`.
+
+## Implementation sign-off
+
+- Implementation commit:
+  `f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa` (`feat: add title and
+  save-resume flow`).
+- The full 88/88 CTest suite and the targeted headless tests all passed before
+  this documentation-only sign-off update. `git diff --check` passed for the
+  staged implementation commit.
+- **SELF_ATTESTATION:** I, coordinator, sign off iteration 2 at the exact
+  implementation commit above. This statement is not cryptographically signed.
+- Branch status is now `AWAITING_MERGE`; the implementation has not yet been
+  published or integrated.

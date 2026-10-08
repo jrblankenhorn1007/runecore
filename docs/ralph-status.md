@@ -2,7 +2,7 @@
 
 Overall status: `BLOCKED`
 
-Run-level next action: The onboarding implementation is merged and verified on remote main. Continue serial development toward the clear ending and direct start-to-finish playtest; the dedicated Project Memory Update reviews for iterations 1, 2, and 3 remain pending because Resource Manager has no available slots. Do not self-review or assign the 9/10 rating before the completed game merits it.
+Run-level next action: Continue serially on the campaign-ending iteration; the player-facing clear ending is still missing. The dedicated Project Memory Update reviews for iterations 1, 2, and 3 remain pending because Resource Manager has no available slots. Do not self-review or assign the 9/10 rating before the complete game merits it.
 
 | Assigned agent (`worker_id` / `task_id`) | Exact current status | Next action | Records |
 | --- | --- | --- | --- |
@@ -10,12 +10,13 @@ Run-level next action: The onboarding implementation is merged and verified on r
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Preserve this published pre-lease branch as superseded; its implementation was carried to the successor and merged as e9d4ddb1cf06a4a2e020b937685589a47303d76c. Do not update or force-push this branch. Keep the memory-review and 9/10 gates open. | [status](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md) |
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Implementation c7486f4ae378eb5c7f7b9991e03e39ce50e2651c was merged as e9d4ddb1cf06a4a2e020b937685589a47303d76c and verified on remote main a81bc6a193be54398a82fb0de40db56b3e837dc4; await the dedicated memory review when capacity is available. Keep the 9/10 gate open. | [status](docs/ralph/ralph-runecore-title-save-resume-successor-20261008-0425/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-successor-20261008-0425/agents/coordinator/progress.md) |
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Implementation `e146bea8e78dd02ab0c07498eac28e32002818d7` was fast-forwarded as `7682534b8c814820e60d426175488f254d528fc0` and verified on remote main. Keep dedicated memory reviews for iterations 1-3 pending until capacity returns; continue toward the clear ending and direct playtest without assigning the 9/10 rating prematurely. | [status](docs/ralph/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/progress.md) |
+| `coordinator` / `boss-warning-telegraphs` | `IN_PROGRESS` | Implement a clear, persistent campaign-ending screen when the dungeon boss is defeated. Use headless TDD and keep the complete-game playthrough, settings/respawn backlog, memory reviews, and 9/10 rating gates open. | [status](docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/progress.md) |
 
 ```yaml
 schema_version: 2
 snapshot_path: "docs/ralph-status.md"
-snapshot_revision: 38
-updated_at_utc: "2026-10-08T05:35:45Z"
+snapshot_revision: 39
+updated_at_utc: "2026-10-08T05:51:54Z"
 overall_status: BLOCKED
 current_run_ids: ["runecore-boss-telegraphs-20261007-0510"]
 
@@ -28,10 +29,10 @@ runs:
     active_worker_count: 0
     base_origin_main_sha: "b5a3437ceaec52828b19a73a761fed33ab649e78"
     created_at_utc: "2026-10-07T05:10:24Z"
-    updated_at_utc: "2026-10-08T05:35:45Z"
+    updated_at_utc: "2026-10-08T05:51:54Z"
     memory_review_status: PENDING
     memory_review_blocker: "Resource Manager reports 3 active sessions, a 2-agent maximum, and 0 available slots; the dedicated reviews for merged iterations 1, 2, and 3 cannot yet be reserved."
-    next_action: "The onboarding implementation is verified on origin/main at 7682534b8c814820e60d426175488f254d528fc0. Continue serially toward a clear ending and direct start-to-finish playtest on a fresh branch. When Resource Manager capacity returns, invoke the dedicated Project Memory Update reviewer once for each pending iteration 1-3; do not self-review or assign 9/10 before the completed game merits it."
+    next_action: "Iteration 4 is active on fresh branch ralph/runecore-campaign-ending-20261008-0550 from origin/main c4955d10842e71c70c7732daef9f835bcde80702, rebased onto STATUS sign-out d228a00d8a87ca7a8be949d857ea3748e2e58f4c. Add the clear campaign ending with TDD while keeping the full playthrough and 9/10 rating gates open. Resume dedicated memory reviews for iterations 1-3 when Resource Manager capacity returns; no slots are available now."
     split_plan:
       - task_id: "boss-warning-telegraphs"
         worker_id: "coordinator"
@@ -219,4 +220,47 @@ branch_agent_index:
     decision_record_path: "docs/decisions/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/pr-not-opened.md"
     decision_index_path: "docs/decisions/ralph-runecore-player-onboarding-20261008-0502/README.md"
     next_action: "Implementation e146bea8e78dd02ab0c07498eac28e32002818d7 was fast-forwarded as 7682534b8c814820e60d426175488f254d528fc0 and verified on remote main. Preserve the pending dedicated memory reviews for iterations 1-3 and continue toward the clear ending and direct start-to-finish playtest; keep the 9/10 gate open."
+  - run_id: "runecore-boss-telegraphs-20261007-0510"
+    task_ids: ["boss-warning-telegraphs"]
+    worker_id: "coordinator"
+    worker_name: "Coordinator - campaign ending"
+    branch: "ralph/runecore-campaign-ending-20261008-0550"
+    branch_slug: "ralph-runecore-campaign-ending-20261008-0550"
+    status: IN_PROGRESS
+    iteration: 4
+    merge_actor_worker_id: coordinator
+    pull_request:
+      status: NOT_OPENED
+      number: null
+      url: null
+      base_sha: null
+      head_sha: null
+    review:
+      status: NOT_APPLICABLE
+      reviewer_agents: []
+      reviewed_base_sha: null
+      reviewed_head_sha: null
+      rounds_completed: 0
+      max_rounds: 2
+      unresolved_finding_count: 0
+      author_decision:
+        status: NOT_APPLICABLE
+        choice: null
+        rationale: null
+        recorded_at_utc: null
+    resource_usage:
+      time_spent_seconds: 88
+      time_basis: WALL_CLOCK_ELAPSED
+      token_spend:
+        status: NOT_REPORTED
+        input_tokens: null
+        output_tokens: null
+        total_tokens: null
+        cached_input_tokens: null
+        source: null
+    status_path: "docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/status.md"
+    progress_path: "docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/progress.md"
+    decision_record_path: "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/pr-not-opened.md"
+    decision_index_path: "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/README.md"
+    next_action: "Write the failing boss-defeat ending and save/resume tests first. Then implement the modal ending and its visible renderer, verify focused headless tests, and leave the full-game playthrough/rating unchecked."
 ```

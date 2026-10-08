@@ -8,6 +8,9 @@
   `b7cbb458160c7d081c51549188be169540ee5468`
 - Current implementation commit:
   `34de481fcca5925d4bf705f3812b1ce2061cfd98`
+- Verified `origin/main` integration: fast-forward commit
+  `04fa4e30fbc7f10e80cc8e15de80724d9f4611f7`; current fetched main
+  `f264081ad243630c68791a92c6dd9bdad41d6560`.
 - Agent record: [coordinator / no PR](agents/coordinator/pr-not-opened.md)
 
 ## Split plan
@@ -28,6 +31,10 @@ so the coordinator is implementing it serially.
   repository rulesets, main is not protected, and the recent main history
   contains direct commits. Reserve main through the agent-sync publisher for
   the authorized merge.
+- After verifying integration, the required dedicated Project Memory Update
+  review was left pending because Resource Manager reported three active
+  sessions against a two-agent limit and no free slot. Do not self-review or
+  treat the 9/10 acceptance gate as complete.
 
 ## Recovered issue
 

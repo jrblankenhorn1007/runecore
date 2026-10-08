@@ -17,7 +17,9 @@
 The repository has no configured main branch protection or rulesets, and
 recent `origin/main` history uses direct commits. This iteration uses the
 coordinator-managed fast-forward path with an explicit main ownership lease.
-Review is `NOT_APPLICABLE`; the verified main merge remains required.
+Review is `NOT_APPLICABLE`; the authorized fast-forward
+`04fa4e30fbc7f10e80cc8e15de80724d9f4611f7` is verified on fetched
+`origin/main` at `f264081ad243630c68791a92c6dd9bdad41d6560`.
 
 ## Decisions and consequences
 

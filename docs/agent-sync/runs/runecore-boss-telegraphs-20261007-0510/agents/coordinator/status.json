@@ -62,7 +62,7 @@
   },
   "prompt_path": "docs/agent-sync/runs/runecore-boss-telegraphs-20261007-0510/agents/coordinator/prompt.md",
   "prompt_sha256": "73cba8c82ab4bee59bcb8d88344f582e14746dec9812afc71143fdb0cf6e20e9",
-  "revision": 10,
+  "revision": 11,
   "run_id": "runecore-boss-telegraphs-20261007-0510",
   "schema_version": 1,
   "scope_update": {
@@ -74,13 +74,12 @@
       "docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/",
       "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/"
     ],
-    "recorded_at_utc": "2026-10-08T05:51:16Z",
+    "recorded_at_utc": "2026-10-08T06:39:11Z",
     "remaining_acceptance": [
-      "Present a clear player-facing campaign ending after the dungeon boss is defeated, persist it, and restore an unacknowledged ending safely.",
-      "Complete and manually play the core game loop from a fresh character through exploration, progression, dungeon/boss victory, and a clear ending.",
+      "Finish the remaining open TODO items, including settings and respawn, and manually complete the core game loop as a fresh character through exploration, progression, dungeon/boss victory, and the clear ending.",
       "Perform a direct end-to-end playtest and support a 9/10 rating only if the completed game merits it."
     ],
-    "status": "IN_PROGRESS",
+    "status": "BLOCKED",
     "user_request": "Make Runecore a genuinely playable, complete game and do not self-rate it until evidence supports at least 9/10."
   },
   "sign_in_at_utc": "2026-10-07T05:10:24Z",
@@ -92,10 +91,10 @@
     "summary": null
   },
   "started_at_utc": "2026-10-07T05:10:24Z",
-  "status": "IN_PROGRESS",
-  "status_reason": "Iteration 4 is starting on a fresh branch from origin/main c4955d10842e71c70c7732daef9f835bcde80702 to add a clear, persisted campaign ending after the playable dungeon boss. The complete-game loop and direct 9/10 playtest remain open. Dedicated Project Memory Update reviews for iterations 1-3 remain pending; Resource Manager reports three active agents, max_agents=2, and zero available slots, so work continues serially without dispatch.",
+  "status": "BLOCKED",
+  "status_reason": "Iteration 4 was merged: implementation d831a5d37d6db60caad0ce70b46dd14326998354 is included in origin/main. Dedicated Project Memory Update reviews for iterations 1-4 remain PENDING. The refreshed Resource Manager inventory is 2 active agents, max_agents=2, and 0 available slots; do not self-review or start the next Ralph iteration until the required reviews can be reserved. Remaining game TODOs, the direct fresh-character start-to-finish playthrough, and the 9/10 rating gate remain open.",
   "task_id": "boss-warning-telegraphs",
-  "updated_at_utc": "2026-10-08T05:51:16Z",
+  "updated_at_utc": "2026-10-08T06:39:11Z",
   "worker_id": "coordinator",
   "worker_name": "Coordinator - boss warning telegraphs"
 }

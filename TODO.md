@@ -20,8 +20,10 @@ start-to-finish criteria below are implemented and directly playtested.
   character creation, and resume.
 - [x] Load and save meaningful player progress so a returning player can
   continue a run rather than always starting at level 1.
-- [ ] Onboard a new player with a first objective, readable combat feedback,
+- [x] Onboard a new player with a first objective, readable combat feedback,
   and accessible controls without relying on developer-only QA instructions.
+  New characters see a paused in-game briefing; unfinished briefings return
+  on resume, and Enter/Space begins play without leaking input into gameplay.
 - [ ] Complete and manually play the core game loop from a new character
   through exploration, progression, dungeon/boss victory, and a clear ending.
 - [ ] After that direct playtest, self-rate the complete game against gameplay,

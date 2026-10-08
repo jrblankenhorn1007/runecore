@@ -111,6 +111,34 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.getActiveScreen() == ActiveScreen::None);
     }
 
+    SECTION("New characters are paused on an in-game onboarding briefing") {
+        REQUIRE(sim.createCharacter(CharacterCreation{
+            "First Timer", ClassType::Juggernaut, Color{65, 115, 220, 255}}));
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::Onboarding);
+        sim.toggleScreen(ActiveScreen::Settings);
+        sim.toggleScreen(ActiveScreen::Inventory);
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::Onboarding);
+
+        const float initialTime = sim.getSimulationTime();
+        const Vec2 initialPosition = sim.getPlayerPosition();
+        ControllerInput input;
+        input.moveX = 1.0f;
+        input.jumpPressed = true;
+        sim.step(input, 1.0f);
+
+        REQUIRE(sim.getSimulationTime() == Approx(initialTime));
+        REQUIRE(sim.getPlayerPosition().x == Approx(initialPosition.x));
+        REQUIRE(sim.getPlayerPosition().y == Approx(initialPosition.y));
+
+        REQUIRE(sim.completeOnboarding());
+        REQUIRE(sim.getActiveScreen() == ActiveScreen::None);
+        REQUIRE(sim.captureSaveData().onboardingComplete);
+        REQUIRE_FALSE(sim.completeOnboarding());
+
+        sim.step(ControllerInput{}, 1.0f / 60.0f);
+        REQUIRE(sim.getSimulationTime() == Approx(initialTime + 1.0f / 60.0f));
+    }
+
     SECTION("Weather Emits Typed Environmental Particles") {
         sim.getContext().dayNight.setWeather(WeatherType::Clear);
         sim.step(ControllerInput{}, 1.0f / 60.0f);
@@ -183,9 +211,11 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         GameSimulation resumed;
         resumed.initialize(ClassType::Juggernaut);
         REQUIRE(resumed.restoreSaveData(saved));
+        REQUIRE(resumed.getActiveScreen() == ActiveScreen::Onboarding);
         const SaveData restored = resumed.captureSaveData();
 
         REQUIRE(restored.playerName == "Astra");
+        REQUIRE_FALSE(restored.onboardingComplete);
         REQUIRE(restored.visorColor.r == 65);
         REQUIRE(restored.visorColor.g == 225);
         REQUIRE(restored.level == 8);
@@ -204,6 +234,18 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(resumed.getInventory().getItemCount("mat_test_ore") == 7);
         REQUIRE(resumed.getInventory().getEquipped(EquipSlot::MainHand) != nullptr);
         REQUIRE(resumed.getInventory().getEquipped(EquipSlot::MainHand)->id == "item_test_blade");
+    }
+
+    SECTION("Completed onboarding does not interrupt a later resume") {
+        REQUIRE(sim.createCharacter(CharacterCreation{
+            "Returning Hero", ClassType::Juggernaut, Color{65, 115, 220, 255}}));
+        REQUIRE(sim.completeOnboarding());
+
+        GameSimulation resumed;
+        resumed.initialize(ClassType::Juggernaut);
+        REQUIRE(resumed.restoreSaveData(sim.captureSaveData()));
+        REQUIRE(resumed.getActiveScreen() == ActiveScreen::None);
+        REQUIRE(resumed.captureSaveData().onboardingComplete);
     }
 
     SECTION("Dungeon Entry and Exit") {

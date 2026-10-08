@@ -32,6 +32,7 @@ struct SaveData {
     float playerX{100.0f};
     float playerY{160.0f};
     bool inDungeon{false};
+    bool onboardingComplete{false};
 
     Attributes attributes;
 

@@ -1160,6 +1160,62 @@ void Renderer::drawSettingsScreen(const AudioEngine& audio, const CanvasMetrics&
     drawPixelText("ESC CLOSE", panelX + 22.0f, panelY + 274.0f, 1.0f, Color{130, 155, 180, 255});
 }
 
+void Renderer::drawOnboardingScreen(const CanvasMetrics& metrics) {
+    const float panelWidth = std::min(552.0f, static_cast<float>(metrics.virtualWidth) - 24.0f);
+    const float panelHeight = std::min(316.0f, static_cast<float>(metrics.virtualHeight) - 24.0f);
+    const float panelX = (static_cast<float>(metrics.virtualWidth) - panelWidth) * 0.5f;
+    const float panelY = (static_cast<float>(metrics.virtualHeight) - panelHeight) * 0.5f;
+
+    SDL_SetRenderDrawColor(m_renderer, 7, 13, 24, 255);
+    SDL_FRect panel{panelX, panelY, panelWidth, panelHeight};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 70, 190, 220, 255);
+    SDL_FRect header{panelX, panelY, panelWidth, 3.0f};
+    SDL_RenderFillRect(m_renderer, &header);
+    SDL_SetRenderDrawColor(m_renderer, 70, 220, 190, 255);
+    SDL_FRect accent{panelX, panelY, 4.0f, panelHeight};
+    SDL_RenderFillRect(m_renderer, &accent);
+
+    const float textX = panelX + 24.0f;
+    drawPixelText("WELCOME TO RUNECORE", textX, panelY + 17.0f, 1.8f,
+                  Color{195, 235, 255, 255});
+    drawPixelText("YOUR FIRST OBJECTIVE", textX, panelY + 53.0f, 1.0f,
+                  Color{125, 220, 190, 255});
+    drawPixelText("HEAD EAST TO THE DUNGEON PORTAL", textX, panelY + 72.0f, 0.9f,
+                  Color{225, 232, 242, 255});
+    drawPixelText("AT THE STONE ARCH PRESS W TO ENTER", textX, panelY + 89.0f, 0.9f,
+                  Color{180, 200, 220, 255});
+    drawPixelText("EXPLORE BELOW AND DEFEAT THE GUARDIAN", textX, panelY + 106.0f, 0.9f,
+                  Color{180, 200, 220, 255});
+    drawPixelText("ESSENTIAL CONTROLS", textX, panelY + 136.0f, 1.0f,
+                  Color{125, 220, 190, 255});
+
+    const float leftColumn = textX;
+    const float rightColumn = panelX + 282.0f;
+    const float firstControlY = panelY + 160.0f;
+    const float rowSpacing = 20.0f;
+    drawPixelText("A D OR ARROWS MOVE", leftColumn, firstControlY, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("SPACE JUMP", leftColumn, firstControlY + rowSpacing, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("SHIFT DASH", leftColumn, firstControlY + rowSpacing * 2.0f, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("W USE THE PORTAL", leftColumn, firstControlY + rowSpacing * 3.0f, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("LEFT CLICK ATTACK", rightColumn, firstControlY, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("RIGHT CLICK SHOOT", rightColumn, firstControlY + rowSpacing, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("Q E R F SKILLS", rightColumn, firstControlY + rowSpacing * 2.0f, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("TAB INVENTORY", rightColumn, firstControlY + rowSpacing * 3.0f, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("ESC PAUSE", rightColumn, firstControlY + rowSpacing * 4.0f, 0.85f,
+                  Color{220, 230, 240, 255});
+    drawPixelText("PRESS ENTER OR SPACE TO BEGIN", textX, panelY + panelHeight - 25.0f,
+                  0.9f, Color{255, 220, 100, 255});
+}
+
 void Renderer::drawTitleScreen(const TitleFlow& flow, const ClassRegistry& classes,
                                const CanvasMetrics& metrics) {
     SDL_SetRenderDrawColor(m_renderer, 5, 10, 22, 255);

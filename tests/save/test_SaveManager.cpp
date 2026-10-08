@@ -19,6 +19,7 @@ TEST_CASE("SaveManager Serialization, Atomic Writes, and Checksums", "[save][per
     data.mana = 100.0f;
     data.power = 80.0f;
     data.attributes.strength = 30;
+    data.onboardingComplete = true;
 
     Item sword;
     sword.id = "sword_iron";
@@ -36,8 +37,26 @@ TEST_CASE("SaveManager Serialization, Atomic Writes, and Checksums", "[save][per
         REQUIRE(loaded.level == 25);
         REQUIRE(loaded.health == Approx(400.0f));
         REQUIRE(loaded.attributes.strength == 30);
+        REQUIRE(loaded.onboardingComplete);
         REQUIRE(loaded.inventoryItems.size() == 1);
         REQUIRE(loaded.inventoryItems[0].name == "Iron Sword");
+    }
+
+    SECTION("Legacy saves default to unfinished onboarding") {
+        const std::string legacyPath = "test_legacy_save.sav";
+        const std::string payload =
+            R"({"playerName":"Legacy","className":"Juggernaut"})";
+        std::ofstream file(legacyPath);
+        file << "{\n  \"version\": 1,\n  \"checksum\": "
+             << SaveManager::computeChecksum(payload)
+             << ",\n  \"payload\": "
+             << "\"{\\\"playerName\\\":\\\"Legacy\\\",\\\"className\\\":\\\"Juggernaut\\\"}\"\n}";
+        file.close();
+
+        SaveData loaded;
+        REQUIRE(SaveManager::loadFromFile(legacyPath, loaded));
+        REQUIRE_FALSE(loaded.onboardingComplete);
+        std::remove(legacyPath.c_str());
     }
 
     SECTION("Nonexistent File Fails") {

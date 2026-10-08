@@ -23,6 +23,7 @@
 
 enum class ActiveScreen {
     None,
+    Onboarding,
     Inventory,
     Crafting,
     Augmentations,
@@ -64,6 +65,7 @@ public:
     const CharacterCreation& getCharacter() const { return m_character; }
     SaveData captureSaveData() const;
     bool restoreSaveData(const SaveData& data);
+    bool completeOnboarding();
     bool allocateAttribute(int attributeIndex);
     bool allocateSkill(const std::string& nodeId);
 
@@ -148,6 +150,7 @@ private:
     float m_hitstopTimer{0.0f};
     Hitbox m_lastAttackBox;
     ActiveScreen m_activeScreen{ActiveScreen::None};
+    bool m_onboardingComplete{false};
     CharacterCreation m_character;
     Vec2 m_respawnPoint{100.0f, 160.0f};
 };

@@ -12,6 +12,8 @@ GameSimulation::GameSimulation()
 
 void GameSimulation::initialize(ClassType playerClass, bool headlessAudio) {
     m_character.classType = playerClass;
+    m_activeScreen = ActiveScreen::None;
+    m_onboardingComplete = false;
     m_audio.init(headlessAudio);
 
     // 1. Register sample crafting recipes
@@ -194,6 +196,15 @@ bool GameSimulation::respawnPlayer() {
 bool GameSimulation::createCharacter(const CharacterCreation& character) {
     if (character.name.empty()) return false;
     m_character = character;
+    m_onboardingComplete = false;
+    m_activeScreen = ActiveScreen::Onboarding;
+    return true;
+}
+
+bool GameSimulation::completeOnboarding() {
+    if (m_activeScreen != ActiveScreen::Onboarding) return false;
+    m_onboardingComplete = true;
+    m_activeScreen = ActiveScreen::None;
     return true;
 }
 
@@ -212,6 +223,7 @@ SaveData GameSimulation::captureSaveData() const {
     data.playerX = getPlayerPosition().x;
     data.playerY = getPlayerPosition().y;
     data.inDungeon = isInsideDungeon();
+    data.onboardingComplete = m_onboardingComplete;
     data.attributes = Attributes{
         m_progression.getAttribute(Progression::Attribute::Strength),
         m_progression.getAttribute(Progression::Attribute::Dexterity),
@@ -321,6 +333,10 @@ bool GameSimulation::restoreSaveData(const SaveData& data) {
     m_audio.setSFXVolume(data.settings.sfxVolume);
     m_audio.setMusicVolume(data.settings.musicVolume);
     m_audio.setAmbienceVolume(data.settings.ambienceVolume);
+    m_onboardingComplete = data.onboardingComplete;
+    m_activeScreen = m_onboardingComplete
+        ? ActiveScreen::None
+        : ActiveScreen::Onboarding;
     return true;
 }
 
@@ -345,7 +361,8 @@ entt::entity GameSimulation::spawnEnemy(const Vec2& position, float health, int 
 }
 
 void GameSimulation::step(const ControllerInput& input, float dt) {
-    if (m_activeScreen == ActiveScreen::Settings) {
+    if (m_activeScreen == ActiveScreen::Settings ||
+        m_activeScreen == ActiveScreen::Onboarding) {
         return;
     }
 
@@ -719,6 +736,10 @@ bool GameSimulation::castSkillF() {
 }
 
 void GameSimulation::toggleScreen(ActiveScreen screen) {
+    if (m_activeScreen == ActiveScreen::Onboarding ||
+        screen == ActiveScreen::Onboarding) {
+        return;
+    }
     if (m_activeScreen == ActiveScreen::Settings && screen != ActiveScreen::Settings) {
         return;
     }

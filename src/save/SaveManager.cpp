@@ -119,6 +119,7 @@ bool SaveManager::saveToFile(const std::string& filePath, const SaveData& data) 
     j["playerX"] = data.playerX;
     j["playerY"] = data.playerY;
     j["inDungeon"] = data.inDungeon;
+    j["onboardingComplete"] = data.onboardingComplete;
 
     j["attributes"] = {
         {"strength", data.attributes.strength},
@@ -233,6 +234,7 @@ bool SaveManager::loadFromFile(const std::string& filePath, SaveData& outData) {
     outData.playerX = j.value("playerX", 100.0f);
     outData.playerY = j.value("playerY", 160.0f);
     outData.inDungeon = j.value("inDungeon", false);
+    outData.onboardingComplete = j.value("onboardingComplete", false);
 
     if (j.contains("attributes")) {
         const auto& aj = j["attributes"];

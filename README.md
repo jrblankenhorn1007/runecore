@@ -44,6 +44,10 @@ The game executable is written to `build/untitled_rpg` while the internal CMake 
 ./build/untitled_rpg
 ```
 
+Each new character sees a paused in-game briefing with the first objective and
+essential controls. Press `Enter` or `Space` to begin; if the briefing is left
+unfinished, it appears again when that save is resumed.
+
 The default launch starts an interactive game session and stays open until the
 game window is closed. For a timed smoke run, use `--duration <seconds>` (for
 example, `./build/untitled_rpg --duration 10`).

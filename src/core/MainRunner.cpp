@@ -1,4 +1,5 @@
 #include "core/MainRunner.hpp"
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <chrono>
@@ -582,6 +583,28 @@ int runGame(int argc, char* argv[]) {
                     inputState = humanInput;
                 }
 
+                if (sim.getActiveScreen() == ActiveScreen::Onboarding) {
+                    const bool continuePressed = std::any_of(
+                        humanInput.pressedKeys.begin(), humanInput.pressedKeys.end(),
+                        [](SDL_Keycode key) {
+                            return key == SDLK_RETURN || key == SDLK_KP_ENTER ||
+                                   key == SDLK_SPACE;
+                        });
+                    if (!titleWasActive && continuePressed && sim.completeOnboarding() &&
+                        titleMode && activeSaveSlot > 0) {
+                        if (!SaveManager::saveSlot(
+                                saveDirectory, activeSaveSlot, sim.captureSaveData())) {
+                            std::cerr << "[SAVE ERROR] Unable to save onboarding progress for slot "
+                                      << activeSaveSlot << ".\n";
+                            exitCode = 1;
+                            running = false;
+                            break;
+                        }
+                        lastAutosaveTime = currentTime;
+                    }
+                    inputState = RawInputState{};
+                }
+
                 // Handle UI Screen toggles
                 if (inputState.toggleInventory) sim.toggleScreen(ActiveScreen::Inventory);
                 if (inputState.toggleCrafting) sim.toggleScreen(ActiveScreen::Crafting);
@@ -927,6 +950,9 @@ int runGame(int argc, char* argv[]) {
                         break;
                     case ActiveScreen::Settings:
                         renderer.drawSettingsScreen(sim.getAudio(), metrics);
+                        break;
+                    case ActiveScreen::Onboarding:
+                        renderer.drawOnboardingScreen(metrics);
                         break;
                     case ActiveScreen::Minimap:
                         renderer.drawMinimap(sim.getDungeonLayout(), playerPos, metrics);

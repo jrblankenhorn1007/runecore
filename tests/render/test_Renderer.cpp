@@ -120,6 +120,38 @@ TEST_CASE("Boss warning renders a red lane toward the player camera", "[render][
     REQUIRE_FALSE(foundBackwardLane);
 }
 
+TEST_CASE("Onboarding briefing renders objective and controls in a visible panel",
+          "[render][renderer][onboarding]") {
+    Renderer renderer;
+    REQUIRE(renderer.init("OnboardingBriefing", 640, 360, 640, 360, SDL_WINDOW_HIDDEN));
+    const CanvasMetrics metrics = Camera::calculateCanvasMetrics(640, 360);
+
+    renderer.beginFrame();
+    renderer.drawOnboardingScreen(metrics);
+    SDL_Surface* frame = SDL_RenderReadPixels(renderer.getSDLRenderer(), nullptr);
+    REQUIRE(frame != nullptr);
+
+    bool foundAccent = false;
+    std::size_t brightTextPixels = 0;
+    for (int y = 0; y < frame->h; ++y) {
+        for (int x = 0; x < frame->w; ++x) {
+            Uint8 red = 0;
+            Uint8 green = 0;
+            Uint8 blue = 0;
+            Uint8 alpha = 0;
+            if (!SDL_ReadSurfacePixel(frame, x, y, &red, &green, &blue, &alpha)) continue;
+            foundAccent |= red == 70 && green == 220 && blue == 190;
+            if (red >= 190 && green >= 225 && blue >= 245) ++brightTextPixels;
+        }
+    }
+    SDL_DestroySurface(frame);
+    renderer.endFrame(metrics);
+    renderer.shutdown();
+
+    REQUIRE(foundAccent);
+    REQUIRE(brightTextPixels > 20);
+}
+
 TEST_CASE("Pixel text maps supported characters to bounded glyphs", "[render][renderer][text]") {
     REQUIRE(Renderer::pixelGlyphIndex('0') == 0);
     REQUIRE(Renderer::pixelGlyphIndex('9') == 9);

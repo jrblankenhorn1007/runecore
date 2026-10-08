@@ -74,6 +74,7 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
             };
             postKey(std::chrono::milliseconds(400), SDLK_RETURN);
             postKey(std::chrono::milliseconds(650), SDLK_RETURN);
+            postKey(std::chrono::milliseconds(900), SDLK_RETURN);
 
             const auto movementDeadline = eventScheduleStart + std::chrono::milliseconds(10500);
             while (std::chrono::steady_clock::now() < movementDeadline && !cancelEvents.load()) {
@@ -124,6 +125,7 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
         REQUIRE(output.str().find("Manual player control engaged.") != std::string::npos);
         REQUIRE(slotSaved);
         REQUIRE(savedCharacter.playerName == "Vanguard");
+        REQUIRE(savedCharacter.onboardingComplete);
     }
 
     SECTION("Interactive title flow creates and saves the selected character") {
@@ -138,6 +140,7 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
         REQUIRE(setenv("RUNECORE_SAVE_DIR", saveDirectory.c_str(), 1) == 0);
 
         std::atomic<bool> cancelEvents{false};
+        std::atomic<bool> quitEventPosted{false};
         const auto eventScheduleStart = std::chrono::steady_clock::now();
         std::thread chooseCharacter([&] {
             const auto postKey = [&](std::chrono::milliseconds offset, SDL_Keycode key) {
@@ -160,6 +163,17 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
             postKey(std::chrono::milliseconds(600), SDLK_RIGHT);
             postKey(std::chrono::milliseconds(800), SDLK_V);
             postKey(std::chrono::milliseconds(1000), SDLK_RETURN);
+            postKey(std::chrono::milliseconds(1300), SDLK_SPACE);
+
+            const auto quitDeadline = eventScheduleStart + std::chrono::milliseconds(1800);
+            while (std::chrono::steady_clock::now() < quitDeadline && !cancelEvents.load()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            if (cancelEvents.load()) return;
+
+            SDL_Event quit{};
+            quit.type = SDL_EVENT_QUIT;
+            quitEventPosted.store(SDL_PushEvent(&quit));
         });
 
         char* args[] = {
@@ -185,8 +199,11 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
         REQUIRE(environmentRestoreResult == 0);
         REQUIRE_FALSE(cleanupError);
         REQUIRE(exitCode == 0);
+        REQUIRE(quitEventPosted.load());
         REQUIRE(slotSaved);
         REQUIRE(savedCharacter.className == "Berserker");
+        REQUIRE(savedCharacter.onboardingComplete);
+        REQUIRE(savedCharacter.playerY > 130.0f);
         REQUIRE(output.str().find("RUNECORE") != std::string::npos);
     }
 
@@ -258,6 +275,7 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
 
             postKey(std::chrono::milliseconds(400), SDLK_DOWN);
             postKey(std::chrono::milliseconds(650), SDLK_RETURN);
+            postKey(std::chrono::milliseconds(950), SDLK_RETURN);
         });
 
         char* args[] = {
@@ -287,6 +305,7 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
         REQUIRE(output.str().find("Resumed RUNECORE save slot 2 for Returning Hero at level 8.")
                 != std::string::npos);
         REQUIRE(resumedSave.playerName == startingSave.playerName);
+        REQUIRE(resumedSave.onboardingComplete);
         REQUIRE(resumedSave.className == startingSave.className);
         REQUIRE(resumedSave.visorColor.r == startingSave.visorColor.r);
         REQUIRE(resumedSave.visorColor.g == startingSave.visorColor.g);

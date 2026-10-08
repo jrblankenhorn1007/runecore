@@ -59,3 +59,18 @@
   SDL video/audio. No interactive graphical start-to-finish playthrough or
   Windows/Linux build has been performed. The full-game and 9/10 gates remain
   open.
+
+## Rebase and sign-off
+
+- Acquired the authorized MERGE lease; its sign-in advanced `origin/main` to
+  `f9ca6c805ec40f11ede98e03b0fe51273f315dde`.
+- The unpublished implementation was rebased from
+  `ce0e2ac670310a47ab6e9f98c0d460a60d89a533` onto that sign-in. The resulting
+  implementation commit is `d831a5d37d6db60caad0ce70b46dd14326998354`; no
+  code conflicts occurred.
+- Post-rebase verification:
+  `cmake --build /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --target test_GameSimulation test_SaveManager test_BotTester test_Renderer test_MainRunner untitled_rpg --parallel 4 && ctest --test-dir /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --output-on-failure -R '^(test_GameSimulation|test_SaveManager|test_BotTester|test_Renderer|test_MainRunner|test_campaign_ending)$'`
+  passed 6/6 headlessly in 34.03 seconds; `git diff --check` also passed.
+- `SELF_ATTESTATION`: coordinator sign-off is bound to the exact implementation
+  commit `d831a5d37d6db60caad0ce70b46dd14326998354`; it is not
+  cryptographically signed.

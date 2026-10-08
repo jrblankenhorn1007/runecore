@@ -11,11 +11,11 @@ branch: "ralph/runecore-campaign-ending-20261008-0550"
 branch_slug: "ralph-runecore-campaign-ending-20261008-0550"
 worktree: "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550"
 iteration: 4
-status: IN_PROGRESS
+status: AWAITING_MERGE
 started_at_utc: "2026-10-08T05:50:26Z"
-updated_at_utc: "2026-10-08T06:21:31Z"
+updated_at_utc: "2026-10-08T06:28:58Z"
 resource_usage:
-  time_spent_seconds: 1865
+  time_spent_seconds: 2312
   time_basis: WALL_CLOCK_ELAPSED
   token_spend:
     status: NOT_REPORTED
@@ -25,8 +25,8 @@ resource_usage:
     cached_input_tokens: null
     source: null
 base_origin_main_sha: "c4955d10842e71c70c7732daef9f835bcde80702"
-rebased_onto_origin_main_sha: "d228a00d8a87ca7a8be949d857ea3748e2e58f4c"
-implementation_commit_sha: null
+rebased_onto_origin_main_sha: "f9ca6c805ec40f11ede98e03b0fe51273f315dde"
+implementation_commit_sha: "d831a5d37d6db60caad0ce70b46dd14326998354"
 pull_request:
   status: NOT_OPENED
   number: null
@@ -83,17 +83,23 @@ checks:
     result: "PASS; all targets built and all 89/89 headless CTest cases passed in 43.21 seconds."
   - command: "git diff --check"
     result: "PASS; no whitespace errors after implementation and TODO updates."
+  - command: "publish_agent_sync.py --main-action acquire --operation MERGE"
+    result: "PASS; MERGE sign-in origin/main SHA f9ca6c805ec40f11ede98e03b0fe51273f315dde, ownership revision 33."
+  - command: "git rebase origin/main"
+    result: "PASS; rebased the unpublished iteration branch onto the MERGE sign-in with no conflicts."
+  - command: "Rebuild six focused targets and run their six headless CTest cases after rebase."
+    result: "PASS; 6/6 in 34.03 seconds; git diff --check passed."
 blockers:
-  - "The dedicated Project Memory Update reviews for merged iterations 1, 2, and 3 remain pending. Resource Manager reports 3 active agents, max_agents=2, available_slots=0; no reviewer or worker was dispatched."
+  - "The dedicated Project Memory Update reviews for merged iterations 1, 2, and 3 remain pending. Resource Manager reports 2 active agents, max_agents=2, available_slots=0; no reviewer or worker was dispatched."
 memory_review_status: PENDING
 memory_review_blocker: "Do not self-review or record NO_UPDATE; reserve and invoke the dedicated updater exactly once for each pending handoff when capacity is available."
-next_action: "Inspect and commit the verified campaign-ending implementation; fetch origin, rebase if required, publish and integrate through the authorized MERGE lease, and verify remote main. Keep pending memory reviews, settings/respawn, the full manual game loop, and the 9/10 rating gates open."
+next_action: "Publish the rechecked branch, verify the remote ref, fast-forward origin/main under the active MERGE lease, fetch/verify the result, and release the lease. Keep pending memory reviews, settings/respawn, the full manual game loop, and the 9/10 rating gates open."
 worker_sign_off:
-  status: NOT_SIGNED_OFF
-  attestation_kind: null
+  status: RECEIVED
+  attestation_kind: SELF_ATTESTATION
   cryptographic_signature_status: NOT_CRYPTOGRAPHICALLY_SIGNED
-  attested_at_utc: null
-  statement: null
+  attested_at_utc: "2026-10-08T06:28:08Z"
+  statement: "I, coordinator, sign off iteration 4 at the exact implementation commit d831a5d37d6db60caad0ce70b46dd14326998354."
 commit_signature_verification:
   status: NOT_CRYPTOGRAPHICALLY_SIGNED
   verifier: null

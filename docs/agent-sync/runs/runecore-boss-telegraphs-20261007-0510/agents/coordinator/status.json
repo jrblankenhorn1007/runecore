@@ -22,6 +22,8 @@
       "tests/gameplay/ai/test_BossAI.cpp",
       "tests/render/test_Renderer.cpp",
       "tests/core/test_MainRunner.cpp",
+      "src/core/GameSimulation.cpp",
+      "tests/core/test_GameSimulation.cpp",
       "CMakeLists.txt",
       "README.md",
       "TODO.md",
@@ -38,9 +40,24 @@
   },
   "prompt_path": "docs/agent-sync/runs/runecore-boss-telegraphs-20261007-0510/agents/coordinator/prompt.md",
   "prompt_sha256": "73cba8c82ab4bee59bcb8d88344f582e14746dec9812afc71143fdb0cf6e20e9",
-  "revision": 2,
+  "revision": 3,
   "run_id": "runecore-boss-telegraphs-20261007-0510",
   "schema_version": 1,
+  "scope_update": {
+    "edit_scope_additions": [
+      "src/core/GameSimulation.cpp",
+      "tests/core/test_GameSimulation.cpp"
+    ],
+    "recorded_at_utc": "2026-10-08T03:15:26Z",
+    "remaining_acceptance": [
+      "Title screen, character creation, and save-slot resume",
+      "Onboarding and a clear player-facing objective",
+      "Manual end-to-end progression through final boss victory",
+      "Direct complete-game playtest and evidence-based rating of at least 9/10"
+    ],
+    "status": "IN_PROGRESS",
+    "user_request": "Make Runecore a genuinely playable, complete game and do not self-rate it until evidence supports at least 9/10."
+  },
   "sign_in_at_utc": "2026-10-07T05:10:24Z",
   "sign_out": {
     "at_utc": null,
@@ -53,7 +70,7 @@
   "status": "IN_PROGRESS",
   "status_reason": "Implementing the unchecked boss warning telegraphs and the user's additional request to ensure all unit tests run headlessly. CTest currently exercises MainRunner windowed code paths, so the task scope now includes per-test dummy SDL video/audio drivers and an assertion that they are configured. The host has no worker slots; the coordinator is proceeding serially. Model, context, and token telemetry are unavailable.",
   "task_id": "boss-warning-telegraphs",
-  "updated_at_utc": "2026-10-07T05:26:31Z",
+  "updated_at_utc": "2026-10-08T03:15:26Z",
   "worker_id": "coordinator",
   "worker_name": "Coordinator - boss warning telegraphs"
 }

@@ -2,6 +2,7 @@
 #include <catch2/catch_approx.hpp>
 #include "core/GameSimulation.hpp"
 #include "ecs/Components.hpp"
+#include "save/SaveManager.hpp"
 
 using Catch::Approx;
 
@@ -134,6 +135,75 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.allocateSkill("mob_01") == true);
         REQUIRE(sim.getSkillTree().getRank("mob_01") == 1);
         REQUIRE(sim.allocateSkill("mob_02") == true);
+    }
+
+    SECTION("Save data restores character, progression, inventory, and location") {
+        REQUIRE(sim.createCharacter(CharacterCreation{
+            "Astra", ClassType::Juggernaut, Color{65, 225, 220, 255}}));
+        REQUIRE(sim.getProgression().restoreState(
+            8, 123, 4, 3, Attributes{31, 16, 17, 25, 14, 12}));
+
+        const auto player = sim.getContext().registry.view<PlayerTag>().front();
+        sim.getContext().registry.get<TransformComponent>(player).position = Vec2{384.0f, 176.0f};
+        sim.getContext().registry.get<HealthComponent>(player).current = 48.0f;
+        sim.getContext().registry.get<ManaComponent>(player).current = 19.0f;
+        sim.getContext().registry.get<PowerComponent>(player).current = 22.0f;
+
+        Item ore;
+        ore.id = "mat_test_ore";
+        ore.name = "Test Ore";
+        ore.category = ItemCategory::Material;
+        ore.stackable = true;
+        ore.quantity = 7;
+        REQUIRE(sim.getInventory().addItem(ore));
+
+        Item blade;
+        blade.id = "item_test_blade";
+        blade.name = "Test Blade";
+        blade.category = ItemCategory::Weapon;
+        blade.equipSlot = EquipSlot::MainHand;
+        blade.baseDamage = 72.0f;
+        REQUIRE(sim.getInventory().addItem(blade));
+        int bladeSlot = -1;
+        for (int index = 0; index < sim.getInventory().getSlotCount(); ++index) {
+            const auto item = sim.getInventory().getSlot(index);
+            if (item.has_value() && item->id == blade.id) {
+                bladeSlot = index;
+                break;
+            }
+        }
+        REQUIRE(bladeSlot >= 0);
+        REQUIRE(sim.getInventory().equipItem(EquipSlot::MainHand, bladeSlot));
+
+        SaveData saved = sim.captureSaveData();
+        saved.hunger = 43.0f;
+        saved.thirst = 29.0f;
+        saved.bodyTemp = 34.5f;
+
+        GameSimulation resumed;
+        resumed.initialize(ClassType::Juggernaut);
+        REQUIRE(resumed.restoreSaveData(saved));
+        const SaveData restored = resumed.captureSaveData();
+
+        REQUIRE(restored.playerName == "Astra");
+        REQUIRE(restored.visorColor.r == 65);
+        REQUIRE(restored.visorColor.g == 225);
+        REQUIRE(restored.level == 8);
+        REQUIRE(restored.currentXP == 123);
+        REQUIRE(restored.attributePoints == 4);
+        REQUIRE(restored.skillPoints == 3);
+        REQUIRE(restored.attributes.strength == 31);
+        REQUIRE(restored.playerX == Approx(384.0f));
+        REQUIRE(restored.playerY == Approx(176.0f));
+        REQUIRE(restored.health == Approx(48.0f));
+        REQUIRE(restored.mana == Approx(19.0f));
+        REQUIRE(restored.power == Approx(22.0f));
+        REQUIRE(restored.hunger == Approx(43.0f));
+        REQUIRE(restored.thirst == Approx(29.0f));
+        REQUIRE(restored.bodyTemp == Approx(34.5f));
+        REQUIRE(resumed.getInventory().getItemCount("mat_test_ore") == 7);
+        REQUIRE(resumed.getInventory().getEquipped(EquipSlot::MainHand) != nullptr);
+        REQUIRE(resumed.getInventory().getEquipped(EquipSlot::MainHand)->id == "item_test_blade");
     }
 
     SECTION("Dungeon Entry and Exit") {

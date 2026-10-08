@@ -16,6 +16,7 @@
 #include "render/FloatingText.hpp"
 #include "render/ParticleSystem.hpp"
 #include "audio/AudioEngine.hpp"
+#include "ui/TitleFlow.hpp"
 
 class GameSimulation;
 struct RawInputState;
@@ -59,6 +60,8 @@ public:
     void drawCharacterSheet(const Progression& progression, const CanvasMetrics& metrics);
     void drawSkillTreeScreen(const SkillTree& skillTree, int skillPoints, const CanvasMetrics& metrics);
     void drawSettingsScreen(const AudioEngine& audio, const CanvasMetrics& metrics);
+    void drawTitleScreen(const TitleFlow& flow, const ClassRegistry& classes,
+                         const CanvasMetrics& metrics);
     void drawVisualQaOverlay(const std::string& scenario, float progress, const CanvasMetrics& metrics);
     void drawLightingOverlay(const Vec2& playerPos, float ambientDarkness, const Camera& camera, const CanvasMetrics& metrics);
     static int pixelGlyphIndex(char character);

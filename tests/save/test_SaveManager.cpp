@@ -100,3 +100,61 @@ TEST_CASE("SaveManager Serialization, Atomic Writes, and Checksums", "[save][per
 
     std::remove(testPath.c_str());
 }
+
+TEST_CASE("SaveManager preserves character appearance and complete item data", "[save][persistence]") {
+    const std::string path = "test_character_metadata.sav";
+    std::remove(path.c_str());
+
+    SaveData data;
+    data.playerName = "Astra";
+    data.className = "Medic";
+    data.visorColor = Color{65, 225, 220, 255};
+    data.level = 12;
+    data.currentXP = 33;
+    data.attributePoints = 5;
+    data.skillPoints = 2;
+    data.playerX = 812.5f;
+    data.playerY = 144.0f;
+    data.inDungeon = true;
+
+    Item blade;
+    blade.id = "item_arc_blade";
+    blade.name = "Arc Blade";
+    blade.category = ItemCategory::Weapon;
+    blade.equipSlot = EquipSlot::MainHand;
+    blade.rarity = ItemRarity::Rare;
+    blade.quality = 0.15f;
+    blade.baseDamage = 82.0f;
+    blade.attackSpeed = 1.25f;
+    blade.weight = 4.0f;
+    blade.sockets = 2;
+    blade.usedSockets = 1;
+    blade.affixes.push_back(Affix{"Charged", true, 2, 4.0f, 0.1f, "Damage"});
+    blade.uniquePerk = "chain_lightning";
+    data.equippedItems.push_back(SaveData::EquippedItem{EquipSlot::MainHand, blade});
+
+    REQUIRE(SaveManager::saveToFile(path, data));
+    SaveData loaded;
+    REQUIRE(SaveManager::loadFromFile(path, loaded));
+    REQUIRE(loaded.playerName == "Astra");
+    REQUIRE(loaded.className == "Medic");
+    REQUIRE(loaded.visorColor.r == 65);
+    REQUIRE(loaded.visorColor.g == 225);
+    REQUIRE(loaded.level == 12);
+    REQUIRE(loaded.currentXP == 33);
+    REQUIRE(loaded.attributePoints == 5);
+    REQUIRE(loaded.skillPoints == 2);
+    REQUIRE(loaded.playerX == Approx(812.5f));
+    REQUIRE(loaded.playerY == Approx(144.0f));
+    REQUIRE(loaded.inDungeon);
+    REQUIRE(loaded.equippedItems.size() == 1);
+    REQUIRE(loaded.equippedItems[0].slot == EquipSlot::MainHand);
+    REQUIRE(loaded.equippedItems[0].item.id == "item_arc_blade");
+    REQUIRE(loaded.equippedItems[0].item.category == ItemCategory::Weapon);
+    REQUIRE(loaded.equippedItems[0].item.rarity == ItemRarity::Rare);
+    REQUIRE(loaded.equippedItems[0].item.affixes.size() == 1);
+    REQUIRE(loaded.equippedItems[0].item.affixes[0].name == "Charged");
+    REQUIRE(loaded.equippedItems[0].item.uniquePerk == "chain_lightning");
+
+    std::remove(path.c_str());
+}

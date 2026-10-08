@@ -35,6 +35,28 @@ void Progression::setLevel(int level) {
     m_skillPoints += diff * 2;
 }
 
+bool Progression::restoreState(int level, uint64_t currentXP, int attributePoints,
+                               int skillPoints, const Attributes& attributes) {
+    if (level < 1 || attributePoints < 0 || skillPoints < 0 ||
+        attributes.strength < 0 || attributes.dexterity < 0 ||
+        attributes.intelligence < 0 || attributes.vitality < 0 ||
+        attributes.wisdom < 0 || attributes.cybernetics < 0) {
+        return false;
+    }
+
+    m_level = level;
+    m_currentXP = currentXP;
+    m_attributePoints = attributePoints;
+    m_skillPoints = skillPoints;
+    m_attributes[static_cast<int>(Attribute::Strength)] = attributes.strength;
+    m_attributes[static_cast<int>(Attribute::Dexterity)] = attributes.dexterity;
+    m_attributes[static_cast<int>(Attribute::Intelligence)] = attributes.intelligence;
+    m_attributes[static_cast<int>(Attribute::Vitality)] = attributes.vitality;
+    m_attributes[static_cast<int>(Attribute::Wisdom)] = attributes.wisdom;
+    m_attributes[static_cast<int>(Attribute::Cybernetics)] = attributes.cybernetics;
+    return true;
+}
+
 bool Progression::spendAttributePoints(int count) {
     if (count <= 0 || m_attributePoints < count) return false;
     m_attributePoints -= count;

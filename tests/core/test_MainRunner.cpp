@@ -2,9 +2,11 @@
 #include <catch2/catch_approx.hpp>
 #include <SDL3/SDL.h>
 #include "core/MainRunner.hpp"
+#include "save/SaveManager.hpp"
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -40,11 +42,39 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
     }
 
     SECTION("Default launch remains playable until the player quits") {
+        const std::string saveDirectory =
+            (std::filesystem::temp_directory_path() /
+             ("runecore-default-launch-" +
+              std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()))).string();
+        const char* previousSaveDirectory = std::getenv("RUNECORE_SAVE_DIR");
+        const bool hadPreviousSaveDirectory = previousSaveDirectory != nullptr;
+        const std::string previousSaveDirectoryValue =
+            hadPreviousSaveDirectory ? previousSaveDirectory : "";
+        REQUIRE(setenv("RUNECORE_SAVE_DIR", saveDirectory.c_str(), 1) == 0);
+
         std::atomic<bool> cancelEvents{false};
         std::atomic<bool> gameplayInputPosted{false};
         std::atomic<bool> quitEventPosted{false};
         const auto eventScheduleStart = std::chrono::steady_clock::now();
         std::thread playAndQuit([&] {
+            const auto postKey = [&](std::chrono::milliseconds offset, SDL_Keycode key) {
+                const auto deadline = eventScheduleStart + offset;
+                while (std::chrono::steady_clock::now() < deadline && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                }
+                if (cancelEvents.load()) return;
+
+                SDL_Event event{};
+                event.type = SDL_EVENT_KEY_DOWN;
+                event.key.key = key;
+                event.key.repeat = 0;
+                while (!SDL_PushEvent(&event) && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+            };
+            postKey(std::chrono::milliseconds(400), SDLK_RETURN);
+            postKey(std::chrono::milliseconds(650), SDLK_RETURN);
+
             const auto movementDeadline = eventScheduleStart + std::chrono::milliseconds(10500);
             while (std::chrono::steady_clock::now() < movementDeadline && !cancelEvents.load()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -77,11 +107,199 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
         cancelEvents.store(true);
         playAndQuit.join();
 
+        SaveData savedCharacter;
+        const bool slotSaved = SaveManager::loadSlot(saveDirectory, 1, savedCharacter);
+        const int environmentRestoreResult = hadPreviousSaveDirectory
+            ? setenv("RUNECORE_SAVE_DIR", previousSaveDirectoryValue.c_str(), 1)
+            : unsetenv("RUNECORE_SAVE_DIR");
+        std::error_code cleanupError;
+        std::filesystem::remove_all(saveDirectory, cleanupError);
+
+        REQUIRE(environmentRestoreResult == 0);
+        REQUIRE_FALSE(cleanupError);
         REQUIRE(exitCode == 0);
         REQUIRE(gameplayInputPosted.load());
         REQUIRE(quitEventPosted.load());
         REQUIRE(elapsed >= std::chrono::milliseconds(11500));
         REQUIRE(output.str().find("Manual player control engaged.") != std::string::npos);
+        REQUIRE(slotSaved);
+        REQUIRE(savedCharacter.playerName == "Vanguard");
+    }
+
+    SECTION("Interactive title flow creates and saves the selected character") {
+        const std::string saveDirectory =
+            (std::filesystem::temp_directory_path() /
+             ("runecore-title-flow-" +
+              std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()))).string();
+        const char* previousSaveDirectory = std::getenv("RUNECORE_SAVE_DIR");
+        const bool hadPreviousSaveDirectory = previousSaveDirectory != nullptr;
+        const std::string previousSaveDirectoryValue =
+            hadPreviousSaveDirectory ? previousSaveDirectory : "";
+        REQUIRE(setenv("RUNECORE_SAVE_DIR", saveDirectory.c_str(), 1) == 0);
+
+        std::atomic<bool> cancelEvents{false};
+        const auto eventScheduleStart = std::chrono::steady_clock::now();
+        std::thread chooseCharacter([&] {
+            const auto postKey = [&](std::chrono::milliseconds offset, SDL_Keycode key) {
+                const auto deadline = eventScheduleStart + offset;
+                while (std::chrono::steady_clock::now() < deadline && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                }
+                if (cancelEvents.load()) return;
+
+                SDL_Event event{};
+                event.type = SDL_EVENT_KEY_DOWN;
+                event.key.key = key;
+                event.key.repeat = 0;
+                while (!SDL_PushEvent(&event) && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+            };
+
+            postKey(std::chrono::milliseconds(400), SDLK_RETURN);
+            postKey(std::chrono::milliseconds(600), SDLK_RIGHT);
+            postKey(std::chrono::milliseconds(800), SDLK_V);
+            postKey(std::chrono::milliseconds(1000), SDLK_RETURN);
+        });
+
+        char* args[] = {
+            const_cast<char*>("untitled_rpg"),
+            const_cast<char*>("--duration"),
+            const_cast<char*>("2.0")
+        };
+        std::ostringstream output;
+        std::streambuf* previousOutput = std::cout.rdbuf(output.rdbuf());
+        const int exitCode = runGame(3, args);
+        std::cout.rdbuf(previousOutput);
+        cancelEvents.store(true);
+        chooseCharacter.join();
+
+        SaveData savedCharacter;
+        const bool slotSaved = SaveManager::loadSlot(saveDirectory, 1, savedCharacter);
+        const int environmentRestoreResult = hadPreviousSaveDirectory
+            ? setenv("RUNECORE_SAVE_DIR", previousSaveDirectoryValue.c_str(), 1)
+            : unsetenv("RUNECORE_SAVE_DIR");
+        std::error_code cleanupError;
+        std::filesystem::remove_all(saveDirectory, cleanupError);
+
+        REQUIRE(environmentRestoreResult == 0);
+        REQUIRE_FALSE(cleanupError);
+        REQUIRE(exitCode == 0);
+        REQUIRE(slotSaved);
+        REQUIRE(savedCharacter.className == "Berserker");
+        REQUIRE(output.str().find("RUNECORE") != std::string::npos);
+    }
+
+    SECTION("Interactive title flow resumes progress from the selected save slot") {
+        const std::string saveDirectory =
+            (std::filesystem::temp_directory_path() /
+             ("runecore-resume-flow-" +
+              std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()))).string();
+        const char* previousSaveDirectory = std::getenv("RUNECORE_SAVE_DIR");
+        const bool hadPreviousSaveDirectory = previousSaveDirectory != nullptr;
+        const std::string previousSaveDirectoryValue =
+            hadPreviousSaveDirectory ? previousSaveDirectory : "";
+        REQUIRE(setenv("RUNECORE_SAVE_DIR", saveDirectory.c_str(), 1) == 0);
+
+        SaveData startingSave;
+        startingSave.playerName = "Returning Hero";
+        startingSave.className = "Medic";
+        startingSave.visorColor = Color{245, 105, 145, 255};
+        startingSave.level = 8;
+        startingSave.currentXP = 123;
+        startingSave.attributePoints = 4;
+        startingSave.skillPoints = 3;
+        startingSave.health = 75.0f;
+        startingSave.mana = 25.0f;
+        startingSave.power = 12.0f;
+        startingSave.playerX = 640.0f;
+        startingSave.playerY = 160.0f;
+        startingSave.attributes.strength = 24;
+        startingSave.hunger = 62.0f;
+        startingSave.thirst = 48.0f;
+        startingSave.bodyTemp = 36.0f;
+
+        Item ore;
+        ore.id = "mat_resume_ore";
+        ore.name = "Resume Ore";
+        ore.category = ItemCategory::Material;
+        ore.stackable = true;
+        ore.quantity = 7;
+        startingSave.inventoryItems.push_back(ore);
+
+        Item blade;
+        blade.id = "item_resume_blade";
+        blade.name = "Resume Blade";
+        blade.category = ItemCategory::Weapon;
+        blade.equipSlot = EquipSlot::MainHand;
+        blade.baseDamage = 55.0f;
+        startingSave.equippedItems.push_back(
+            SaveData::EquippedItem{EquipSlot::MainHand, blade});
+        REQUIRE(SaveManager::saveSlot(saveDirectory, 2, startingSave));
+
+        std::atomic<bool> cancelEvents{false};
+        const auto eventScheduleStart = std::chrono::steady_clock::now();
+        std::thread resumeCharacter([&] {
+            const auto postKey = [&](std::chrono::milliseconds offset, SDL_Keycode key) {
+                const auto deadline = eventScheduleStart + offset;
+                while (std::chrono::steady_clock::now() < deadline && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                }
+                if (cancelEvents.load()) return;
+
+                SDL_Event event{};
+                event.type = SDL_EVENT_KEY_DOWN;
+                event.key.key = key;
+                event.key.repeat = 0;
+                while (!SDL_PushEvent(&event) && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+            };
+
+            postKey(std::chrono::milliseconds(400), SDLK_DOWN);
+            postKey(std::chrono::milliseconds(650), SDLK_RETURN);
+        });
+
+        char* args[] = {
+            const_cast<char*>("untitled_rpg"),
+            const_cast<char*>("--duration"),
+            const_cast<char*>("2.0")
+        };
+        std::ostringstream output;
+        std::streambuf* previousOutput = std::cout.rdbuf(output.rdbuf());
+        const int exitCode = runGame(3, args);
+        std::cout.rdbuf(previousOutput);
+        cancelEvents.store(true);
+        resumeCharacter.join();
+
+        SaveData resumedSave;
+        const bool slotSaved = SaveManager::loadSlot(saveDirectory, 2, resumedSave);
+        const int environmentRestoreResult = hadPreviousSaveDirectory
+            ? setenv("RUNECORE_SAVE_DIR", previousSaveDirectoryValue.c_str(), 1)
+            : unsetenv("RUNECORE_SAVE_DIR");
+        std::error_code cleanupError;
+        std::filesystem::remove_all(saveDirectory, cleanupError);
+
+        REQUIRE(environmentRestoreResult == 0);
+        REQUIRE_FALSE(cleanupError);
+        REQUIRE(exitCode == 0);
+        REQUIRE(slotSaved);
+        REQUIRE(output.str().find("Resumed RUNECORE save slot 2 for Returning Hero at level 8.")
+                != std::string::npos);
+        REQUIRE(resumedSave.playerName == startingSave.playerName);
+        REQUIRE(resumedSave.className == startingSave.className);
+        REQUIRE(resumedSave.visorColor.r == startingSave.visorColor.r);
+        REQUIRE(resumedSave.visorColor.g == startingSave.visorColor.g);
+        REQUIRE(resumedSave.level == startingSave.level);
+        REQUIRE(resumedSave.currentXP == startingSave.currentXP);
+        REQUIRE(resumedSave.attributes.strength == startingSave.attributes.strength);
+        REQUIRE(resumedSave.playerX > 500.0f);
+        REQUIRE(resumedSave.inventoryItems.size() == 1);
+        REQUIRE(resumedSave.inventoryItems.front().id == ore.id);
+        REQUIRE(resumedSave.inventoryItems.front().quantity == ore.quantity);
+        REQUIRE(resumedSave.equippedItems.size() == 1);
+        REQUIRE(resumedSave.equippedItems.front().slot == EquipSlot::MainHand);
+        REQUIRE(resumedSave.equippedItems.front().item.id == blade.id);
     }
 
     SECTION("Headless Benchmark Argument") {

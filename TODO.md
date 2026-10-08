@@ -16,9 +16,9 @@ start-to-finish criteria below are implemented and directly playtested.
   the player quits; bot, timed, and scripted QA runs require explicit flags.
 - [x] Escape opens a pause/settings screen, freezes simulation, and resumes
   gameplay when closed.
-- [ ] Provide a real title/start flow with new game, three save-slot selection,
+- [x] Provide a real title/start flow with new game, three save-slot selection,
   character creation, and resume.
-- [ ] Load and save meaningful player progress so a returning player can
+- [x] Load and save meaningful player progress so a returning player can
   continue a run rather than always starting at level 1.
 - [ ] Onboard a new player with a first objective, readable combat feedback,
   and accessible controls without relying on developer-only QA instructions.
@@ -587,8 +587,11 @@ This roadmap details all player-facing features, audiovisual juice, interactive 
   - [x] Live Master Volume and SFX Volume sliders.
   - [ ] Music/Ambience sliders and rebindable controls remain to be added.
 - [ ] **Multiple Save Slots & Character Creation**:
-  - [ ] Title Screen with Save Slot selection (Slots 1–3), showing Character Name, Class, Level, and Playtime.
-  - [ ] New Game character creation screen: Pick name, class archetype, and visual visor color.
+  - [x] Title screen lists Slots 1–3 with character name, class, and level; supports new, resume, and corrupt-save feedback.
+  - [ ] Display each character's accumulated playtime on its save slot.
+  - [ ] New Game character creation supports entering a custom name.
+  - [x] New Game character creation supports class archetype and visual visor color selection.
+  - [x] Persist and restore character progression, vitals, location, inventory, equipment, and survival state.
 - [ ] **Death & Respawn Sequence**:
   - [ ] Death screen: Screen fades to red/black, displaying "CONSCIOUSNESS RECALL INITIATED".
   - [ ] Respawn at the Hub clinic medical bed or player-placed bed roll with full health, leaving a recovery drone with dropped materials at death site.

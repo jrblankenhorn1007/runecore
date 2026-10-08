@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "gameplay/stats/StatsSystem.hpp"
 
 class Progression {
 public:
@@ -21,6 +22,8 @@ public:
 
     void addXP(uint64_t amount);
     void setLevel(int level);
+    bool restoreState(int level, uint64_t currentXP, int attributePoints,
+                      int skillPoints, const Attributes& attributes);
 
     int getAttributePoints() const { return m_attributePoints; }
     int getSkillPoints() const { return m_skillPoints; }

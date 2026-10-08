@@ -4,8 +4,90 @@
 #include <sstream>
 #include <filesystem>
 #include <algorithm>
+#include <utility>
 
 using json = nlohmann::json;
+
+namespace {
+json serializeItem(const Item& item) {
+    json result;
+    result["id"] = item.id;
+    result["name"] = item.name;
+    result["category"] = static_cast<int>(item.category);
+    result["equipSlot"] = static_cast<int>(item.equipSlot);
+    result["rarity"] = static_cast<int>(item.rarity);
+    result["tier"] = item.tier;
+    result["quality"] = item.quality;
+    result["baseDamage"] = item.baseDamage;
+    result["baseArmor"] = item.baseArmor;
+    result["attackSpeed"] = item.attackSpeed;
+    result["weight"] = item.weight;
+    result["stackable"] = item.stackable;
+    result["quantity"] = item.quantity;
+    result["maxStack"] = item.maxStack;
+    result["sockets"] = item.sockets;
+    result["usedSockets"] = item.usedSockets;
+    result["uniquePerk"] = item.uniquePerk;
+
+    json affixes = json::array();
+    for (const auto& affix : item.affixes) {
+        affixes.push_back({
+            {"name", affix.name},
+            {"isPrefix", affix.isPrefix},
+            {"tier", affix.tier},
+            {"flatBonus", affix.flatBonus},
+            {"percentBonus", affix.percentBonus},
+            {"statTarget", affix.statTarget}
+        });
+    }
+    result["affixes"] = std::move(affixes);
+    return result;
+}
+
+Item deserializeItem(const json& value) {
+    Item item;
+    item.id = value.value("id", "");
+    item.name = value.value("name", "");
+    item.tier = value.value("tier", 1);
+    item.quality = value.value("quality", 0.0f);
+    item.baseDamage = value.value("baseDamage", 0.0f);
+    item.baseArmor = value.value("baseArmor", 0.0f);
+    const ItemCategory defaultCategory = item.baseArmor > 0.0f
+        ? ItemCategory::Armor
+        : (item.baseDamage > 0.0f ? ItemCategory::Weapon : ItemCategory::Material);
+    item.category = static_cast<ItemCategory>(
+        value.value("category", static_cast<int>(defaultCategory)));
+    const EquipSlot defaultEquipSlot = item.category == ItemCategory::Weapon
+        ? EquipSlot::MainHand
+        : EquipSlot::None;
+    item.equipSlot = static_cast<EquipSlot>(
+        value.value("equipSlot", static_cast<int>(defaultEquipSlot)));
+    item.rarity = static_cast<ItemRarity>(
+        value.value("rarity", static_cast<int>(ItemRarity::Common)));
+    item.attackSpeed = value.value("attackSpeed", 1.0f);
+    item.weight = value.value("weight", 0.5f);
+    item.stackable = value.value("stackable", false);
+    item.quantity = value.value("quantity", 1);
+    item.maxStack = value.value("maxStack", 99);
+    item.sockets = value.value("sockets", 0);
+    item.usedSockets = value.value("usedSockets", 0);
+    item.uniquePerk = value.value("uniquePerk", "");
+
+    if (value.contains("affixes") && value["affixes"].is_array()) {
+        for (const auto& affixJson : value["affixes"]) {
+            Affix affix;
+            affix.name = affixJson.value("name", "");
+            affix.isPrefix = affixJson.value("isPrefix", true);
+            affix.tier = affixJson.value("tier", 1);
+            affix.flatBonus = affixJson.value("flatBonus", 0.0f);
+            affix.percentBonus = affixJson.value("percentBonus", 0.0f);
+            affix.statTarget = affixJson.value("statTarget", "");
+            item.affixes.push_back(std::move(affix));
+        }
+    }
+    return item;
+}
+}
 
 uint32_t SaveManager::computeChecksum(const std::string& content) {
     // 32-bit FNV-1a hash
@@ -21,11 +103,22 @@ bool SaveManager::saveToFile(const std::string& filePath, const SaveData& data) 
     json j;
     j["playerName"] = data.playerName;
     j["className"] = data.className;
+    j["visorColor"] = {
+        static_cast<int>(data.visorColor.r),
+        static_cast<int>(data.visorColor.g),
+        static_cast<int>(data.visorColor.b),
+        static_cast<int>(data.visorColor.a)
+    };
     j["level"] = data.level;
     j["currentXP"] = data.currentXP;
+    j["attributePoints"] = data.attributePoints;
+    j["skillPoints"] = data.skillPoints;
     j["health"] = data.health;
     j["mana"] = data.mana;
     j["power"] = data.power;
+    j["playerX"] = data.playerX;
+    j["playerY"] = data.playerY;
+    j["inDungeon"] = data.inDungeon;
 
     j["attributes"] = {
         {"strength", data.attributes.strength},
@@ -51,16 +144,18 @@ bool SaveManager::saveToFile(const std::string& filePath, const SaveData& data) 
 
     json itemsJson = json::array();
     for (const auto& item : data.inventoryItems) {
-        json ij;
-        ij["id"] = item.id;
-        ij["name"] = item.name;
-        ij["tier"] = item.tier;
-        ij["quantity"] = item.quantity;
-        ij["baseDamage"] = item.baseDamage;
-        ij["baseArmor"] = item.baseArmor;
-        itemsJson.push_back(ij);
+        itemsJson.push_back(serializeItem(item));
     }
     j["inventory"] = itemsJson;
+
+    json equippedJson = json::array();
+    for (const auto& equipped : data.equippedItems) {
+        equippedJson.push_back({
+            {"slot", static_cast<int>(equipped.slot)},
+            {"item", serializeItem(equipped.item)}
+        });
+    }
+    j["equippedItems"] = equippedJson;
 
     std::string serialized = j.dump(2);
     uint32_t checksum = computeChecksum(serialized);
@@ -120,11 +215,24 @@ bool SaveManager::loadFromFile(const std::string& filePath, SaveData& outData) {
 
     outData.playerName = j.value("playerName", "Hero");
     outData.className = j.value("className", "Juggernaut");
+    const auto visorColor = j.value(
+        "visorColor", std::array<int, 4>{65, 115, 220, 255});
+    outData.visorColor = Color{
+        static_cast<unsigned char>(std::clamp(visorColor[0], 0, 255)),
+        static_cast<unsigned char>(std::clamp(visorColor[1], 0, 255)),
+        static_cast<unsigned char>(std::clamp(visorColor[2], 0, 255)),
+        static_cast<unsigned char>(std::clamp(visorColor[3], 0, 255))
+    };
     outData.level = j.value("level", 1);
     outData.currentXP = j.value("currentXP", 0ULL);
+    outData.attributePoints = j.value("attributePoints", 0);
+    outData.skillPoints = j.value("skillPoints", 0);
     outData.health = j.value("health", 100.0f);
     outData.mana = j.value("mana", 50.0f);
     outData.power = j.value("power", 0.0f);
+    outData.playerX = j.value("playerX", 100.0f);
+    outData.playerY = j.value("playerY", 160.0f);
+    outData.inDungeon = j.value("inDungeon", false);
 
     if (j.contains("attributes")) {
         const auto& aj = j["attributes"];
@@ -155,14 +263,20 @@ bool SaveManager::loadFromFile(const std::string& filePath, SaveData& outData) {
     outData.inventoryItems.clear();
     if (j.contains("inventory")) {
         for (const auto& ij : j["inventory"]) {
-            Item itm;
-            itm.id = ij.value("id", "");
-            itm.name = ij.value("name", "");
-            itm.tier = ij.value("tier", 1);
-            itm.quantity = ij.value("quantity", 1);
-            itm.baseDamage = ij.value("baseDamage", 0.0f);
-            itm.baseArmor = ij.value("baseArmor", 0.0f);
-            outData.inventoryItems.push_back(itm);
+            outData.inventoryItems.push_back(deserializeItem(ij));
+        }
+    }
+
+    outData.equippedItems.clear();
+    if (j.contains("equippedItems") && j["equippedItems"].is_array()) {
+        for (const auto& equippedJson : j["equippedItems"]) {
+            SaveData::EquippedItem equipped;
+            equipped.slot = static_cast<EquipSlot>(
+                equippedJson.value("slot", static_cast<int>(EquipSlot::None)));
+            if (equippedJson.contains("item")) {
+                equipped.item = deserializeItem(equippedJson["item"]);
+            }
+            outData.equippedItems.push_back(std::move(equipped));
         }
     }
 

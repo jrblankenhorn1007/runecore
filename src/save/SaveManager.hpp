@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Math.hpp"
 #include "gameplay/stats/StatsSystem.hpp"
 #include "gameplay/items/Item.hpp"
 #include <string>
@@ -19,12 +20,18 @@ struct SettingsData {
 struct SaveData {
     std::string playerName{"Hero"};
     std::string className{"Juggernaut"};
+    Color visorColor{65, 115, 220, 255};
     int level{1};
     uint64_t currentXP{0};
+    int attributePoints{0};
+    int skillPoints{0};
 
     float health{100.0f};
     float mana{50.0f};
     float power{0.0f};
+    float playerX{100.0f};
+    float playerY{160.0f};
+    bool inDungeon{false};
 
     Attributes attributes;
 
@@ -33,6 +40,11 @@ struct SaveData {
     float bodyTemp{37.0f};
 
     std::vector<Item> inventoryItems;
+    struct EquippedItem {
+        EquipSlot slot{EquipSlot::None};
+        Item item;
+    };
+    std::vector<EquippedItem> equippedItems;
     SettingsData settings;
 };
 

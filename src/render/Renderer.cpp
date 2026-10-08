@@ -1160,6 +1160,124 @@ void Renderer::drawSettingsScreen(const AudioEngine& audio, const CanvasMetrics&
     drawPixelText("ESC CLOSE", panelX + 22.0f, panelY + 274.0f, 1.0f, Color{130, 155, 180, 255});
 }
 
+void Renderer::drawTitleScreen(const TitleFlow& flow, const ClassRegistry& classes,
+                               const CanvasMetrics& metrics) {
+    SDL_SetRenderDrawColor(m_renderer, 5, 10, 22, 255);
+    SDL_FRect backdrop{0.0f, 0.0f, static_cast<float>(metrics.virtualWidth),
+                       static_cast<float>(metrics.virtualHeight)};
+    SDL_RenderFillRect(m_renderer, &backdrop);
+
+    SDL_SetRenderDrawColor(m_renderer, 13, 24, 42, 255);
+    SDL_FRect horizon{0.0f, 236.0f, static_cast<float>(metrics.virtualWidth), 124.0f};
+    SDL_RenderFillRect(m_renderer, &horizon);
+    SDL_SetRenderDrawColor(m_renderer, 23, 54, 74, 255);
+    for (int x = 18; x < metrics.virtualWidth; x += 46) {
+        const float height = 25.0f + static_cast<float>((x / 46) % 4) * 13.0f;
+        SDL_FRect skyline{static_cast<float>(x), 236.0f - height, 28.0f, height};
+        SDL_RenderFillRect(m_renderer, &skyline);
+    }
+
+    const float panelX = 72.0f;
+    const float panelY = 24.0f;
+    const float panelWidth = metrics.virtualWidth - 144.0f;
+    const float panelHeight = metrics.virtualHeight - 48.0f;
+    SDL_SetRenderDrawColor(m_renderer, 8, 15, 29, 244);
+    SDL_FRect panel{panelX, panelY, panelWidth, panelHeight};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 62, 194, 225, 255);
+    SDL_FRect topEdge{panelX, panelY, panelWidth, 3.0f};
+    SDL_RenderFillRect(m_renderer, &topEdge);
+    drawPixelText("RUNECORE", panelX + 24.0f, panelY + 14.0f, 2.5f,
+                  Color{220, 245, 255, 255});
+    drawPixelText("A NEON FRONTIER RPG", panelX + 27.0f, panelY + 40.0f, 1.0f,
+                  Color{92, 192, 220, 255});
+
+    if (flow.isCreatingCharacter()) {
+        const auto& character = flow.getCharacter();
+        const auto& definition = classes.getClass(character.classType);
+        drawPixelText("NEW CHARACTER", panelX + 28.0f, panelY + 66.0f, 1.25f,
+                      Color{245, 213, 112, 255});
+        drawPixelText(("NAME  " + character.name).c_str(), panelX + 28.0f,
+                      panelY + 91.0f, 1.0f, Color{215, 225, 238, 255});
+        drawPixelText(("CLASS  " + definition.name).c_str(), panelX + 28.0f,
+                      panelY + 112.0f, 1.5f, Color{110, 224, 240, 255});
+
+        const std::string& description = definition.description;
+        const size_t firstLineLength = std::min<size_t>(56, description.size());
+        drawPixelText(description.substr(0, firstLineLength), panelX + 28.0f,
+                      panelY + 138.0f, 0.8f, Color{165, 180, 200, 255});
+        if (description.size() > firstLineLength) {
+            drawPixelText(description.substr(firstLineLength, 56), panelX + 28.0f,
+                          panelY + 152.0f, 0.8f, Color{165, 180, 200, 255});
+        }
+
+        const auto& attributes = definition.baseAttributes;
+        drawPixelText(
+            "STR " + std::to_string(attributes.strength) +
+            " DEX " + std::to_string(attributes.dexterity) +
+            " INT " + std::to_string(attributes.intelligence) +
+            " VIT " + std::to_string(attributes.vitality) +
+            " WIS " + std::to_string(attributes.wisdom) +
+            " CYB " + std::to_string(attributes.cybernetics),
+            panelX + 28.0f, panelY + 181.0f, 0.8f, Color{188, 208, 225, 255});
+
+        drawPixelText("VISOR", panelX + 28.0f, panelY + 209.0f, 1.0f,
+                      Color{215, 225, 238, 255});
+        SDL_SetRenderDrawColor(m_renderer, character.visorColor.r, character.visorColor.g,
+                               character.visorColor.b, character.visorColor.a);
+        SDL_FRect visorSwatch{panelX + 88.0f, panelY + 207.0f, 38.0f, 14.0f};
+        SDL_RenderFillRect(m_renderer, &visorSwatch);
+        drawPixelText("LEFT/RIGHT CLASS   V VISOR", panelX + 28.0f,
+                      panelY + 234.0f, 0.8f, Color{140, 170, 195, 255});
+        drawPixelText("ENTER BEGIN   ESC BACK", panelX + 28.0f,
+                      panelY + 255.0f, 0.9f, Color{245, 213, 112, 255});
+    } else {
+        drawPixelText("SELECT A SAVE SLOT", panelX + 28.0f, panelY + 68.0f, 1.2f,
+                      Color{245, 213, 112, 255});
+        const auto& slots = flow.getSlots();
+        for (int index = 0; index < static_cast<int>(slots.size()); ++index) {
+            const float rowY = panelY + 98.0f + static_cast<float>(index) * 48.0f;
+            const bool selected = index == flow.getSelectedSlotIndex();
+            SDL_SetRenderDrawColor(m_renderer, selected ? 30 : 17,
+                                   selected ? 75 : 37, selected ? 94 : 58, 240);
+            SDL_FRect row{panelX + 22.0f, rowY, panelWidth - 44.0f, 38.0f};
+            SDL_RenderFillRect(m_renderer, &row);
+            if (selected) {
+                SDL_SetRenderDrawColor(m_renderer, 75, 218, 235, 255);
+                SDL_FRect marker{row.x, row.y, 3.0f, row.h};
+                SDL_RenderFillRect(m_renderer, &marker);
+            }
+
+            const auto& slot = slots[static_cast<size_t>(index)];
+            const std::string slotLabel = "SLOT " + std::to_string(index + 1);
+            drawPixelText(slotLabel, row.x + 12.0f, row.y + 7.0f, 1.0f,
+                          selected ? Color{225, 245, 255, 255}
+                                   : Color{165, 186, 207, 255});
+            if (slot.state == TitleSlotState::Ready) {
+                const std::string summary = slot.playerName + "  " + slot.className +
+                                            "  LVL " + std::to_string(slot.level);
+                drawPixelText(summary, row.x + 100.0f, row.y + 7.0f, 0.85f,
+                              Color{210, 220, 232, 255});
+            } else {
+                const char* label = slot.state == TitleSlotState::Empty
+                    ? "NEW TRANSMISSION"
+                    : "SAVE DAMAGED";
+                drawPixelText(label, row.x + 100.0f, row.y + 7.0f, 0.9f,
+                              slot.state == TitleSlotState::Empty
+                                  ? Color{100, 211, 224, 255}
+                                  : Color{245, 100, 115, 255});
+            }
+        }
+        drawPixelText("UP/DOWN SELECT   ENTER OPEN   ESC QUIT", panelX + 28.0f,
+                      panelY + 252.0f, 0.85f, Color{150, 179, 204, 255});
+    }
+
+    if (!flow.getMessage().empty()) {
+        drawPixelText(flow.getMessage(), panelX + 28.0f, panelY + panelHeight - 26.0f,
+                      0.8f, Color{255, 110, 130, 255});
+    }
+}
+
 void Renderer::drawLightingOverlay(const Vec2& playerPos, float ambientDarkness, const Camera& camera, const CanvasMetrics& metrics) {
     if (ambientDarkness <= 0.05f) return;
 

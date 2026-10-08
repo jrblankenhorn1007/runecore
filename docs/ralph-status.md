@@ -2,17 +2,18 @@
 
 Overall status: `BLOCKED`
 
-Run-level next action: Wait for Resource Manager capacity, invoke the dedicated Project Memory Update reviewer with the verified merge and preserved handoff, then continue the user's open 9/10 gate. Do not assign a rating before a direct complete-game playtest.
+Run-level next action: Finish and integrate the serial title/save/resume iteration while Resource Manager has no worker slot; keep the prior dedicated Project Memory Update review pending and do not rate the game before a direct complete-game playtest.
 
 | Assigned agent (`worker_id` / `task_id`) | Exact current status | Next action | Records |
 | --- | --- | --- | --- |
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Wait until Resource Manager can reserve a slot; invoke the dedicated Project Memory Update reviewer exactly once with the merged implementation evidence and preserved handoff; then continue the open 9/10 acceptance gate on a fresh branch. | [status](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/status.md) · [progress](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/progress.md) |
+| `coordinator` / `boss-warning-telegraphs` | `IN_PROGRESS` | Full build and all 88 headless CTest targets pass; commit the reviewed title/save/resume iteration, then integrate under the main-ownership lease. Keep the prior memory-review blocker and 9/10 acceptance gate open. | [status](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md) |
 
 ```yaml
 schema_version: 2
 snapshot_path: "docs/ralph-status.md"
-snapshot_revision: 20
-updated_at_utc: "2026-10-08T03:38:56Z"
+snapshot_revision: 23
+updated_at_utc: "2026-10-08T04:21:00Z"
 overall_status: BLOCKED
 current_run_ids: ["runecore-boss-telegraphs-20261007-0510"]
 
@@ -25,10 +26,10 @@ runs:
     active_worker_count: 0
     base_origin_main_sha: "b5a3437ceaec52828b19a73a761fed33ab649e78"
     created_at_utc: "2026-10-07T05:10:24Z"
-    updated_at_utc: "2026-10-08T03:38:56Z"
+    updated_at_utc: "2026-10-08T04:21:00Z"
     memory_review_status: PENDING
     memory_review_blocker: "Resource Manager reports 3 active sessions, a 2-agent maximum, and 0 available slots; the required dedicated Project Memory Update reviewer cannot be reserved."
-    next_action: "Wait until Resource Manager can reserve a slot; invoke the dedicated Project Memory Update reviewer exactly once with the merged implementation evidence and preserved handoff; then continue the open 9/10 acceptance gate on a fresh branch."
+    next_action: "Finish and integrate the serial title/save/resume iteration while preserving the pending dedicated memory review; when Resource Manager capacity allows, invoke that reviewer, then continue onboarding, the complete-game loop, and direct playtesting."
     split_plan:
       - task_id: "boss-warning-telegraphs"
         worker_id: "coordinator"
@@ -79,6 +80,7 @@ branch_agent_index:
         input_tokens: null
         output_tokens: null
         total_tokens: null
+        total_tokens: null
         cached_input_tokens: null
         source: null
     status_path: "docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/status.md"
@@ -86,4 +88,47 @@ branch_agent_index:
     decision_record_path: "docs/decisions/ralph-boss-telegraph-warnings-20261007/agents/coordinator/pr-not-opened.md"
     decision_index_path: "docs/decisions/ralph-boss-telegraph-warnings-20261007/README.md"
     next_action: "Wait until Resource Manager can reserve a slot; invoke the dedicated Project Memory Update reviewer exactly once with the merged implementation evidence and preserved handoff; then continue the open 9/10 acceptance gate on a fresh branch."
+  - run_id: "runecore-boss-telegraphs-20261007-0510"
+    task_ids: ["boss-warning-telegraphs"]
+    worker_id: "coordinator"
+    worker_name: "Coordinator - title/save/resume"
+    branch: "ralph/runecore-title-save-resume-20261008-035221"
+    branch_slug: "ralph-runecore-title-save-resume-20261008-035221"
+    status: IN_PROGRESS
+    iteration: 2
+    merge_actor_worker_id: null
+    pull_request:
+      status: NOT_OPENED
+      number: null
+      url: null
+      base_sha: null
+      head_sha: null
+    review:
+      status: NOT_APPLICABLE
+      reviewer_agents: []
+      reviewed_base_sha: null
+      reviewed_head_sha: null
+      rounds_completed: 0
+      max_rounds: 2
+      unresolved_finding_count: 0
+      author_decision:
+        status: NOT_APPLICABLE
+        choice: null
+        rationale: null
+        recorded_at_utc: null
+    resource_usage:
+      time_spent_seconds: 1593
+      time_basis: WALL_CLOCK_ELAPSED
+      token_spend:
+        status: NOT_REPORTED
+        input_tokens: null
+        output_tokens: null
+        total_tokens: null
+        cached_input_tokens: null
+        source: null
+    status_path: "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/status.md"
+    progress_path: "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md"
+    decision_record_path: "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/pr-not-opened.md"
+    decision_index_path: "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/README.md"
+    next_action: "Coordinator: inspect the verified title/save/resume diff and refreshed remote-main integration policy; commit and integrate the iteration if permitted, then continue onboarding and complete-game acceptance without assigning a rating."
 ```

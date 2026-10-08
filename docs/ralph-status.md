@@ -2,7 +2,7 @@
 
 Overall status: `BLOCKED`
 
-Run-level next action: Publish and integrate the signed-off campaign-ending iteration, then continue the full-game acceptance work. Dedicated Project Memory Update reviews for iterations 1-3 remain pending because Resource Manager has no available slots; do not self-review or assign the 9/10 rating before the complete game merits it.
+Run-level next action: Wait for a Resource Manager slot, then complete the dedicated Project Memory Update reviews for iterations 1-4. After those reviews, resume on a fresh branch to finish the remaining playable-game TODO and direct fresh-character start-to-finish playthrough; assign 9/10 only if that completed playthrough merits it.
 
 | Assigned agent (`worker_id` / `task_id`) | Exact current status | Next action | Records |
 | --- | --- | --- | --- |
@@ -10,13 +10,13 @@ Run-level next action: Publish and integrate the signed-off campaign-ending iter
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Preserve this published pre-lease branch as superseded; its implementation was carried to the successor and merged as e9d4ddb1cf06a4a2e020b937685589a47303d76c. Do not update or force-push this branch. Keep the memory-review and 9/10 gates open. | [status](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md) |
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Implementation c7486f4ae378eb5c7f7b9991e03e39ce50e2651c was merged as e9d4ddb1cf06a4a2e020b937685589a47303d76c and verified on remote main a81bc6a193be54398a82fb0de40db56b3e837dc4; await the dedicated memory review when capacity is available. Keep the 9/10 gate open. | [status](docs/ralph/ralph-runecore-title-save-resume-successor-20261008-0425/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-successor-20261008-0425/agents/coordinator/progress.md) |
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Implementation `e146bea8e78dd02ab0c07498eac28e32002818d7` was fast-forwarded as `7682534b8c814820e60d426175488f254d528fc0` and verified on remote main. Keep dedicated memory reviews for iterations 1-3 pending until capacity returns; continue toward the clear ending and direct playtest without assigning the 9/10 rating prematurely. | [status](docs/ralph/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-player-onboarding-20261008-0502/agents/coordinator/progress.md) |
-| `coordinator` / `boss-warning-telegraphs` | `AWAITING_MERGE` | Signed off implementation `d831a5d37d6db60caad0ce70b46dd14326998354` after post-rebase focused checks passed 6/6. Publish and integrate under the active MERGE lease; keep the complete-game playthrough, memory reviews, settings/respawn, and 9/10 gates open. | [status](docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/progress.md) |
+| `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Implementation `d831a5d37d6db60caad0ce70b46dd14326998354` was fast-forwarded as `bf3a896f11963345b8b0a67ce076c3b01038e4e0` and verified on fetched `origin/main` `a8623784e9f405726f25ee9fab4c6e62367ee5a5`. Wait for memory-review capacity; then continue the open game TODO and direct playthrough before rating. | [status](docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/progress.md) |
 
 ```yaml
 schema_version: 2
 snapshot_path: "docs/ralph-status.md"
-snapshot_revision: 41
-updated_at_utc: "2026-10-08T06:28:58Z"
+snapshot_revision: 42
+updated_at_utc: "2026-10-08T06:37:03Z"
 overall_status: BLOCKED
 current_run_ids: ["runecore-boss-telegraphs-20261007-0510"]
 
@@ -29,10 +29,10 @@ runs:
     active_worker_count: 0
     base_origin_main_sha: "b5a3437ceaec52828b19a73a761fed33ab649e78"
     created_at_utc: "2026-10-07T05:10:24Z"
-    updated_at_utc: "2026-10-08T06:28:58Z"
+    updated_at_utc: "2026-10-08T06:37:03Z"
     memory_review_status: PENDING
-    memory_review_blocker: "Resource Manager reports 2 active agents, a 2-agent maximum, and 0 available slots; the dedicated reviews for merged iterations 1, 2, and 3 cannot yet be reserved."
-    next_action: "Iteration 4 on ralph/runecore-campaign-ending-20261008-0550 passed its full 89/89 headless CTest suite and post-rebase focused checks 6/6. Signed-off implementation d831a5d37d6db60caad0ce70b46dd14326998354 is awaiting authorized publication/integration. Resume dedicated memory reviews for iterations 1-3 when Resource Manager capacity returns; no slots are available now."
+    memory_review_blocker: "Resource Manager reports 2 active agents, a 2-agent maximum, and 0 available slots; the dedicated reviews for merged iterations 1-4 cannot yet be reserved."
+    next_action: "Iteration 4 passed the full 89/89 headless CTest suite before rebase and post-rebase focused checks 6/6. Implementation d831a5d37d6db60caad0ce70b46dd14326998354 was fast-forwarded as bf3a896f11963345b8b0a67ce076c3b01038e4e0 and verified on fetched origin/main a8623784e9f405726f25ee9fab4c6e62367ee5a5. Wait for capacity to review iterations 1-4; then continue the remaining TODO and direct start-to-finish playthrough. Do not assign 9/10 before that playthrough."
     split_plan:
       - task_id: "boss-warning-telegraphs"
         worker_id: "coordinator"
@@ -226,9 +226,16 @@ branch_agent_index:
     worker_name: "Coordinator - campaign ending"
     branch: "ralph/runecore-campaign-ending-20261008-0550"
     branch_slug: "ralph-runecore-campaign-ending-20261008-0550"
-    status: AWAITING_MERGE
+    status: BLOCKED
     iteration: 4
     merge_actor_worker_id: coordinator
+    parent_to_main_merge:
+      status: VERIFIED
+      sha: "bf3a896f11963345b8b0a67ce076c3b01038e4e0"
+      verified_remote_ref: "refs/heads/main"
+      verified_origin_main_sha: "a8623784e9f405726f25ee9fab4c6e62367ee5a5"
+      verification_method: "Fetched origin/main after the authorized fast-forward and MERGE lease release; verified both the implementation commit and branch tip are ancestors of the fetched remote tip."
+      verified_at_utc: "2026-10-08T06:37:03Z"
     pull_request:
       status: NOT_OPENED
       number: null
@@ -249,7 +256,7 @@ branch_agent_index:
         rationale: null
         recorded_at_utc: null
     resource_usage:
-      time_spent_seconds: 2312
+      time_spent_seconds: 2797
       time_basis: WALL_CLOCK_ELAPSED
       token_spend:
         status: NOT_REPORTED
@@ -262,5 +269,5 @@ branch_agent_index:
     progress_path: "docs/ralph/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/progress.md"
     decision_record_path: "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/pr-not-opened.md"
     decision_index_path: "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/README.md"
-    next_action: "Publish the rechecked branch, verify the remote ref, fast-forward origin/main under the active MERGE lease, fetch/verify the result, and release the lease. Keep pending memory reviews, settings/respawn, the full manual game loop, and the 9/10 rating gates open."
+    next_action: "Wait for Resource Manager capacity, complete the dedicated Project Memory Update reviews for iterations 1-4, then continue the remaining game TODO and direct fresh-character start-to-finish playthrough. Keep the 9/10 rating gate open until that playthrough is complete and merits the score."
 ```

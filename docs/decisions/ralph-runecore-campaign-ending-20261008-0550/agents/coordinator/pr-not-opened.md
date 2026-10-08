@@ -12,3 +12,12 @@
 The repository's normal integration path is the authorized no-PR
 fast-forward under a fresh MERGE lease, followed by a fetch and verification
 of the resulting remote-main SHA.
+
+## Verified integration
+
+- Implementation commit: `d831a5d37d6db60caad0ce70b46dd14326998354`.
+- Fast-forward result: `bf3a896f11963345b8b0a67ce076c3b01038e4e0`.
+- Fetched `origin/main`: `a8623784e9f405726f25ee9fab4c6e62367ee5a5`, containing
+  both commits above.
+- The MERGE lease was released with outcome `MERGED`; release commit
+  `a8623784e9f405726f25ee9fab4c6e62367ee5a5` records the transaction.

@@ -11,11 +11,11 @@ branch: "ralph/runecore-campaign-ending-20261008-0550"
 branch_slug: "ralph-runecore-campaign-ending-20261008-0550"
 worktree: "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550"
 iteration: 4
-status: AWAITING_MERGE
+status: BLOCKED
 started_at_utc: "2026-10-08T05:50:26Z"
-updated_at_utc: "2026-10-08T06:28:58Z"
+updated_at_utc: "2026-10-08T06:37:03Z"
 resource_usage:
-  time_spent_seconds: 2312
+  time_spent_seconds: 2797
   time_basis: WALL_CLOCK_ELAPSED
   token_spend:
     status: NOT_REPORTED
@@ -50,12 +50,12 @@ merge_actor_worker_id: "coordinator"
 decision_record_path: "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/agents/coordinator/pr-not-opened.md"
 decision_index_path: "docs/decisions/ralph-runecore-campaign-ending-20261008-0550/README.md"
 merge:
-  status: PENDING
-  sha: null
+  status: VERIFIED
+  sha: "bf3a896f11963345b8b0a67ce076c3b01038e4e0"
   verified_remote_ref: "refs/heads/main"
-  verified_origin_main_sha: null
-  verification_method: null
-  verified_at_utc: null
+  verified_origin_main_sha: "a8623784e9f405726f25ee9fab4c6e62367ee5a5"
+  verification_method: "Fetched origin/main after the authorized fast-forward and MERGE lease release; verified both the implementation commit and branch tip are ancestors of the fetched remote tip."
+  verified_at_utc: "2026-10-08T06:37:03Z"
 checks:
   - command: "git fetch origin"
     result: "PASS; fetched configured Runecore origin with origin/main c4955d10842e71c70c7732daef9f835bcde80702."
@@ -89,11 +89,19 @@ checks:
     result: "PASS; rebased the unpublished iteration branch onto the MERGE sign-in with no conflicts."
   - command: "Rebuild six focused targets and run their six headless CTest cases after rebase."
     result: "PASS; 6/6 in 34.03 seconds; git diff --check passed."
+  - command: "git push origin HEAD:refs/heads/main"
+    result: "PASS; authorized non-force fast-forward advanced origin/main from the MERGE sign-in f9ca6c805ec40f11ede98e03b0fe51273f315dde to iteration branch tip bf3a896f11963345b8b0a67ce076c3b01038e4e0."
+  - command: "git fetch origin && git merge-base --is-ancestor d831a5d37d6db60caad0ce70b46dd14326998354 origin/main && git merge-base --is-ancestor bf3a896f11963345b8b0a67ce076c3b01038e4e0 origin/main"
+    result: "PASS; fetched origin/main at bf3a896f11963345b8b0a67ce076c3b01038e4e0 and verified the implementation commit and integration tip are included."
+  - command: "publish_agent_sync.py --main-action release --outcome MERGED"
+    result: "PASS; released MERGE revision 33 with outcome MERGED for bf3a896f11963345b8b0a67ce076c3b01038e4e0; release commit a8623784e9f405726f25ee9fab4c6e62367ee5a5, revision 34."
+  - command: "git fetch origin; inspect docs/agent-sync/main/ownership.json"
+    result: "PASS; fetched origin/main at a8623784e9f405726f25ee9fab4c6e62367ee5a5; ownership is FREE at revision 34 and records the verified MERGED result."
 blockers:
-  - "The dedicated Project Memory Update reviews for merged iterations 1, 2, and 3 remain pending. Resource Manager reports 2 active agents, max_agents=2, available_slots=0; no reviewer or worker was dispatched."
+  - "Dedicated Project Memory Update reviews for merged iterations 1-4 remain pending. The refreshed Resource Manager inventory reports 2 active agents, max_agents=2, and available_slots=0; no reviewer or worker was dispatched."
 memory_review_status: PENDING
 memory_review_blocker: "Do not self-review or record NO_UPDATE; reserve and invoke the dedicated updater exactly once for each pending handoff when capacity is available."
-next_action: "Publish the rechecked branch, verify the remote ref, fast-forward origin/main under the active MERGE lease, fetch/verify the result, and release the lease. Keep pending memory reviews, settings/respawn, the full manual game loop, and the 9/10 rating gates open."
+next_action: "Wait for Resource Manager capacity, complete the dedicated Project Memory Update reviews for iterations 1-4, then continue the remaining game TODO and direct fresh-character start-to-finish playthrough. Keep the 9/10 rating gate open until that playthrough is complete and merits the score."
 worker_sign_off:
   status: RECEIVED
   attestation_kind: SELF_ATTESTATION
@@ -106,7 +114,8 @@ commit_signature_verification:
   evidence: null
   verified_at_utc: null
 memory_handoff:
-  implementation_summary: null
-  lesson_candidates: []
-  no_durable_lessons_reason: "This iteration is in progress; complete the evidence-backed memory handoff before sign-off."
+  implementation_summary: "Added and merged a persisted, pausing campaign-ending screen after boss victory; completed saves do not respawn the defeated boss. Implementation d831a5d37d6db60caad0ce70b46dd14326998354 was merged in branch tip bf3a896f11963345b8b0a67ce076c3b01038e4e0 and verified on fetched origin/main a8623784e9f405726f25ee9fab4c6e62367ee5a5."
+  lesson_candidates:
+    - "Headless MainRunner tests that send gameplay input during a timed launch must also post SDL_EVENT_QUIT because gameplay input opts the launch into indefinite interactive control."
+  no_durable_lessons_reason: null
 ```

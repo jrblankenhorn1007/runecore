@@ -74,3 +74,27 @@
 - `SELF_ATTESTATION`: coordinator sign-off is bound to the exact implementation
   commit `d831a5d37d6db60caad0ce70b46dd14326998354`; it is not
   cryptographically signed.
+
+## Verified integration and remaining gates
+
+- Published `ralph/runecore-campaign-ending-20261008-0550` non-force; the
+  remote branch matched branch tip
+  `bf3a896f11963345b8b0a67ce076c3b01038e4e0`.
+- Under the active MERGE lease, fast-forwarded `origin/main` from sign-in
+  `f9ca6c805ec40f11ede98e03b0fe51273f315dde` to
+  `bf3a896f11963345b8b0a67ce076c3b01038e4e0`. A fresh fetch verified both
+  that branch tip and implementation commit
+  `d831a5d37d6db60caad0ce70b46dd14326998354` as ancestors of `origin/main`.
+- Released the MERGE lease with outcome `MERGED`; release commit
+  `a8623784e9f405726f25ee9fab4c6e62367ee5a5` is now fetched `origin/main`.
+  The ownership record is `FREE` at revision 34 and records the verified
+  merge result. No lease token is recorded.
+- The dedicated Project Memory Update reviews for iterations 1-4 remain
+  pending. A fresh Resource Manager inventory shows two active agents,
+  `max_agents=2`, and zero available slots. No updater was dispatched and no
+  memory outcome was guessed; the implementation summary and a verified test
+  harness lesson are preserved for the dedicated review.
+- The campaign-ending implementation is not the complete-game acceptance
+  gate. Settings/respawn TODOs, a manual fresh-character start-to-finish
+  playthrough, and the evidence-based 9/10 rating remain open. Headless tests
+  are not claimed as a direct playthrough; no rating is assigned.

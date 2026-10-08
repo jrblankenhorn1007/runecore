@@ -13,9 +13,9 @@ worktree: "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegrap
 iteration: 1
 status: AWAITING_MERGE
 started_at_utc: "2026-10-07T05:10:24Z"
-updated_at_utc: "2026-10-08T03:32:18Z"
+updated_at_utc: "2026-10-08T03:32:54Z"
 resource_usage:
-  time_spent_seconds: 80514
+  time_spent_seconds: 80550
   time_basis: WALL_CLOCK_ELAPSED
   token_spend:
     status: NOT_REPORTED
@@ -65,8 +65,9 @@ checks:
   - "PASS after rebase onto 190a15b2eda23736193e17bbd6d1221243715c3c: ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_BossAI|test_Renderer|test_boss)$' --output-on-failure (5/5, 27.96s)"
   - "PASS after MERGE-lease rebase onto b7cbb458160c7d081c51549188be169540ee5468: ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_BossAI|test_Renderer|test_boss)$' --output-on-failure (5/5, 27.89s)"
   - "PASS: git diff --check origin/main...HEAD"
+  - "PASS: git push --set-upstream origin ralph/boss-telegraph-warnings-20261007; published tip verified by git ls-remote"
 blockers: []
-next_action: "Coordinator: publish the branch, verify the MERGE lease, fast-forward and verify origin/main; then continue the open 9/10 gate on a fresh branch with save/resume, onboarding, and a direct end-to-end finish before rating."
+next_action: "Coordinator: recheck exclusive MERGE ownership, fast-forward the published branch to origin/main, verify the resulting SHA and release the lease; then continue the open 9/10 gate with save/resume, onboarding, and a direct end-to-end finish on a fresh branch."
 worker_sign_off:
   status: RECEIVED
   attestation_kind: SELF_ATTESTATION
@@ -93,7 +94,7 @@ parent_to_main_merge:
 parent_cleanup:
   worktree: PENDING
   local_branch: PENDING
-  remote_ref: NOT_PUBLISHED
+  remote_ref: PENDING
 memory_handoff:
   implementation_summary: "Added boss warning telegraphs, headless SDL testing, corrected visual-QA asset proofs/jump scripting, persistent player-controlled launch, and pause/resume behavior. The user-requested complete-game 9/10 acceptance gate is documented but remains open."
   lesson_candidates:

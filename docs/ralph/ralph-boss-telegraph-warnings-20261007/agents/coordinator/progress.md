@@ -362,6 +362,18 @@
 - The build again reported the pre-existing Apple CoreGraphics enum-conversion
   warning in `Renderer.cpp`; it is unchanged and unrelated.
 
+## Remote branch publication - 2026-10-08
+
+- Command:
+  `git push --set-upstream origin ralph/boss-telegraph-warnings-20261007`
+  — **PASS**, created the remote branch without force.
+- Command:
+  `git ls-remote --heads origin refs/heads/ralph/boss-telegraph-warnings-20261007`
+  — **PASS**, confirmed the published tip
+  `7e7757ec1a418aaadc6719df8f0648a568a0f3f2`.
+- No pull request was opened; the repository's verified integration path is
+  the reserved no-PR fast-forward.
+
 ### Renewed structured implementation sign-off
 
 ```json

@@ -2,17 +2,17 @@
 
 Overall status: `IN_PROGRESS`
 
-Run-level next action: Coordinator fast-forwards the verified boss-telegraph/playable-launch increment to `origin/main`, then continues the open 9/10 gate with save/resume, onboarding, and an end-to-end ending before direct playtesting.
+Run-level next action: Coordinator rechecks exclusive MERGE ownership, fast-forwards the published branch to `origin/main`, verifies the result, and releases the lease; then continues the open 9/10 gate with save/resume, onboarding, and an end-to-end ending before direct playtesting.
 
 | Assigned agent (`worker_id` / `task_id`) | Exact current status | Next action | Records |
 | --- | --- | --- | --- |
-| `coordinator` / `boss-warning-telegraphs` | `AWAITING_MERGE` | Coordinator: publish the branch, verify the MERGE lease, fast-forward and verify origin/main; then continue the open 9/10 gate on a fresh branch with save/resume, onboarding, and a direct end-to-end finish before rating. | [status](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/status.md) · [progress](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/progress.md) |
+| `coordinator` / `boss-warning-telegraphs` | `AWAITING_MERGE` | Coordinator: recheck exclusive MERGE ownership, fast-forward the published branch to origin/main, verify the resulting SHA and release the lease; then continue the open 9/10 gate with save/resume, onboarding, and a direct end-to-end finish on a fresh branch. | [status](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/status.md) · [progress](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/progress.md) |
 
 ```yaml
 schema_version: 2
 snapshot_path: "docs/ralph-status.md"
-snapshot_revision: 17
-updated_at_utc: "2026-10-08T03:32:18Z"
+snapshot_revision: 18
+updated_at_utc: "2026-10-08T03:32:54Z"
 overall_status: IN_PROGRESS
 current_run_ids: ["runecore-boss-telegraphs-20261007-0510"]
 
@@ -25,8 +25,8 @@ runs:
     active_worker_count: 0
     base_origin_main_sha: "b5a3437ceaec52828b19a73a761fed33ab649e78"
     created_at_utc: "2026-10-07T05:10:24Z"
-    updated_at_utc: "2026-10-08T03:32:18Z"
-    next_action: "Coordinator: publish the branch, verify the MERGE lease, fast-forward and verify origin/main; then continue the open 9/10 gate on a fresh branch with save/resume, onboarding, and a direct end-to-end finish before rating."
+    updated_at_utc: "2026-10-08T03:32:54Z"
+    next_action: "Coordinator: recheck exclusive MERGE ownership, fast-forward the published branch to origin/main, verify the resulting SHA and release the lease; then continue the open 9/10 gate with save/resume, onboarding, and a direct end-to-end finish on a fresh branch."
     split_plan:
       - task_id: "boss-warning-telegraphs"
         worker_id: "coordinator"
@@ -63,7 +63,7 @@ branch_agent_index:
         rationale: null
         recorded_at_utc: null
     resource_usage:
-      time_spent_seconds: 80514
+      time_spent_seconds: 80550
       time_basis: WALL_CLOCK_ELAPSED
       token_spend:
         status: NOT_REPORTED
@@ -76,5 +76,5 @@ branch_agent_index:
     progress_path: "docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/progress.md"
     decision_record_path: "docs/decisions/ralph-boss-telegraph-warnings-20261007/agents/coordinator/pr-not-opened.md"
     decision_index_path: "docs/decisions/ralph-boss-telegraph-warnings-20261007/README.md"
-    next_action: "Coordinator: publish the branch, verify the MERGE lease, fast-forward and verify origin/main; then continue the open 9/10 gate on a fresh branch with save/resume, onboarding, and a direct end-to-end finish before rating."
+    next_action: "Coordinator: recheck exclusive MERGE ownership, fast-forward the published branch to origin/main, verify the resulting SHA and release the lease; then continue the open 9/10 gate with save/resume, onboarding, and a direct end-to-end finish on a fresh branch."
 ```

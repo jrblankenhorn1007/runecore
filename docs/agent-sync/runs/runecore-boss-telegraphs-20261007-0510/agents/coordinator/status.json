@@ -12,7 +12,7 @@
   },
   "git": {
     "base_ref": "refs/remotes/origin/main",
-    "base_sha": "b5a3437ceaec52828b19a73a761fed33ab649e78",
+    "base_sha": "3bc7f08e50ca35923a7ccd4309333bab273941ca",
     "edit_scope": [
       "src/core/MainRunner.cpp",
       "src/gameplay/ai/BossAI.cpp",
@@ -24,31 +24,57 @@
       "tests/core/test_MainRunner.cpp",
       "src/core/GameSimulation.cpp",
       "tests/core/test_GameSimulation.cpp",
+      "src/input/InputManager.cpp",
+      "src/input/InputManager.hpp",
+      "src/save/SaveManager.cpp",
+      "src/save/SaveManager.hpp",
+      "tests/save/test_SaveManager.cpp",
+      "src/ui/TitleFlow.cpp",
+      "src/ui/TitleFlow.hpp",
+      "tests/ui/test_TitleFlow.cpp",
+      "src/gameplay/stats/Progression.cpp",
+      "src/gameplay/stats/Progression.hpp",
+      "src/gameplay/survival/Metabolism.cpp",
+      "src/gameplay/survival/Metabolism.hpp",
       "CMakeLists.txt",
       "README.md",
       "TODO.md",
       "TODO_EXECUTION.md",
       "docs/ralph-status.md",
       "docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/",
-      "docs/decisions/ralph-boss-telegraph-warnings-20261007/"
+      "docs/decisions/ralph-boss-telegraph-warnings-20261007/",
+      "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/",
+      "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/"
     ],
-    "implementation_branch": "refs/heads/ralph/boss-telegraph-warnings-20261007",
+    "implementation_branch": "refs/heads/ralph/runecore-title-save-resume-20261008-035221",
     "remote_name": "origin",
     "repository": "jrblankenhorn1007/runecore",
-    "worktree_head_sha_at_sign_in": "b5a3437ceaec52828b19a73a761fed33ab649e78",
-    "worktree_path": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-boss-telegraph-warnings-20261007"
+    "worktree_head_sha_at_sign_in": "3bc7f08e50ca35923a7ccd4309333bab273941ca",
+    "worktree_path": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-title-save-resume-20261008-035221"
   },
   "prompt_path": "docs/agent-sync/runs/runecore-boss-telegraphs-20261007-0510/agents/coordinator/prompt.md",
   "prompt_sha256": "73cba8c82ab4bee59bcb8d88344f582e14746dec9812afc71143fdb0cf6e20e9",
-  "revision": 4,
+  "revision": 5,
   "run_id": "runecore-boss-telegraphs-20261007-0510",
   "schema_version": 1,
   "scope_update": {
     "edit_scope_additions": [
-      "src/core/GameSimulation.cpp",
-      "tests/core/test_GameSimulation.cpp"
+      "src/input/InputManager.cpp",
+      "src/input/InputManager.hpp",
+      "src/save/SaveManager.cpp",
+      "src/save/SaveManager.hpp",
+      "tests/save/test_SaveManager.cpp",
+      "src/ui/TitleFlow.cpp",
+      "src/ui/TitleFlow.hpp",
+      "tests/ui/test_TitleFlow.cpp",
+      "src/gameplay/stats/Progression.cpp",
+      "src/gameplay/stats/Progression.hpp",
+      "src/gameplay/survival/Metabolism.cpp",
+      "src/gameplay/survival/Metabolism.hpp",
+      "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/",
+      "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/"
     ],
-    "recorded_at_utc": "2026-10-08T03:15:26Z",
+    "recorded_at_utc": "2026-10-08T03:52:21Z",
     "remaining_acceptance": [
       "Title screen, character creation, and save-slot resume",
       "Onboarding and a clear player-facing objective",
@@ -67,10 +93,10 @@
     "summary": null
   },
   "started_at_utc": "2026-10-07T05:10:24Z",
-  "status": "BLOCKED",
-  "status_reason": "Implementation iteration 1 is merged and verified: implementation commit 34de481fcca5925d4bf705f3812b1ce2061cfd98 is reachable from origin/main at 28c1b0e6579c9160748d773bd3b289a1a5b423f6. Required post-merge review by the dedicated Project Memory Update agent is pending. Resource Manager reports 3 active sessions against a 2-agent limit and 0 available slots; do not substitute coordinator self-review or mark this run complete. The user's 9/10 complete-game acceptance criteria remain open. Resume the memory review when capacity is available.",
+  "status": "IN_PROGRESS",
+  "status_reason": "Implementation iteration 1 is merged and verified. The required post-merge review by the dedicated Project Memory Update agent remains pending because Resource Manager reports 3 active sessions against a 2-agent limit and 0 available slots; do not substitute coordinator self-review. Serial implementation iteration 2 is proceeding on title, character creation, and save/resume, while the user's 9/10 complete-game acceptance criteria remain open.",
   "task_id": "boss-warning-telegraphs",
-  "updated_at_utc": "2026-10-08T03:36:19Z",
+  "updated_at_utc": "2026-10-08T03:52:21Z",
   "worker_id": "coordinator",
   "worker_name": "Coordinator - boss warning telegraphs"
 }

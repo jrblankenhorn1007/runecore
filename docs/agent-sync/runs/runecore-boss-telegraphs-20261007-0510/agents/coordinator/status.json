@@ -12,7 +12,7 @@
   },
   "git": {
     "base_ref": "refs/remotes/origin/main",
-    "base_sha": "3bc7f08e50ca35923a7ccd4309333bab273941ca",
+    "base_sha": "b395a1419618939b6f5049d1bae530fe2565070c",
     "edit_scope": [
       "src/core/MainRunner.cpp",
       "src/gameplay/ai/BossAI.cpp",
@@ -44,17 +44,19 @@
       "docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/",
       "docs/decisions/ralph-boss-telegraph-warnings-20261007/",
       "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/",
-      "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/"
+      "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/",
+      "docs/ralph/ralph-runecore-title-save-resume-successor-20261008-0425/agents/coordinator/",
+      "docs/decisions/ralph-runecore-title-save-resume-successor-20261008-0425/"
     ],
-    "implementation_branch": "refs/heads/ralph/runecore-title-save-resume-20261008-035221",
+    "implementation_branch": "refs/heads/ralph/runecore-title-save-resume-successor-20261008-0425",
     "remote_name": "origin",
     "repository": "jrblankenhorn1007/runecore",
-    "worktree_head_sha_at_sign_in": "3bc7f08e50ca35923a7ccd4309333bab273941ca",
-    "worktree_path": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-title-save-resume-20261008-035221"
+    "worktree_head_sha_at_sign_in": "b395a1419618939b6f5049d1bae530fe2565070c",
+    "worktree_path": "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-title-save-resume-successor-20261008-0425"
   },
   "prompt_path": "docs/agent-sync/runs/runecore-boss-telegraphs-20261007-0510/agents/coordinator/prompt.md",
   "prompt_sha256": "73cba8c82ab4bee59bcb8d88344f582e14746dec9812afc71143fdb0cf6e20e9",
-  "revision": 5,
+  "revision": 6,
   "run_id": "runecore-boss-telegraphs-20261007-0510",
   "schema_version": 1,
   "scope_update": {
@@ -72,11 +74,13 @@
       "src/gameplay/survival/Metabolism.cpp",
       "src/gameplay/survival/Metabolism.hpp",
       "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/",
-      "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/"
+      "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/",
+      "docs/ralph/ralph-runecore-title-save-resume-successor-20261008-0425/agents/coordinator/",
+      "docs/decisions/ralph-runecore-title-save-resume-successor-20261008-0425/"
     ],
-    "recorded_at_utc": "2026-10-08T03:52:21Z",
+    "recorded_at_utc": "2026-10-08T04:28:51Z",
     "remaining_acceptance": [
-      "Title screen, character creation, and save-slot resume",
+      "Integrate the title/save/resume iteration on the fresh successor branch",
       "Onboarding and a clear player-facing objective",
       "Manual end-to-end progression through final boss victory",
       "Direct complete-game playtest and evidence-based rating of at least 9/10"
@@ -94,9 +98,9 @@
   },
   "started_at_utc": "2026-10-07T05:10:24Z",
   "status": "IN_PROGRESS",
-  "status_reason": "Implementation iteration 1 is merged and verified. The required post-merge review by the dedicated Project Memory Update agent remains pending because Resource Manager reports 3 active sessions against a 2-agent limit and 0 available slots; do not substitute coordinator self-review. Serial implementation iteration 2 is proceeding on title, character creation, and save/resume, while the user's 9/10 complete-game acceptance criteria remain open.",
+  "status_reason": "Implementation iteration 1 is merged and verified. The required post-merge review by the dedicated Project Memory Update agent remains pending because Resource Manager reports 3 active sessions against a 2-agent limit and 0 available slots; do not substitute coordinator self-review. The first published iteration-2 branch was preserved and superseded after the main merge lease advanced origin/main; this revision adds scope for its fresh successor branch. The title/save/resume iteration and the user's 9/10 complete-game acceptance criteria remain open.",
   "task_id": "boss-warning-telegraphs",
-  "updated_at_utc": "2026-10-08T03:52:21Z",
+  "updated_at_utc": "2026-10-08T04:28:51Z",
   "worker_id": "coordinator",
   "worker_name": "Coordinator - boss warning telegraphs"
 }

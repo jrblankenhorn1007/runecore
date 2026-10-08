@@ -2,18 +2,18 @@
 
 Overall status: `BLOCKED`
 
-Run-level next action: Integrate the verified title/save/resume iteration, keep the prior dedicated Project Memory Update review pending until capacity is available, then continue onboarding, the ending, and direct complete-game playtesting without assigning the 9/10 rating prematurely.
+Run-level next action: Carry the title/save/resume work forward on the fresh successor branch; keep the prior dedicated Project Memory Update review pending until capacity is available, then continue onboarding, the ending, and direct complete-game playtesting without assigning the 9/10 rating prematurely.
 
 | Assigned agent (`worker_id` / `task_id`) | Exact current status | Next action | Records |
 | --- | --- | --- | --- |
 | `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | Wait until Resource Manager can reserve a slot; invoke the dedicated Project Memory Update reviewer exactly once with the merged implementation evidence and preserved handoff; then continue the open 9/10 acceptance gate on a fresh branch. | [status](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/status.md) · [progress](docs/ralph/ralph-boss-telegraph-warnings-20261007/agents/coordinator/progress.md) |
-| `coordinator` / `boss-warning-telegraphs` | `AWAITING_MERGE` | Implementation commit f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa is signed off; publish it and integrate under the main-ownership lease. Keep the prior memory-review blocker and 9/10 acceptance gate open. | [status](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md) |
+| `coordinator` / `boss-warning-telegraphs` | `BLOCKED` | This published pre-lease branch is preserved and superseded; continue on the fresh successor branch. Keep the prior memory-review blocker and 9/10 acceptance gate open. | [status](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/status.md) · [progress](docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md) |
 
 ```yaml
 schema_version: 2
 snapshot_path: "docs/ralph-status.md"
-snapshot_revision: 25
-updated_at_utc: "2026-10-08T04:22:51Z"
+snapshot_revision: 26
+updated_at_utc: "2026-10-08T04:31:40Z"
 overall_status: BLOCKED
 current_run_ids: ["runecore-boss-telegraphs-20261007-0510"]
 
@@ -26,10 +26,10 @@ runs:
     active_worker_count: 0
     base_origin_main_sha: "b5a3437ceaec52828b19a73a761fed33ab649e78"
     created_at_utc: "2026-10-07T05:10:24Z"
-    updated_at_utc: "2026-10-08T04:22:51Z"
+    updated_at_utc: "2026-10-08T04:31:40Z"
     memory_review_status: PENDING
     memory_review_blocker: "Resource Manager reports 3 active sessions, a 2-agent maximum, and 0 available slots; the required dedicated Project Memory Update reviewer cannot be reserved."
-    next_action: "Integrate the title/save/resume iteration while preserving the pending dedicated memory review; when Resource Manager capacity allows, invoke that reviewer, then continue onboarding, the complete-game loop, and direct playtesting."
+    next_action: "Carry the title/save/resume iteration on its successor branch while preserving the pending dedicated memory review; when Resource Manager capacity allows, invoke that reviewer, then continue onboarding, the complete-game loop, and direct playtesting."
     split_plan:
       - task_id: "boss-warning-telegraphs"
         worker_id: "coordinator"
@@ -94,7 +94,7 @@ branch_agent_index:
     worker_name: "Coordinator - title/save/resume"
     branch: "ralph/runecore-title-save-resume-20261008-035221"
     branch_slug: "ralph-runecore-title-save-resume-20261008-035221"
-    status: AWAITING_MERGE
+    status: BLOCKED
     iteration: 2
     merge_actor_worker_id: coordinator
     pull_request:
@@ -117,7 +117,7 @@ branch_agent_index:
         rationale: null
         recorded_at_utc: null
     resource_usage:
-      time_spent_seconds: 1704
+      time_spent_seconds: 2233
       time_basis: WALL_CLOCK_ELAPSED
       token_spend:
         status: NOT_REPORTED
@@ -130,5 +130,5 @@ branch_agent_index:
     progress_path: "docs/ralph/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/progress.md"
     decision_record_path: "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/agents/coordinator/pr-not-opened.md"
     decision_index_path: "docs/decisions/ralph-runecore-title-save-resume-20261008-035221/README.md"
-    next_action: "Coordinator: publish and integrate signed-off implementation commit f32c6247e45a2e90aaaf07988f2ff9f9de2cc4aa under the MERGE lease; verify remote main and preserve the pending memory review and 9/10 acceptance gate."
+    next_action: "Coordinator: preserve this published pre-lease branch and carry its changes to the fresh successor branch; do not merge this stale tip."
 ```

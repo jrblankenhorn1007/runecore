@@ -7,8 +7,10 @@
 - Original iteration base: `7a0d6753e208bc3549c2d9dc20e7bdbad6030e13`
 - Successor base before source carry-forward:
   `90c07dd694052254f8ed731f5eb7646b0ddfc8fb`
+- MERGE lease sign-in:
+  `7d9338acec22d607e2bf3c46afc0edc72cc4db2a`
 - Current implementation commit:
-  `d9fa3d2ebbbd2773b7f841f718f1ae1663f1e29d`
+  `c7486f4ae378eb5c7f7b9991e03e39ce50e2651c`
 - Pull request: `NOT_OPENED`
 
 ## Decisions

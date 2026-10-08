@@ -45,10 +45,21 @@
 
 ## Successor implementation sign-off
 
-- Implementation commit:
+- Pre-reservation successor implementation commit:
   `d9fa3d2ebbbd2773b7f841f718f1ae1663f1e29d`.
+- Acquired the fresh MERGE lease at sign-in commit
+  `7d9338acec22d607e2bf3c46afc0edc72cc4db2a`. Since this successor branch was
+  not yet published, rebased it with
+  `git fetch origin && git rebase origin/main` — **PASS**, no conflicts.
+- Post-rebase implementation commit:
+  `c7486f4ae378eb5c7f7b9991e03e39ce50e2651c`.
+- Post-rebase command:
+  `cmake --build build --target test_MainRunner test_GameSimulation test_SaveManager test_TitleFlow test_Renderer untitled_rpg -j 4 && ctest --test-dir build -R '^(test_MainRunner|test_GameSimulation|test_SaveManager|test_TitleFlow|test_Renderer)$' --output-on-failure`
+  — **PASS**, 5/5 targets in 32.47 seconds. The build emitted only the
+  pre-existing Apple CoreGraphics enum-conversion warning in `Renderer.cpp`.
+- `git diff --check` — **PASS**.
 - **SELF_ATTESTATION:** I, coordinator, sign off iteration 2 on the successor
-  branch at the exact implementation commit above. This statement is not
-  cryptographically signed.
-- The successor branch is `AWAITING_MERGE`. It has not yet been published or
+  branch at the exact post-rebase implementation commit above. This statement
+  is not cryptographically signed.
+- The successor branch is `AWAITING_MERGE`; it has not yet been published or
   integrated.

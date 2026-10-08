@@ -1,22 +1,22 @@
 {
   "owner": {
     "agent_id": "coordinator",
-    "operation": "STATUS",
+    "operation": "MERGE",
     "run_id": "runecore-boss-telegraphs-20261007-0510",
     "runtime_agent_id": "copilotcli:/a9d56901-462d-4292-b210-7b738822dc4f",
-    "signed_in_at_utc": "2026-10-08T05:51:17Z",
-    "start_main_sha": "c4955d10842e71c70c7732daef9f835bcde80702",
-    "token": "55e0cf8efdc64288c30b96b795c24e21",
-    "worktree_path": null
+    "signed_in_at_utc": "2026-10-08T06:26:43Z",
+    "start_main_sha": "d228a00d8a87ca7a8be949d857ea3748e2e58f4c",
+    "token": "b10acc976a2feafed48654272d955b24",
+    "worktree_path": "/Users/jrblankenhorn/Documents/untitled_rpg.worktrees/runecore-main-integration-20260924-2236"
   },
   "ref": "refs/heads/main",
   "repository": "jrblankenhorn1007/runecore",
-  "revision": 32,
+  "revision": 33,
   "schema_version": 1,
   "sign_out": {
-    "at_utc": "2026-10-08T05:51:21Z",
-    "outcome": "PUBLISHED",
-    "result_commit_sha": "df23ed913cc116422386cff9946b64d8323ce730"
+    "at_utc": null,
+    "outcome": null,
+    "result_commit_sha": null
   },
-  "state": "FREE"
+  "state": "OWNED"
 }

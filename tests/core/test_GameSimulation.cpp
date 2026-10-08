@@ -271,6 +271,23 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.isInsideDungeon() == false);
     }
 
+    SECTION("Defeating the dungeon boss opens an ending and pauses simulation") {
+        sim.enterDungeon();
+        auto bossView = sim.getContext().registry.view<BossEncounterComponent>();
+        REQUIRE(bossView.begin() != bossView.end());
+        const entt::entity bossEntity = bossView.front();
+        auto& bossHealth = sim.getContext().registry.get<HealthComponent>(bossEntity);
+        bossHealth.current = 0.0f;
+        bossHealth.isDead = true;
+
+        sim.step(ControllerInput{}, 0.1f);
+
+        REQUIRE(sim.getActiveScreen() != ActiveScreen::None);
+        const float endingTime = sim.getSimulationTime();
+        sim.step(ControllerInput{}, 0.5f);
+        REQUIRE(sim.getSimulationTime() == Approx(endingTime));
+    }
+
     SECTION("Starvation and Hypothermia Damage Application") {
         auto enemyView = sim.getContext().registry.view<EnemyTag>();
         for (auto e : enemyView) {
@@ -328,4 +345,48 @@ TEST_CASE("GameSimulation Integration and Player Controls", "[core][simulation]"
         REQUIRE(sim.castSkillF() == false);
         sim.exitDungeon();
     }
+}
+
+TEST_CASE("Campaign ending persists across resume without respawning the boss",
+          "[core][simulation][campaign][persistence]") {
+    GameSimulation defeated;
+    defeated.initialize(ClassType::Juggernaut, true);
+    defeated.enterDungeon();
+
+    auto bossView = defeated.getContext().registry.view<BossEncounterComponent>();
+    REQUIRE(bossView.begin() != bossView.end());
+    const entt::entity bossEntity = bossView.front();
+    auto& bossHealth = defeated.getContext().registry.get<HealthComponent>(bossEntity);
+    bossHealth.current = 0.0f;
+    bossHealth.isDead = true;
+    defeated.step(ControllerInput{}, 1.0f / 60.0f);
+
+    REQUIRE(defeated.isCampaignComplete());
+    REQUIRE_FALSE(defeated.isCampaignEndingAcknowledged());
+    const SaveData unacknowledgedSave = defeated.captureSaveData();
+
+    GameSimulation restored;
+    restored.initialize(ClassType::Juggernaut, true);
+    REQUIRE(restored.restoreSaveData(unacknowledgedSave));
+    REQUIRE(restored.isCampaignComplete());
+    REQUIRE_FALSE(restored.isCampaignEndingAcknowledged());
+    REQUIRE(restored.getActiveScreen() == ActiveScreen::CampaignEnding);
+    auto restoredBosses = restored.getContext().registry.view<BossEncounterComponent>();
+    REQUIRE(restoredBosses.begin() == restoredBosses.end());
+
+    restored.toggleScreen(ActiveScreen::Settings);
+    REQUIRE(restored.getActiveScreen() == ActiveScreen::CampaignEnding);
+    REQUIRE(restored.acknowledgeCampaignEnding());
+    REQUIRE_FALSE(restored.acknowledgeCampaignEnding());
+    REQUIRE(restored.isCampaignEndingAcknowledged());
+    REQUIRE(restored.getActiveScreen() == ActiveScreen::None);
+
+    GameSimulation resumed;
+    resumed.initialize(ClassType::Juggernaut, true);
+    REQUIRE(resumed.restoreSaveData(restored.captureSaveData()));
+    REQUIRE(resumed.isCampaignComplete());
+    REQUIRE(resumed.isCampaignEndingAcknowledged());
+    REQUIRE(resumed.getActiveScreen() == ActiveScreen::None);
+    auto resumedBosses = resumed.getContext().registry.view<BossEncounterComponent>();
+    REQUIRE(resumedBosses.begin() == resumedBosses.end());
 }

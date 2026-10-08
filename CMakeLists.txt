@@ -123,7 +123,7 @@ add_test(NAME test_AssetPipeline COMMAND test_AssetPipeline)
 set_tests_properties(test_AssetPipeline PROPERTIES ENVIRONMENT "${RUNECORE_HEADLESS_TEST_ENV}")
 
 set(FOCUSED_QA_SCENARIOS
-    movement jump mining loot crafting projectile melee skills dungeon feedback ui persistence hazards settlement boss input
+    movement jump mining loot crafting projectile melee skills dungeon campaign_ending feedback ui persistence hazards settlement boss input
     inventory_drag settings character_creation respawn enemy_roster weather_particles sky_transitions tile_palette dungeon_props
     map_fog building_tools npc_services audio_scenes crafting_gui augmentations_gui character_sheet skill_tree farming asset_pipeline
 )

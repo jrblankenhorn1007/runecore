@@ -61,6 +61,7 @@ public:
     void drawSkillTreeScreen(const SkillTree& skillTree, int skillPoints, const CanvasMetrics& metrics);
     void drawSettingsScreen(const AudioEngine& audio, const CanvasMetrics& metrics);
     void drawOnboardingScreen(const CanvasMetrics& metrics);
+    void drawCampaignEndingScreen(const CanvasMetrics& metrics);
     void drawTitleScreen(const TitleFlow& flow, const ClassRegistry& classes,
                          const CanvasMetrics& metrics);
     void drawVisualQaOverlay(const std::string& scenario, float progress, const CanvasMetrics& metrics);

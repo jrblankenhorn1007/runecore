@@ -583,18 +583,33 @@ int runGame(int argc, char* argv[]) {
                     inputState = humanInput;
                 }
 
+                const bool confirmPressed = std::any_of(
+                    humanInput.pressedKeys.begin(), humanInput.pressedKeys.end(),
+                    [](SDL_Keycode key) {
+                        return key == SDLK_RETURN || key == SDLK_KP_ENTER ||
+                               key == SDLK_SPACE;
+                    });
                 if (sim.getActiveScreen() == ActiveScreen::Onboarding) {
-                    const bool continuePressed = std::any_of(
-                        humanInput.pressedKeys.begin(), humanInput.pressedKeys.end(),
-                        [](SDL_Keycode key) {
-                            return key == SDLK_RETURN || key == SDLK_KP_ENTER ||
-                                   key == SDLK_SPACE;
-                        });
-                    if (!titleWasActive && continuePressed && sim.completeOnboarding() &&
+                    if (!titleWasActive && confirmPressed && sim.completeOnboarding() &&
                         titleMode && activeSaveSlot > 0) {
                         if (!SaveManager::saveSlot(
                                 saveDirectory, activeSaveSlot, sim.captureSaveData())) {
                             std::cerr << "[SAVE ERROR] Unable to save onboarding progress for slot "
+                                      << activeSaveSlot << ".\n";
+                            exitCode = 1;
+                            running = false;
+                            break;
+                        }
+                        lastAutosaveTime = currentTime;
+                    }
+                    inputState = RawInputState{};
+                } else if (sim.getActiveScreen() == ActiveScreen::CampaignEnding) {
+                    if (!titleWasActive && confirmPressed &&
+                        sim.acknowledgeCampaignEnding() &&
+                        titleMode && activeSaveSlot > 0) {
+                        if (!SaveManager::saveSlot(
+                                saveDirectory, activeSaveSlot, sim.captureSaveData())) {
+                            std::cerr << "[SAVE ERROR] Unable to save campaign completion for slot "
                                       << activeSaveSlot << ".\n";
                             exitCode = 1;
                             running = false;
@@ -953,6 +968,9 @@ int runGame(int argc, char* argv[]) {
                         break;
                     case ActiveScreen::Onboarding:
                         renderer.drawOnboardingScreen(metrics);
+                        break;
+                    case ActiveScreen::CampaignEnding:
+                        renderer.drawCampaignEndingScreen(metrics);
                         break;
                     case ActiveScreen::Minimap:
                         renderer.drawMinimap(sim.getDungeonLayout(), playerPos, metrics);

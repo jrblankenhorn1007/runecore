@@ -37,7 +37,7 @@ void BotReport::printSummary() const {
 std::vector<std::string> getFocusedScenarioNames() {
     return {
         "movement", "jump", "mining", "loot", "crafting", "projectile",
-        "melee", "skills", "dungeon", "feedback", "ui", "persistence",
+        "melee", "skills", "dungeon", "campaign_ending", "feedback", "ui", "persistence",
         "hazards", "settlement", "boss", "input", "inventory_drag",
         "settings", "character_creation", "respawn", "enemy_roster",
         "weather_particles", "sky_transitions", "tile_palette", "dungeon_props",
@@ -138,6 +138,32 @@ FocusedScenarioResult runFocusedScenario(const std::string& scenarioName) {
         sim.enterDungeon();
         result.passed = sim.isInsideDungeon() && sim.getDungeonLayout().rooms.size() > 1;
         result.detail = result.passed ? "BSP dungeon entered with generated rooms" : "dungeon transition failed";
+    } else if (scenarioName == "campaign_ending") {
+        sim.enterDungeon();
+        auto bossView = sim.getContext().registry.view<BossEncounterComponent>();
+        const bool bossSpawned = bossView.begin() != bossView.end();
+        bool endingOpened = false;
+        bool simulationPaused = false;
+        bool endingAcknowledged = false;
+        if (bossSpawned) {
+            const entt::entity bossEntity = bossView.front();
+            auto& health = sim.getContext().registry.get<HealthComponent>(bossEntity);
+            health.current = 0.0f;
+            health.isDead = true;
+            sim.step(ControllerInput{}, dt);
+            endingOpened = sim.getActiveScreen() == ActiveScreen::CampaignEnding;
+            const float endingTime = sim.getSimulationTime();
+            sim.step(ControllerInput{}, dt);
+            simulationPaused = sim.getSimulationTime() == endingTime;
+            endingAcknowledged = sim.acknowledgeCampaignEnding();
+        }
+        result.passed = bossSpawned && endingOpened && simulationPaused &&
+                        sim.isCampaignComplete() && endingAcknowledged &&
+                        sim.isCampaignEndingAcknowledged() &&
+                        sim.getActiveScreen() == ActiveScreen::None;
+        result.detail = result.passed
+            ? "boss victory, paused ending, and acknowledgement verified"
+            : "campaign ending flow failed";
     } else if (scenarioName == "feedback") {
         sim.spawnEnemy(initialPosition + Vec2{12.0f, 0.0f}, 10.0f, 50);
         sim.playerAttack();

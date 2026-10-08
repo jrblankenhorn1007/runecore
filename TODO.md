@@ -24,6 +24,9 @@ start-to-finish criteria below are implemented and directly playtested.
   and accessible controls without relying on developer-only QA instructions.
   New characters see a paused in-game briefing; unfinished briefings return
   on resume, and Enter/Space begins play without leaking input into gameplay.
+- [x] Show a clear, pausing campaign-victory ending after the final boss,
+  persist its completion and acknowledgement, and do not respawn the boss when
+  a completed dungeon save is resumed.
 - [ ] Complete and manually play the core game loop from a new character
   through exploration, progression, dungeon/boss victory, and a clear ending.
 - [ ] After that direct playtest, self-rate the complete game against gameplay,

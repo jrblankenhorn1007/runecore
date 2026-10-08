@@ -1216,6 +1216,37 @@ void Renderer::drawOnboardingScreen(const CanvasMetrics& metrics) {
                   0.9f, Color{255, 220, 100, 255});
 }
 
+void Renderer::drawCampaignEndingScreen(const CanvasMetrics& metrics) {
+    const float panelWidth = std::min(520.0f, static_cast<float>(metrics.virtualWidth) - 24.0f);
+    const float panelHeight = std::min(236.0f, static_cast<float>(metrics.virtualHeight) - 24.0f);
+    const float panelX = (static_cast<float>(metrics.virtualWidth) - panelWidth) * 0.5f;
+    const float panelY = (static_cast<float>(metrics.virtualHeight) - panelHeight) * 0.5f;
+
+    SDL_SetRenderDrawColor(m_renderer, 7, 13, 24, 255);
+    SDL_FRect panel{panelX, panelY, panelWidth, panelHeight};
+    SDL_RenderFillRect(m_renderer, &panel);
+    SDL_SetRenderDrawColor(m_renderer, 70, 190, 220, 255);
+    SDL_FRect header{panelX, panelY, panelWidth, 3.0f};
+    SDL_RenderFillRect(m_renderer, &header);
+    SDL_SetRenderDrawColor(m_renderer, 255, 220, 100, 255);
+    SDL_FRect accent{panelX, panelY, 4.0f, panelHeight};
+    SDL_RenderFillRect(m_renderer, &accent);
+
+    const float textX = panelX + 24.0f;
+    drawPixelText("CAMPAIGN COMPLETE", textX, panelY + 20.0f, 1.7f,
+                  Color{255, 220, 100, 255});
+    drawPixelText("THE ARCHITECT HAS FALLEN.", textX, panelY + 63.0f, 1.0f,
+                  Color{195, 235, 255, 255});
+    drawPixelText("THE RIFT IS SEALED; THE WORLD IS YOURS.", textX,
+                  panelY + 92.0f, 0.9f, Color{220, 230, 240, 255});
+    drawPixelText("THE ARCHITECT CORE IS YOURS TO KEEP.", textX,
+                  panelY + 113.0f, 0.9f, Color{220, 230, 240, 255});
+    drawPixelText("YOUR JOURNEY THROUGH RUNECORE IS COMPLETE.", textX,
+                  panelY + 151.0f, 0.85f, Color{125, 220, 190, 255});
+    drawPixelText("PRESS ENTER OR SPACE TO CONTINUE", textX,
+                  panelY + panelHeight - 25.0f, 0.9f, Color{255, 220, 100, 255});
+}
+
 void Renderer::drawTitleScreen(const TitleFlow& flow, const ClassRegistry& classes,
                                const CanvasMetrics& metrics) {
     SDL_SetRenderDrawColor(m_renderer, 5, 10, 22, 255);

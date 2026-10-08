@@ -3,6 +3,7 @@
 #include "save/SaveManager.hpp"
 #include <fstream>
 #include <cstdio>
+#include <iterator>
 
 using Catch::Approx;
 
@@ -56,6 +57,8 @@ TEST_CASE("SaveManager Serialization, Atomic Writes, and Checksums", "[save][per
         SaveData loaded;
         REQUIRE(SaveManager::loadFromFile(legacyPath, loaded));
         REQUIRE_FALSE(loaded.onboardingComplete);
+        REQUIRE_FALSE(loaded.campaignComplete);
+        REQUIRE_FALSE(loaded.endingAcknowledged);
         std::remove(legacyPath.c_str());
     }
 
@@ -174,6 +177,35 @@ TEST_CASE("SaveManager preserves character appearance and complete item data", "
     REQUIRE(loaded.equippedItems[0].item.affixes.size() == 1);
     REQUIRE(loaded.equippedItems[0].item.affixes[0].name == "Charged");
     REQUIRE(loaded.equippedItems[0].item.uniquePerk == "chain_lightning");
+
+    std::remove(path.c_str());
+}
+
+TEST_CASE("SaveManager writes campaign-ending state for safe resume", "[save][campaign]") {
+    const std::string path = "test_campaign_ending.sav";
+    std::remove(path.c_str());
+
+    SaveData data;
+    data.campaignComplete = true;
+    REQUIRE(SaveManager::saveToFile(path, data));
+
+    std::ifstream file(path);
+    const std::string serialized(
+        (std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>());
+    REQUIRE(serialized.find("campaignComplete") != std::string::npos);
+    REQUIRE(serialized.find("endingAcknowledged") != std::string::npos);
+
+    SaveData loaded;
+    REQUIRE(SaveManager::loadFromFile(path, loaded));
+    REQUIRE(loaded.campaignComplete);
+    REQUIRE_FALSE(loaded.endingAcknowledged);
+
+    data.endingAcknowledged = true;
+    REQUIRE(SaveManager::saveToFile(path, data));
+    REQUIRE(SaveManager::loadFromFile(path, loaded));
+    REQUIRE(loaded.campaignComplete);
+    REQUIRE(loaded.endingAcknowledged);
 
     std::remove(path.c_str());
 }

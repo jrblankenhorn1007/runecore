@@ -321,6 +321,91 @@ TEST_CASE("MainRunner Headless and CLI Argument Variations", "[core][main_runner
         REQUIRE(resumedSave.equippedItems.front().item.id == blade.id);
     }
 
+    SECTION("Interactive resume acknowledges and saves the campaign ending") {
+        const std::string saveDirectory =
+            (std::filesystem::temp_directory_path() /
+             ("runecore-campaign-ending-" +
+              std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()))).string();
+        const char* previousSaveDirectory = std::getenv("RUNECORE_SAVE_DIR");
+        const bool hadPreviousSaveDirectory = previousSaveDirectory != nullptr;
+        const std::string previousSaveDirectoryValue =
+            hadPreviousSaveDirectory ? previousSaveDirectory : "";
+        REQUIRE(setenv("RUNECORE_SAVE_DIR", saveDirectory.c_str(), 1) == 0);
+
+        SaveData completedRun;
+        completedRun.playerName = "Completed Hero";
+        completedRun.inDungeon = true;
+        completedRun.onboardingComplete = true;
+        completedRun.campaignComplete = true;
+        REQUIRE(SaveManager::saveSlot(saveDirectory, 1, completedRun));
+
+        std::atomic<bool> cancelEvents{false};
+        std::atomic<bool> quitEventPosted{false};
+        const auto eventScheduleStart = std::chrono::steady_clock::now();
+        std::thread acknowledgeEnding([&] {
+            const auto postKey = [&](std::chrono::milliseconds offset, SDL_Keycode key) {
+                const auto deadline = eventScheduleStart + offset;
+                while (std::chrono::steady_clock::now() < deadline && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                }
+                if (cancelEvents.load()) return;
+
+                SDL_Event event{};
+                event.type = SDL_EVENT_KEY_DOWN;
+                event.key.key = key;
+                event.key.repeat = 0;
+                while (!SDL_PushEvent(&event) && !cancelEvents.load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+            };
+
+            postKey(std::chrono::milliseconds(400), SDLK_RETURN);
+            postKey(std::chrono::milliseconds(800), SDLK_SPACE);
+
+            const auto quitDeadline = eventScheduleStart + std::chrono::milliseconds(1300);
+            while (std::chrono::steady_clock::now() < quitDeadline && !cancelEvents.load()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            if (cancelEvents.load()) return;
+
+            SDL_Event quit{};
+            quit.type = SDL_EVENT_QUIT;
+            quitEventPosted.store(SDL_PushEvent(&quit));
+        });
+
+        char* args[] = {
+            const_cast<char*>("untitled_rpg"),
+            const_cast<char*>("--duration"),
+            const_cast<char*>("2.0")
+        };
+        std::ostringstream output;
+        std::streambuf* previousOutput = std::cout.rdbuf(output.rdbuf());
+        const int exitCode = runGame(3, args);
+        std::cout.rdbuf(previousOutput);
+        cancelEvents.store(true);
+        acknowledgeEnding.join();
+
+        SaveData savedRun;
+        const bool slotSaved = SaveManager::loadSlot(saveDirectory, 1, savedRun);
+        const int environmentRestoreResult = hadPreviousSaveDirectory
+            ? setenv("RUNECORE_SAVE_DIR", previousSaveDirectoryValue.c_str(), 1)
+            : unsetenv("RUNECORE_SAVE_DIR");
+        std::error_code cleanupError;
+        std::filesystem::remove_all(saveDirectory, cleanupError);
+
+        REQUIRE(environmentRestoreResult == 0);
+        REQUIRE_FALSE(cleanupError);
+        REQUIRE(exitCode == 0);
+        REQUIRE(quitEventPosted.load());
+        REQUIRE(slotSaved);
+        INFO(output.str());
+        REQUIRE(output.str().find(
+                    "Resumed RUNECORE save slot 1 for Completed Hero at level 1.") !=
+                std::string::npos);
+        REQUIRE(savedRun.campaignComplete);
+        REQUIRE(savedRun.endingAcknowledged);
+    }
+
     SECTION("Headless Benchmark Argument") {
         char* args[] = {const_cast<char*>("untitled_rpg"), const_cast<char*>("--headless")};
         int code = runGame(2, args);

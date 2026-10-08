@@ -13,9 +13,9 @@ worktree: "/Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-camp
 iteration: 4
 status: IN_PROGRESS
 started_at_utc: "2026-10-08T05:50:26Z"
-updated_at_utc: "2026-10-08T05:51:54Z"
+updated_at_utc: "2026-10-08T06:21:31Z"
 resource_usage:
-  time_spent_seconds: 88
+  time_spent_seconds: 1865
   time_basis: WALL_CLOCK_ELAPSED
   token_spend:
     status: NOT_REPORTED
@@ -69,11 +69,25 @@ checks:
     result: "PASS; rebased the untouched new branch onto STATUS sign-out d228a00d8a87ca7a8be949d857ea3748e2e58f4c before editing."
   - command: "git diff --check"
     result: "PASS; clean new worktree before implementation."
+  - command: "Explicit-path branch baseline: configure/build test_GameSimulation and test_SaveManager, then run both through CTest."
+    result: "PASS; 2/2 headless tests. The earlier implicit-path command ran in the session's other worktree and is excluded."
+  - command: "TDD Red: build new campaign-ending tests and run test_GameSimulation, test_SaveManager, test_BotTester, and test_campaign_ending."
+    result: "PASS as Red evidence; all 4 failed on the expected missing ending/persistence behavior."
+  - command: "Build test_GameSimulation, test_SaveManager, test_BotTester, test_Renderer, test_MainRunner, and untitled_rpg; run the six focused CTest cases."
+    result: "PASS; 6/6 headless tests after implementation."
+  - command: "Run the isolated test_MainRunner campaign-ending resume section with SDL_VIDEODRIVER=dummy and SDL_AUDIODRIVER=dummy."
+    result: "PASS; 10 assertions, including persisted acknowledgement after SDL input and Quit."
+  - command: "Refactor shared confirmation-key detection; rebuild focused targets and rerun six focused CTest cases."
+    result: "PASS; 6/6 headless tests in 34.45 seconds."
+  - command: "cmake --build <iteration-build> --parallel 4 && ctest --test-dir <iteration-build> --output-on-failure"
+    result: "PASS; all targets built and all 89/89 headless CTest cases passed in 43.21 seconds."
+  - command: "git diff --check"
+    result: "PASS; no whitespace errors after implementation and TODO updates."
 blockers:
   - "The dedicated Project Memory Update reviews for merged iterations 1, 2, and 3 remain pending. Resource Manager reports 3 active agents, max_agents=2, available_slots=0; no reviewer or worker was dispatched."
 memory_review_status: PENDING
 memory_review_blocker: "Do not self-review or record NO_UPDATE; reserve and invoke the dedicated updater exactly once for each pending handoff when capacity is available."
-next_action: "Write a failing test for dungeon-boss victory opening a modal ending. Then implement and verify the persisted ending and player-facing victory screen. Keep settings, respawn, the full manual game loop, and the 9/10 rating gates open."
+next_action: "Inspect and commit the verified campaign-ending implementation; fetch origin, rebase if required, publish and integrate through the authorized MERGE lease, and verify remote main. Keep pending memory reviews, settings/respawn, the full manual game loop, and the 9/10 rating gates open."
 worker_sign_off:
   status: NOT_SIGNED_OFF
   attestation_kind: null

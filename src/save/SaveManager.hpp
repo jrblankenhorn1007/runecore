@@ -33,6 +33,8 @@ struct SaveData {
     float playerY{160.0f};
     bool inDungeon{false};
     bool onboardingComplete{false};
+    bool campaignComplete{false};
+    bool endingAcknowledged{false};
 
     Attributes attributes;
 

@@ -24,6 +24,7 @@
 enum class ActiveScreen {
     None,
     Onboarding,
+    CampaignEnding,
     Inventory,
     Crafting,
     Augmentations,
@@ -66,6 +67,9 @@ public:
     SaveData captureSaveData() const;
     bool restoreSaveData(const SaveData& data);
     bool completeOnboarding();
+    bool acknowledgeCampaignEnding();
+    bool isCampaignComplete() const { return m_campaignComplete; }
+    bool isCampaignEndingAcknowledged() const { return m_endingAcknowledged; }
     bool allocateAttribute(int attributeIndex);
     bool allocateSkill(const std::string& nodeId);
 
@@ -151,6 +155,8 @@ private:
     Hitbox m_lastAttackBox;
     ActiveScreen m_activeScreen{ActiveScreen::None};
     bool m_onboardingComplete{false};
+    bool m_campaignComplete{false};
+    bool m_endingAcknowledged{false};
     CharacterCreation m_character;
     Vec2 m_respawnPoint{100.0f, 160.0f};
 };

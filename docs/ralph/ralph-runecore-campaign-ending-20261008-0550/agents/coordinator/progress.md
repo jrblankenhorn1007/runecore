@@ -28,6 +28,34 @@
 
 ## TDD evidence
 
-- Red: pending.
-- Green: pending.
-- Refactor: pending.
+- Baseline (correct iteration worktree):
+  `cmake -S /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550 -B /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build -G Ninja && cmake --build /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --target test_GameSimulation test_SaveManager --parallel 4 && ctest --test-dir /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --output-on-failure -R '^(test_GameSimulation|test_SaveManager)$'`
+  passed, 2/2. A preceding command without explicit source/build paths ran
+  against the session's other worktree and is excluded from this evidence.
+- Red:
+  `cmake -S /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550 -B /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build -G Ninja && cmake --build /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --target test_GameSimulation test_SaveManager test_BotTester untitled_rpg --parallel 4 && ctest --test-dir /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --output-on-failure -R '^(test_GameSimulation|test_SaveManager|test_BotTester|test_campaign_ending)$'`
+  compiled and failed 4/4 for the expected missing behavior: no ending on boss
+  defeat, no serialized campaign state, and the focused QA flows did not open
+  an ending. This established behavioral Red before implementation.
+- Green:
+  `cmake --build /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --target test_GameSimulation test_SaveManager test_BotTester test_Renderer test_MainRunner untitled_rpg --parallel 4 && ctest --test-dir /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --output-on-failure -R '^(test_GameSimulation|test_SaveManager|test_BotTester|test_Renderer|test_MainRunner|test_campaign_ending)$'`
+  passed 6/6 headlessly. The isolated interactive-resume section also passed
+  10 assertions with Catch2 section selection. Its test driver posts SDL
+  events and quits the game explicitly; it does not open a window.
+- A first integration-test attempt exposed a test-harness issue, not a game
+  defect: pressing Space correctly opts the timed launch into indefinite human
+  control, so the test must send `SDL_EVENT_QUIT`. The initial slot navigation
+  also selected an empty slot. Corrected the test to resume its populated
+  first slot, acknowledge with Space, and post Quit; the isolated test then
+  verified that acknowledgement was saved.
+- Refactor: shared the Enter/Space confirmation-key detection between the
+  onboarding and ending screens. Rebuilt the focused targets and reran the
+  same headless CTest selection; passed 6/6 in 34.45 seconds.
+- Full verification:
+  `cmake --build /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --parallel 4 && ctest --test-dir /Users/jrblankenhorn/Documents/runecore.worktrees/ralph-runecore-campaign-ending-20261008-0550/build --output-on-failure`
+  built all targets and passed 89/89 headless tests in 43.21 seconds.
+- `git diff --check`: PASS.
+- Environment gaps: verified only on macOS with AppleClang 17; CTest uses dummy
+  SDL video/audio. No interactive graphical start-to-finish playthrough or
+  Windows/Linux build has been performed. The full-game and 9/10 gates remain
+  open.

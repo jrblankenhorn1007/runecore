@@ -14,6 +14,8 @@ void GameSimulation::initialize(ClassType playerClass, bool headlessAudio) {
     m_character.classType = playerClass;
     m_activeScreen = ActiveScreen::None;
     m_onboardingComplete = false;
+    m_campaignComplete = false;
+    m_endingAcknowledged = false;
     m_audio.init(headlessAudio);
 
     // 1. Register sample crafting recipes
@@ -208,6 +210,16 @@ bool GameSimulation::completeOnboarding() {
     return true;
 }
 
+bool GameSimulation::acknowledgeCampaignEnding() {
+    if (m_activeScreen != ActiveScreen::CampaignEnding ||
+        !m_campaignComplete || m_endingAcknowledged) {
+        return false;
+    }
+    m_endingAcknowledged = true;
+    m_activeScreen = ActiveScreen::None;
+    return true;
+}
+
 SaveData GameSimulation::captureSaveData() const {
     SaveData data;
     data.playerName = m_character.name;
@@ -224,6 +236,8 @@ SaveData GameSimulation::captureSaveData() const {
     data.playerY = getPlayerPosition().y;
     data.inDungeon = isInsideDungeon();
     data.onboardingComplete = m_onboardingComplete;
+    data.campaignComplete = m_campaignComplete;
+    data.endingAcknowledged = m_endingAcknowledged;
     data.attributes = Attributes{
         m_progression.getAttribute(Progression::Attribute::Strength),
         m_progression.getAttribute(Progression::Attribute::Dexterity),
@@ -264,7 +278,8 @@ bool GameSimulation::restoreSaveData(const SaveData& data) {
         data.level < 1 || !std::isfinite(data.health) || !std::isfinite(data.mana) ||
         !std::isfinite(data.power) || !std::isfinite(data.playerX) ||
         !std::isfinite(data.playerY) || !std::isfinite(data.hunger) ||
-        !std::isfinite(data.thirst) || !std::isfinite(data.bodyTemp)) {
+        !std::isfinite(data.thirst) || !std::isfinite(data.bodyTemp) ||
+        (data.endingAcknowledged && !data.campaignComplete)) {
         return false;
     }
 
@@ -277,6 +292,8 @@ bool GameSimulation::restoreSaveData(const SaveData& data) {
     CharacterCreation character{data.playerName, m_character.classType, data.visorColor};
     if (!createCharacter(character)) return false;
 
+    m_campaignComplete = data.campaignComplete;
+    m_endingAcknowledged = data.endingAcknowledged;
     if (data.inDungeon && !isInsideDungeon()) enterDungeon();
     auto& position = m_context.registry.get<TransformComponent>(m_playerEntity).position;
     auto& velocity = m_context.registry.get<VelocityComponent>(m_playerEntity).linear;
@@ -334,9 +351,13 @@ bool GameSimulation::restoreSaveData(const SaveData& data) {
     m_audio.setMusicVolume(data.settings.musicVolume);
     m_audio.setAmbienceVolume(data.settings.ambienceVolume);
     m_onboardingComplete = data.onboardingComplete;
-    m_activeScreen = m_onboardingComplete
-        ? ActiveScreen::None
-        : ActiveScreen::Onboarding;
+    if (m_campaignComplete && !m_endingAcknowledged) {
+        m_activeScreen = ActiveScreen::CampaignEnding;
+    } else {
+        m_activeScreen = m_onboardingComplete
+            ? ActiveScreen::None
+            : ActiveScreen::Onboarding;
+    }
     return true;
 }
 
@@ -362,7 +383,8 @@ entt::entity GameSimulation::spawnEnemy(const Vec2& position, float health, int 
 
 void GameSimulation::step(const ControllerInput& input, float dt) {
     if (m_activeScreen == ActiveScreen::Settings ||
-        m_activeScreen == ActiveScreen::Onboarding) {
+        m_activeScreen == ActiveScreen::Onboarding ||
+        m_activeScreen == ActiveScreen::CampaignEnding) {
         return;
     }
 
@@ -558,6 +580,12 @@ void GameSimulation::step(const ControllerInput& input, float dt) {
             drop.quantity = 1;
             m_lootSystem.spawnLoot(m_context.registry, trans.position, drop);
             m_context.registry.emplace<DeathAnimationComponent>(e, 0.25f, 0.25f, enemyTag.type);
+            if (isBoss) {
+                m_campaignComplete = true;
+                m_endingAcknowledged = false;
+                m_onboardingComplete = true;
+                m_activeScreen = ActiveScreen::CampaignEnding;
+            }
         }
     }
 }
@@ -737,7 +765,9 @@ bool GameSimulation::castSkillF() {
 
 void GameSimulation::toggleScreen(ActiveScreen screen) {
     if (m_activeScreen == ActiveScreen::Onboarding ||
-        screen == ActiveScreen::Onboarding) {
+        m_activeScreen == ActiveScreen::CampaignEnding ||
+        screen == ActiveScreen::Onboarding ||
+        screen == ActiveScreen::CampaignEnding) {
         return;
     }
     if (m_activeScreen == ActiveScreen::Settings && screen != ActiveScreen::Settings) {
@@ -778,10 +808,14 @@ void GameSimulation::enterDungeon() {
             }
         }
 
-        // Spawn Dungeon Boss in Boss Room
-        const auto& bossRoom = m_dungeonLayout.rooms[m_dungeonLayout.bossRoomIndex];
-        entt::entity boss = spawnEnemy(Vec2{bossRoom.center().x * 16.0f, bossRoom.center().y * 16.0f}, 400.0f, 1000);
-        m_context.registry.emplace<BossEncounterComponent>(boss);
+        if (!m_campaignComplete) {
+            // Spawn Dungeon Boss in Boss Room
+            const auto& bossRoom = m_dungeonLayout.rooms[m_dungeonLayout.bossRoomIndex];
+            entt::entity boss = spawnEnemy(
+                Vec2{bossRoom.center().x * 16.0f, bossRoom.center().y * 16.0f},
+                400.0f, 1000);
+            m_context.registry.emplace<BossEncounterComponent>(boss);
+        }
     }
 }
 

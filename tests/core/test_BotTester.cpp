@@ -62,7 +62,7 @@ TEST_CASE("BotTester Autonomous Scenario Execution and Reporting", "[core][bot_t
 
 TEST_CASE("Focused QA Scenarios Start Fresh and Pass Independently", "[core][qa]") {
     const auto scenarios = getFocusedScenarioNames();
-    REQUIRE(scenarios.size() == 35);
+    REQUIRE(scenarios.size() == 36);
     for (const auto& scenario : scenarios) {
         const FocusedScenarioResult result = runFocusedScenario(scenario);
         INFO("scenario=" << scenario << " detail=" << result.detail);

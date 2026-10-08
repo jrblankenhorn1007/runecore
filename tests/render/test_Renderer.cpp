@@ -152,6 +152,38 @@ TEST_CASE("Onboarding briefing renders objective and controls in a visible panel
     REQUIRE(brightTextPixels > 20);
 }
 
+TEST_CASE("Campaign ending renders a readable victory panel",
+          "[render][renderer][campaign]") {
+    Renderer renderer;
+    REQUIRE(renderer.init("CampaignEnding", 640, 360, 640, 360, SDL_WINDOW_HIDDEN));
+    const CanvasMetrics metrics = Camera::calculateCanvasMetrics(640, 360);
+
+    renderer.beginFrame();
+    renderer.drawCampaignEndingScreen(metrics);
+    SDL_Surface* frame = SDL_RenderReadPixels(renderer.getSDLRenderer(), nullptr);
+    REQUIRE(frame != nullptr);
+
+    bool foundGold = false;
+    std::size_t brightTextPixels = 0;
+    for (int y = 0; y < frame->h; ++y) {
+        for (int x = 0; x < frame->w; ++x) {
+            Uint8 red = 0;
+            Uint8 green = 0;
+            Uint8 blue = 0;
+            Uint8 alpha = 0;
+            if (!SDL_ReadSurfacePixel(frame, x, y, &red, &green, &blue, &alpha)) continue;
+            foundGold |= red == 255 && green == 220 && blue == 100;
+            if (red >= 190 && green >= 225 && blue >= 245) ++brightTextPixels;
+        }
+    }
+    SDL_DestroySurface(frame);
+    renderer.endFrame(metrics);
+    renderer.shutdown();
+
+    REQUIRE(foundGold);
+    REQUIRE(brightTextPixels > 20);
+}
+
 TEST_CASE("Pixel text maps supported characters to bounded glyphs", "[render][renderer][text]") {
     REQUIRE(Renderer::pixelGlyphIndex('0') == 0);
     REQUIRE(Renderer::pixelGlyphIndex('9') == 9);

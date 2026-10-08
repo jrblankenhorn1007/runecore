@@ -40,6 +40,7 @@ This is the executable order derived from `TODO.md`. Each item must have a focus
 - [x] `pause_resume`: Escape pauses simulation and suppresses gameplay input until settings closes; verify with simulation and launch tests.
 - [x] `save_resume`: title flow selects a save slot, loads existing progress, and saves changes across sessions; verify with headless `test_MainRunner`, `test_GameSimulation`, and `test_SaveManager`.
 - [x] `new_player_onboarding`: show a paused in-game objective/control briefing, persist completion with a legacy-save default, and prevent the continue key from triggering gameplay; verify in headless `test_GameSimulation`, `test_SaveManager`, `test_Renderer`, and `test_MainRunner`.
+- [x] `campaign_ending`: show a pausing final victory screen, persist completion and acknowledgement, safely dismiss it, and resume without respawning the boss; verify in headless `test_GameSimulation`, `test_SaveManager`, `test_Renderer`, `test_MainRunner`, and `test_campaign_ending`.
 - [ ] `complete_game_loop`: manually play a fresh character from start through progression and final boss victory with a clear ending.
 - [ ] `release_playtest_and_rating`: conduct and record a direct end-to-end playable build assessment; rate the complete game at least 9/10 only when supported by that playtest. Test coverage and scripted captures alone are insufficient evidence.
 
